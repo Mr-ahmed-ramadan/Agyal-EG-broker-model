@@ -1,0 +1,10 @@
+node_modules/
+dist/
+build/
+.gradle/
+*.log
+.env
+.env.local
+coverage/
+services/fix-gateway/store/
+services/fix-gateway/log/

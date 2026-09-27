@@ -1,0 +1,405 @@
+// Core data model sketch for the Agyal Broker Platform.
+// Every tenant-owned model carries `tenantId` and is protected by PostgreSQL
+// Row-Level Security in migrations (ADR 0002). Platform-level models (Bank,
+// Instrument) have no tenantId.
+//
+// This is a starting point for the first migration, not a final schema.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ---------------------------------------------------------------------------
+// Tenancy (ADR 0002)
+// ---------------------------------------------------------------------------
+
+model Tenant {
+  id           String   @id @default(uuid())
+  slug         String   @unique
+  legalNameEn  String
+  legalNameAr  String
+  fraLicenseNo String?
+  status       TenantStatus @default(ONBOARDING)
+  customDomain String?  @unique
+  branding     Json     // TenantBranding from @agyal/shared-types
+  config       Json     // auto-approval rules, limits, enabled instruments, cut-offs
+  createdAt    DateTime @default(now())
+
+  users         User[]
+  clients       Client[]
+  bankRelations BrokerBankRelationship[]
+}
+
+enum TenantStatus {
+  ONBOARDING
+  ACTIVE
+  SUSPENDED
+  OFFBOARDED
+}
+
+// ---------------------------------------------------------------------------
+// Identity
+// ---------------------------------------------------------------------------
+
+model User {
+  id           String   @id @default(uuid())
+  tenantId     String?  // null for Agyal operators and bank users
+  bankId       String?  // set for PORTAL-mode bank users
+  email        String?
+  mobile       String?
+  passwordHash String
+  roles        String[]
+  mfaEnabled   Boolean  @default(false)
+  createdAt    DateTime @default(now())
+
+  tenant Tenant? @relation(fields: [tenantId], references: [id])
+
+  @@unique([tenantId, email])
+  @@unique([tenantId, mobile])
+}
+
+// ---------------------------------------------------------------------------
+// Clients & onboarding (ADR 0005)
+// ---------------------------------------------------------------------------
+
+model Client {
+  id                  String       @id @default(uuid())
+  tenantId            String
+  userId              String       @unique
+  status              ClientStatus @default(ONBOARDING)
+  fullNameEn          String?
+  fullNameAr          String?
+  nationalIdEncrypted Bytes?       // per-tenant data key
+  nationalIdLast4     String?
+  riskRating          RiskRating?
+  riskProfile         String?
+  kycApprovedAt       DateTime?
+  kycReviewDueAt      DateTime?
+  createdAt           DateTime     @default(now())
+
+  tenant          Tenant                 @relation(fields: [tenantId], references: [id])
+  onboarding      OnboardingApplication?
+  investorCode    InvestorCode?
+  custodyAccounts CustodyAccount[]
+  orders          Order[]
+
+  @@index([tenantId, status])
+}
+
+enum ClientStatus {
+  ONBOARDING
+  PENDING_APPROVAL
+  ACTIVE
+  NEEDS_INFO
+  REJECTED
+  SUSPENDED
+  CLOSED
+}
+
+enum RiskRating {
+  LOW
+  MEDIUM
+  HIGH
+}
+
+model OnboardingApplication {
+  id            String   @id @default(uuid())
+  tenantId      String
+  clientId      String   @unique
+  currentStep   String
+  status        String
+  ekycResult    Json?
+  amlResult     Json?
+  suitability   Json?
+  decidedById   String?  // broker user who approved/rejected
+  decisionRule  String?  // auto-approval rule version, if auto-approved
+  decidedAt     DateTime?
+  updatedAt     DateTime @updatedAt
+
+  client Client @relation(fields: [clientId], references: [id])
+}
+
+// ---------------------------------------------------------------------------
+// MCDR unified code & custody (ADR 0006)
+// ---------------------------------------------------------------------------
+
+model InvestorCode {
+  id            String             @id @default(uuid())
+  tenantId      String
+  clientId      String             @unique
+  code          String?
+  status        InvestorCodeStatus @default(NOT_REQUESTED)
+  source        String?            // EXISTING_DECLARED | NEW_REQUEST
+  submissionRef String?
+  verifiedAt    DateTime?
+  updatedAt     DateTime           @updatedAt
+
+  client Client @relation(fields: [clientId], references: [id])
+}
+
+enum InvestorCodeStatus {
+  NOT_REQUESTED
+  EXISTING_DECLARED
+  REQUESTED
+  ISSUED
+  VERIFIED
+  REJECTED
+}
+
+model CustodyAccount {
+  id            String     @id @default(uuid())
+  tenantId      String
+  clientId      String
+  custodian     String
+  accountNumber String
+  depository    Depository
+  status        String
+  createdAt     DateTime   @default(now())
+
+  client Client @relation(fields: [clientId], references: [id])
+
+  @@unique([tenantId, clientId, depository])
+}
+
+enum Depository {
+  MCDR
+  CBE
+  BANK_INTERNAL
+}
+
+// ---------------------------------------------------------------------------
+// Banks & instruments (platform-level) (ADR 0004)
+// ---------------------------------------------------------------------------
+
+model Bank {
+  id             String             @id @default(uuid())
+  nameEn         String
+  nameAr         String
+  connectionMode BankConnectionMode
+  fixCompId      String?
+  active         Boolean            @default(true)
+
+  relations BrokerBankRelationship[]
+}
+
+enum BankConnectionMode {
+  FIX
+  PORTAL
+  FILE
+}
+
+model BrokerBankRelationship {
+  id                 String  @id @default(uuid())
+  tenantId           String
+  bankId             String
+  brokerAccountAtBank String
+  enabledInstruments String[]
+  fixSessionId       String?
+  active             Boolean @default(true)
+
+  tenant Tenant @relation(fields: [tenantId], references: [id])
+  bank   Bank   @relation(fields: [bankId], references: [id])
+
+  @@unique([tenantId, bankId])
+}
+
+model Instrument {
+  id             String         @id @default(uuid())
+  isin           String         @unique
+  type           InstrumentType
+  issuer         String
+  nameEn         String
+  nameAr         String
+  currency       String         @default("EGP")
+  couponRate     Decimal?       @db.Decimal(9, 6)
+  couponFreq     String?
+  dayCount       String?
+  issueDate      DateTime?
+  maturityDate   DateTime
+  depository     Depository
+}
+
+enum InstrumentType {
+  TREASURY_BOND
+  TREASURY_BILL
+  CORPORATE_BOND
+  SUKUK
+}
+
+// ---------------------------------------------------------------------------
+// FIX-native order model (ADR 0003)
+// ---------------------------------------------------------------------------
+
+model QuoteRequest {
+  id           String   @id @default(uuid())
+  tenantId     String
+  quoteReqId   String   @unique // QuoteReqID(131)
+  clientId     String
+  isin         String
+  side         String   // Side(54)
+  orderQty     Decimal  @db.Decimal(20, 2)
+  createdAt    DateTime @default(now())
+
+  quotes Quote[]
+}
+
+model Quote {
+  id             String   @id @default(uuid())
+  tenantId       String
+  quoteRequestId String
+  bankId         String
+  quoteId        String   // QuoteID(117), from the bank
+  priceType      String   // PriceType(423)
+  price          Decimal? @db.Decimal(18, 8)
+  yield          Decimal? @db.Decimal(9, 6)
+  validUntil     DateTime // ValidUntilTime(62)
+  receivedAt     DateTime @default(now())
+
+  quoteRequest QuoteRequest @relation(fields: [quoteRequestId], references: [id])
+
+  @@unique([bankId, quoteId])
+}
+
+model Order {
+  id              String   @id @default(uuid())
+  tenantId        String
+  clOrdId         String   @unique // ClOrdID(11)
+  orderId         String?  // OrderID(37), from the bank
+  clientId        String
+  bankId          String
+  quoteId         String?
+  isin            String
+  side            String   // Side(54)
+  ordType         String   // OrdType(40)
+  orderQty        Decimal  @db.Decimal(20, 2)
+  ordStatus       String   // OrdStatus(39) - current-state projection
+  cumQty          Decimal  @default(0) @db.Decimal(20, 2)
+  priceSnapshotId String
+  releasedById    String?  // broker dealer, if manual release is enabled
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  client     Client      @relation(fields: [clientId], references: [id])
+  executions Execution[]
+
+  @@index([tenantId, ordStatus])
+}
+
+/// Append-only history of ExecutionReports for an order.
+model Execution {
+  id                 String   @id @default(uuid())
+  tenantId           String
+  orderId            String
+  execId             String   // ExecID(17), idempotency key per bank
+  bankId             String
+  execType           String   // ExecType(150)
+  ordStatus          String   // OrdStatus(39)
+  lastQty            Decimal? @db.Decimal(20, 2)
+  lastPx             Decimal? @db.Decimal(18, 8)
+  accruedInterestAmt Decimal? @db.Decimal(20, 2)
+  netMoney           Decimal? @db.Decimal(20, 2)
+  settlDate          DateTime?
+  transactTime       DateTime
+  rawMessageId       String?
+  createdAt          DateTime @default(now())
+
+  order Order @relation(fields: [orderId], references: [id])
+
+  @@unique([bankId, execId])
+}
+
+/// Immutable record of what the client saw and agreed to (ADR 0008).
+model PriceSnapshot {
+  id             String   @id @default(uuid())
+  tenantId       String
+  quoteId        String
+  pricingRuleVer String
+  bankPrice      Decimal? @db.Decimal(18, 8)
+  bankYield      Decimal? @db.Decimal(9, 6)
+  markupBps      Int
+  fees           Json
+  clientPrice    Decimal? @db.Decimal(18, 8)
+  clientYield    Decimal? @db.Decimal(9, 6)
+  totalCost      Decimal  @db.Decimal(20, 2)
+  disclosure     String
+  createdAt      DateTime @default(now())
+}
+
+/// Raw FIX message store (in and out), shared with the audit trail.
+model FixMessage {
+  id         String   @id @default(uuid())
+  sessionId  String
+  direction  String   // IN | OUT
+  msgType    String
+  seqNum     Int
+  raw        String
+  receivedAt DateTime @default(now())
+
+  @@unique([sessionId, direction, seqNum])
+}
+
+// ---------------------------------------------------------------------------
+// Ledger (ADR 0007)
+// ---------------------------------------------------------------------------
+
+model LedgerAccount {
+  id         String  @id @default(uuid())
+  tenantId   String
+  clientId   String? // null for broker-level accounts
+  type       String  // CLIENT_CASH_AVAILABLE, CLIENT_POSITION, CLIENT_MONEY_BANK, ...
+  currency   String  @default("EGP")
+  isin       String? // set for position accounts
+
+  postings Posting[]
+
+  @@unique([tenantId, clientId, type, currency, isin])
+}
+
+model JournalEntry {
+  id            String   @id @default(uuid())
+  tenantId      String
+  eventType     String
+  reference     String
+  effectiveDate DateTime
+  reversesId    String?
+  createdById   String?
+  createdAt     DateTime @default(now())
+
+  postings Posting[]
+}
+
+model Posting {
+  id             String  @id @default(uuid())
+  tenantId       String
+  journalEntryId String
+  accountId      String
+  /// Signed amount in minor units / nominal; entries must sum to zero per currency.
+  amount         Decimal @db.Decimal(24, 2)
+
+  journalEntry JournalEntry  @relation(fields: [journalEntryId], references: [id])
+  account      LedgerAccount @relation(fields: [accountId], references: [id])
+}
+
+// ---------------------------------------------------------------------------
+// Audit (ADR 0001)
+// ---------------------------------------------------------------------------
+
+model AuditLog {
+  id        String   @id @default(uuid())
+  tenantId  String?
+  actorId   String?
+  action    String
+  entity    String
+  entityId  String
+  before    Json?
+  after     Json?
+  ip        String?
+  createdAt DateTime @default(now())
+
+  @@index([tenantId, entity, entityId])
+}

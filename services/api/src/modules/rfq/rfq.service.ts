@@ -17,10 +17,13 @@ import {
 } from '@agyal/shared-types';
 import { newId } from '../../common/crypto.util';
 import { DbService, type Tx } from '../../common/db.service';
+import { LedgerAccountType } from '../../domain/ledger-rules';
 import { isInstrumentSuitable } from '../../domain/onboarding-rules';
+import type { TradeSide } from '../../domain/pricing';
 import { FixOutboxService } from '../bank-adapters/fix-outbox.service';
 import { InstrumentsService } from '../instruments/instruments.service';
-import { PricingService } from '../pricing/pricing.service';
+import { LedgerService } from '../ledger/ledger.service';
+import { bankPriceFor, PricingService, tradeSide } from '../pricing/pricing.service';
 
 /** FIX PartyRole(452) values used in NoPartyIDs; confirmed per bank (docs/fix/banks). */
 export const PARTY_ROLE = { EXECUTING_FIRM: 1, CLIENT_ID: 3 } as const;
@@ -52,9 +55,11 @@ export class RfqService {
     private readonly instruments: InstrumentsService,
     private readonly pricing: PricingService,
     private readonly outbox: FixOutboxService,
+    private readonly ledger: LedgerService,
   ) {}
 
-  async create(tenant: Tenant, clientId: string, input: { isin: string; quantity: string }) {
+  async create(tenant: Tenant, clientId: string, input: { side: TradeSide; isin: string; quantity: string }) {
+    const fixSide = input.side === 'BUY' ? Side.Buy : Side.Sell;
     const instrument = await this.instruments.byIsin(tenant, input.isin);
     const qty = new Decimal(input.quantity);
     const min = new Decimal(instrument.minQty.toString());
@@ -73,8 +78,19 @@ export class RfqService {
       if (!client || client.status !== 'ACTIVE') {
         throw new ForbiddenException('Your account must be approved before requesting prices');
       }
-      if (!client.riskProfile || !isInstrumentSuitable(client.riskProfile, instrument.type)) {
-        throw new ForbiddenException('This instrument is not suitable for your risk profile');
+      if (input.side === 'BUY') {
+        if (!client.riskProfile || !isInstrumentSuitable(client.riskProfile, instrument.type)) {
+          throw new ForbiddenException('This instrument is not suitable for your risk profile');
+        }
+      } else {
+        const free = await this.ledger.balance(tx, tenant.id, {
+          type: LedgerAccountType.CLIENT_POSITION,
+          unit: instrument.isin,
+          clientId,
+        });
+        if (free.lt(qty)) {
+          throw new BadRequestException(`You can sell up to ${free.toFixed(2)} of this holding`);
+        }
       }
       const relations = await tx.brokerBankRelationship.findMany({
         where: { active: true, bank: { active: true } },
@@ -89,7 +105,7 @@ export class RfqService {
           quoteReqId,
           clientId,
           isin: instrument.isin,
-          side: Side.Buy,
+          side: fixSide,
           orderQty: qty.toFixed(2),
           settlDate,
         },
@@ -99,7 +115,7 @@ export class RfqService {
           msgType: MsgType.QuoteRequest,
           quoteReqId,
           instrument: { securityId: instrument.isin, securityIdSource: SecurityIDSource.Isin },
-          side: Side.Buy,
+          side: fixSide,
           orderQty: qty.toFixed(2),
           settlDate: fixDate(settlDate),
           parties: orderParties(rel.brokerAccountAtBank, client.investorCode?.code ?? 'PENDING'),
@@ -109,7 +125,10 @@ export class RfqService {
     });
   }
 
-  /** The client's RFQ with live quotes priced for the client, best first (ADR 0008). */
+  /**
+   * The client's RFQ with live quotes priced for the client, best first
+   * (ADR 0008): highest yield for a buy, highest net proceeds for a sell.
+   */
   async get(tenant: Tenant, clientId: string, id: string) {
     return this.db.forTenant(tenant.id, async (tx) => {
       const request = await tx.quoteRequest.findUnique({ where: { id }, include: { quotes: true } });
@@ -121,18 +140,15 @@ export class RfqService {
         select: { quoteId: true },
       });
       const used = new Set(orders.map((o) => o.quoteId));
+      const side = tradeSide(request.side);
       const quotes = request.quotes
         .filter((q) => q.validUntil > now && !used.has(q.id))
         .flatMap((q) => {
+          const bankPx = bankPriceFor(q, side);
+          if (!bankPx) return [];
           let p;
           try {
-            p = this.pricing.priceBuy(
-              tenant,
-              instrument,
-              q.offerPx.toString(),
-              request.orderQty.toString(),
-              request.settlDate,
-            );
+            p = this.pricing.price(tenant, side, instrument, bankPx, request.orderQty.toString(), request.settlDate);
           } catch (err) {
             this.log.warn(`Skipping unpriceable quote ${q.quoteId}: ${(err as Error).message}`);
             return [];
@@ -146,12 +162,17 @@ export class RfqService {
             principal: p.principal,
             accruedInterest: p.accruedInterest,
             commission: p.commission,
-            totalCost: p.totalCost,
+            netAmount: p.netAmount,
           }];
         })
-        .sort((a, b) => Number(b.clientYield) - Number(a.clientYield));
+        .sort((a, b) =>
+          side === 'BUY'
+            ? Number(b.clientYield) - Number(a.clientYield)
+            : Number(b.netAmount) - Number(a.netAmount),
+        );
       return {
         id: request.id,
+        side,
         isin: request.isin,
         quantity: request.orderQty.toFixed(2),
         settlDate: request.settlDate,
@@ -166,7 +187,10 @@ export class RfqService {
     const request = await tx.quoteRequest.findUnique({ where: { quoteReqId: msg.quoteReqId } });
     if (!request) throw new Error(`Unknown QuoteReqID ${msg.quoteReqId}`);
     if (msg.instrument.securityId !== request.isin) throw new Error('Quote for a different instrument');
-    if (!msg.offerPx) throw new Error('Quote without OfferPx');
+    const isBuy = request.side === Side.Buy;
+    if (isBuy ? !msg.offerPx : !msg.bidPx) {
+      throw new Error(`Quote without ${isBuy ? 'OfferPx' : 'BidPx'} for a ${isBuy ? 'buy' : 'sell'} request`);
+    }
     if (msg.priceType !== PriceType.PercentageOfPar) {
       throw new Error(`Unsupported PriceType ${msg.priceType}`);
     }
@@ -178,8 +202,10 @@ export class RfqService {
         bankId,
         quoteId: msg.quoteId,
         priceType: msg.priceType,
-        offerPx: msg.offerPx,
+        offerPx: msg.offerPx ?? null,
         offerYield: msg.offerYield ?? null,
+        bidPx: msg.bidPx ?? null,
+        bidYield: msg.bidYield ?? null,
         validUntil: new Date(msg.validUntilTime),
       },
       update: {},

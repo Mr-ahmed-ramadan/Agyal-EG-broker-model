@@ -37,11 +37,18 @@ trade confirmations and custody statements.
 | Client deposit confirmed on the segregated account | CLIENT_MONEY_BANK ↔ CLIENT_CASH_AVAILABLE |
 | Order accepted | move cash AVAILABLE → RESERVED (price × qty + accrued + fees, with buffer) |
 | Execution (fill) | RESERVED → SETTLEMENT_PAYABLE (bank); position booked as *pending settlement* |
+| Sell order accepted | move nominal CLIENT_POSITION → CLIENT_POSITION_RESERVED |
+| Sell fill | CLIENT_POSITION_RESERVED ↔ CUSTODY_POSITION (nominal); SETTLEMENT_RECEIVABLE (bank) ↔ CLIENT_CASH_AVAILABLE (net proceeds) and BROKER_REVENUE (markup + commission) |
+| Order finished | unused cash reserve or unsold nominal returned to available |
 | Settlement date: cash paid to bank / securities delivered to custody | SETTLEMENT_PAYABLE ↔ CLIENT_MONEY_BANK; position → settled |
 | Coupon / maturity received | CLIENT_MONEY_BANK ↔ CLIENT_CASH_AVAILABLE; position closed at maturity |
 | Broker fees/commission | CLIENT_CASH → BROKER_FEES_RECEIVABLE |
 | Withdrawal to client's own bank account | CLIENT_CASH_AVAILABLE ↔ CLIENT_MONEY_BANK |
 
+- Sale proceeds are credited to the client's available cash at fill, while
+  the bank's payment is tracked as SETTLEMENT_RECEIVABLE until settlement.
+  This lets a client reinvest immediately; once withdrawals exist, a
+  withdrawal must be limited to cash that has actually settled.
 - Settlement convention is configured per instrument type and bank
   (e.g. same-day or T+n); the platform tracks trade date and settlement date
   separately and projects positions on both bases.

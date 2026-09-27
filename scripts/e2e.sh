@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Runs the end-to-end buy flow against real processes:
+# Runs the end-to-end trading flow (buy and sell) against real processes:
 # PostgreSQL (must be running) + bank simulator + FIX gateway + API.
 # WARNING: resets the database in DATABASE_URL.
 set -euo pipefail
@@ -49,7 +49,7 @@ wait_for_log "$LOG_DIR/gateway.log" "Logon:" 2 30
 for _ in $(seq 1 30); do curl -sf "$API_URL/health" >/dev/null && break; sleep 1; done
 
 echo "== Running end-to-end checks"
-(cd "$ROOT/services/api" && npx tsx test/e2e/buy-flow.e2e.ts) || {
+(cd "$ROOT/services/api" && npx tsx test/e2e/trading-flow.e2e.ts) || {
   echo "--- api.log"; tail -30 "$LOG_DIR/api.log"
   echo "--- gateway.log"; grep -iE "error|exception" "$LOG_DIR/gateway.log" | tail -20
   exit 1

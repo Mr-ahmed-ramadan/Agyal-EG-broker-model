@@ -13,7 +13,7 @@
     "prisma:generate": "prisma generate",
     "prisma:deploy": "prisma migrate deploy",
     "prisma:seed": "tsx prisma/seed.ts",
-    "e2e": "tsx test/e2e/buy-flow.e2e.ts"
+    "e2e": "tsx test/e2e/trading-flow.e2e.ts"
   },
   "dependencies": {
     "@agyal/shared-types": "0.0.0",

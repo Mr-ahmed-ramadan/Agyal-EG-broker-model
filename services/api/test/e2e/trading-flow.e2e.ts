@@ -1,7 +1,7 @@
 /**
  * End-to-end: onboarding -> unified code -> deposit -> RFQ over FIX to two
- * simulated banks -> accept best quote -> fill -> ledger, plus tenant
- * isolation and the manual compliance path.
+ * simulated banks -> accept best quote -> fill -> ledger, a partial sale
+ * before maturity, tenant isolation and the manual compliance path.
  *
  * Needs the API, FIX gateway and bank simulator running against a seeded
  * database; `scripts/e2e.sh` at the repo root starts everything.
@@ -75,15 +75,16 @@ async function onboardClient(tenant: string, name: string, nationalId: string, i
   return { token, clientId: reg.user.clientId as string, submitted };
 }
 
-async function buy(tenant: string, token: string, isin: string, quantity: string) {
-  const rfq = await call('POST', '/rfq', { tenant, token, body: { isin, quantity } });
+async function trade(side: 'BUY' | 'SELL', tenant: string, token: string, isin: string, quantity: string) {
+  const rfq = await call('POST', '/rfq', { tenant, token, body: { side, isin, quantity } });
   assert.equal(rfq.banks, 2, 'RFQ goes to both partner banks');
   const priced = await waitFor('two bank quotes', async () => {
     const r = await call('GET', `/rfq/${rfq.id}`, { tenant, token });
     return r.quotes.length === 2 ? r : undefined;
   });
   const [best, second] = priced.quotes;
-  assert.ok(Number(best.clientYield) >= Number(second.clientYield), 'best yield first');
+  if (side === 'BUY') assert.ok(Number(best.clientYield) >= Number(second.clientYield), 'best yield first');
+  else assert.ok(Number(best.netAmount) >= Number(second.netAmount), 'best proceeds first');
   assert.equal(best.bankCleanPx, undefined, 'bank price is never shown to clients');
 
   const order = await call('POST', '/orders', { tenant, token, body: { quoteId: best.quoteId } });
@@ -149,23 +150,37 @@ async function main() {
   const instruments = await call('GET', '/instruments', { tenant: T });
   const tbill = instruments.find((i: Json) => i.nameEn.startsWith('91-day'));
   const bond = instruments.find((i: Json) => i.type === 'TREASURY_BOND');
-  const t1 = await buy(T, c.token, tbill.isin, '100000');
+  const t1 = await trade('BUY', T, c.token, tbill.isin, '100000');
   assert.equal(t1.filled.executions.length, 2, 'New + Trade execution reports');
   pf = await call('GET', '/portfolio', { tenant: T, token: c.token });
   const spent1 = Number(t1.filled.executions[1].clientAmount);
   assert.equal(pf.cash.reserved, '0.00');
   assert.equal(pf.cash.available, (250000 - spent1).toFixed(2));
-  assert.deepEqual(pf.positions, [{ isin: tbill.isin, nominal: '100000.00' }]);
+  assert.deepEqual(pf.positions, [{ isin: tbill.isin, nominal: '100000.00', reservedForSale: '0.00' }]);
   console.log(`✓ T-bill bought over FIX: client yield ${(Number(t1.best.clientYield) * 100).toFixed(3)}%, cost EGP ${spent1}`);
 
   // 5. Buy a treasury bond (accrued interest, MCDR custody)
-  const b1 = await buy(T, c.token, bond.isin, '5000');
+  const b1 = await trade('BUY', T, c.token, bond.isin, '5000');
   assert.ok(Number(b1.filled.price.accruedInterest) >= 0);
   pf = await call('GET', '/portfolio', { tenant: T, token: c.token });
   assert.equal(pf.positions.length, 2);
   console.log(`✓ Treasury bond bought: accrued interest EGP ${b1.filled.price.accruedInterest}`);
 
-  // 6. Ledger: every unit nets to zero; broker revenue is positive
+  // 6. Sell part of the T-bill before maturity; cannot sell more than held
+  await call('POST', '/rfq', { tenant: T, token: c.token, body: { side: 'SELL', isin: tbill.isin, quantity: '125000' }, expect: 400 });
+  const cashBeforeSale = Number(pf.cash.available);
+  const s1 = await trade('SELL', T, c.token, tbill.isin, '50000');
+  assert.equal(s1.filled.side, 'SELL');
+  const proceeds = Number(s1.filled.executions[1].clientAmount);
+  assert.ok(proceeds > 0 && proceeds < 50000, 'discounted proceeds');
+  assert.ok(Number(s1.best.clientYield) > Number(t1.best.clientYield), 'client sells at a higher yield than it bought');
+  pf = await call('GET', '/portfolio', { tenant: T, token: c.token });
+  const tbillPos = pf.positions.find((p: Json) => p.isin === tbill.isin);
+  assert.deepEqual(tbillPos, { isin: tbill.isin, nominal: '50000.00', reservedForSale: '0.00' });
+  assert.equal(pf.cash.available, (cashBeforeSale + proceeds).toFixed(2));
+  console.log(`✓ half the T-bill sold over FIX: client yield ${(Number(s1.best.clientYield) * 100).toFixed(3)}%, proceeds EGP ${proceeds}`);
+
+  // 7. Ledger: every unit nets to zero; broker revenue is positive
   const tb = await call('GET', '/broker/ledger/trial-balance', { tenant: T, token: ops });
   const perUnit = new Map<string, number>();
   for (const r of tb) perUnit.set(r.unit, (perUnit.get(r.unit) ?? 0) + Number(r.rawSum));
@@ -174,7 +189,7 @@ async function main() {
   assert.ok(revenue > 0, 'broker earned markup + commission');
   console.log(`✓ trial balance nets to zero; broker revenue EGP ${revenue.toFixed(2)}`);
 
-  // 7. Manual compliance path: a PEP goes to the queue and is approved by compliance
+  // 8. Manual compliance path: a PEP goes to the queue and is approved by compliance
   const pep = await onboardClient(T, 'Minister Example', '28505151234561', true);
   assert.equal(pep.submitted.status, 'PENDING_APPROVAL');
   const queue = await call('GET', '/broker/compliance/queue', { tenant: T, token: compliance });
@@ -188,7 +203,7 @@ async function main() {
   assert.equal(status.clientStatus, 'ACTIVE');
   console.log('✓ PEP routed to compliance queue and approved');
 
-  // 8. Tenant isolation: a second broker cannot see the first broker's data
+  // 9. Tenant isolation: a second broker cannot see the first broker's data
   const admin = await login(undefined, 'admin@agyal.local');
   const slug = `other-${run}`;
   await call('POST', '/admin/tenants', {

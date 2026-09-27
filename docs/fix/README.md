@@ -40,6 +40,8 @@ and [ADR 0004](../architecture/0004-bank-connectivity.md).
 | 54 | Side | `1` buy, `2` sell |
 | 38 | OrderQty | Nominal (face value) |
 | 423 | PriceType | `1` % of par, `9` yield |
+| 133 / 634 | OfferPx / OfferYield | Bank's price to sell to a buying client |
+| 132 / 632 | BidPx / BidYield | Bank's price to buy from a selling client |
 | 44 / 236 | Price / Yield | |
 | 159 | AccruedInterestAmt | |
 | 64 | SettlDate | |

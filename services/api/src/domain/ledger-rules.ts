@@ -16,12 +16,16 @@ export enum LedgerAccountType {
   CLIENT_CASH_AVAILABLE = 'CLIENT_CASH_AVAILABLE',
   /** Liability: client cash earmarked for open orders */
   CLIENT_CASH_RESERVED = 'CLIENT_CASH_RESERVED',
-  /** Liability: amount owed to a bank for executed trades until settlement */
+  /** Liability: amount owed to a bank for executed buys until settlement */
   SETTLEMENT_PAYABLE = 'SETTLEMENT_PAYABLE',
+  /** Asset: amount a bank owes for executed sells until settlement */
+  SETTLEMENT_RECEIVABLE = 'SETTLEMENT_RECEIVABLE',
   /** Liability/equity: broker markup and commission earned */
   BROKER_REVENUE = 'BROKER_REVENUE',
-  /** Liability (nominal): securities held for a client */
+  /** Liability (nominal): securities held for a client, free to sell */
   CLIENT_POSITION = 'CLIENT_POSITION',
+  /** Liability (nominal): client securities earmarked for open sell orders */
+  CLIENT_POSITION_RESERVED = 'CLIENT_POSITION_RESERVED',
   /** Asset (nominal): securities at the custodian for the broker's clients */
   CUSTODY_POSITION = 'CUSTODY_POSITION',
 }
@@ -32,6 +36,7 @@ const CREDIT_NORMAL = new Set<LedgerAccountType>([
   LedgerAccountType.SETTLEMENT_PAYABLE,
   LedgerAccountType.BROKER_REVENUE,
   LedgerAccountType.CLIENT_POSITION,
+  LedgerAccountType.CLIENT_POSITION_RESERVED,
 ]);
 
 /** Converts a raw signed sum into the natural (usually positive) balance. */
@@ -110,9 +115,9 @@ export interface FillAmounts {
   isin: string;
   /** Nominal filled */
   quantity: Decimal.Value;
-  /** What the client pays for this fill (principal + accrued + commission share) */
+  /** Buy: what the client pays for this fill. Sell: net proceeds credited to the client. */
   clientTotal: Decimal.Value;
-  /** What the broker owes the bank for this fill (principal at bank price + accrued) */
+  /** Buy: owed to the bank. Sell: owed by the bank (principal at bank price + accrued). */
   bankTotal: Decimal.Value;
 }
 
@@ -130,5 +135,42 @@ export function buyFillEntry(f: FillAmounts): PostingLine[] {
       amount: qty.neg(),
     },
     { account: { type: LedgerAccountType.CUSTODY_POSITION, unit: f.isin }, amount: qty },
+  ]);
+}
+
+const position = (type: LedgerAccountType, isin: string, clientId?: string): AccountRef => ({
+  type,
+  unit: isin,
+  clientId,
+});
+
+/** Earmark client securities for an accepted sell order. */
+export function positionReserveEntry(clientId: string, isin: string, quantity: Decimal.Value): PostingLine[] {
+  const q = new Decimal(quantity);
+  return validateEntry([
+    { account: position(LedgerAccountType.CLIENT_POSITION, isin, clientId), amount: q },
+    { account: position(LedgerAccountType.CLIENT_POSITION_RESERVED, isin, clientId), amount: q.neg() },
+  ]);
+}
+
+/** Return unsold reserved securities to the client's free position. */
+export function positionReleaseEntry(clientId: string, isin: string, quantity: Decimal.Value): PostingLine[] {
+  return positionReserveEntry(clientId, isin, new Decimal(quantity).neg());
+}
+
+/**
+ * A sell fill: deliver the reserved securities, the bank owes the broker,
+ * the client is credited net proceeds, and the broker keeps the difference.
+ */
+export function sellFillEntry(f: FillAmounts): PostingLine[] {
+  const clientTotal = new Decimal(f.clientTotal);
+  const bankTotal = new Decimal(f.bankTotal);
+  const qty = new Decimal(f.quantity);
+  return validateEntry([
+    { account: cash(LedgerAccountType.SETTLEMENT_RECEIVABLE, undefined, f.bankId), amount: bankTotal },
+    { account: cash(LedgerAccountType.CLIENT_CASH_AVAILABLE, f.clientId), amount: clientTotal.neg() },
+    { account: cash(LedgerAccountType.BROKER_REVENUE), amount: clientTotal.minus(bankTotal) },
+    { account: position(LedgerAccountType.CLIENT_POSITION_RESERVED, f.isin, f.clientId), amount: qty },
+    { account: position(LedgerAccountType.CUSTODY_POSITION, f.isin), amount: qty.neg() },
   ]);
 }

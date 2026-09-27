@@ -58,20 +58,30 @@ export class LedgerService {
   async clientPortfolio(tx: Tx, tenantId: string, clientId: string) {
     const accounts = await tx.ledgerAccount.findMany({ where: { clientId } });
     const cash = { available: new Decimal(0), reserved: new Decimal(0) };
-    const positions: { isin: string; nominal: string }[] = [];
+    const positions = new Map<string, { free: Decimal; reserved: Decimal }>();
+    const pos = (isin: string) => {
+      if (!positions.has(isin)) positions.set(isin, { free: new Decimal(0), reserved: new Decimal(0) });
+      return positions.get(isin)!;
+    };
     for (const a of accounts) {
       const agg = await tx.posting.aggregate({ where: { accountId: a.id }, _sum: { amount: true } });
       const bal = displayBalance(a.type as LedgerAccountType, agg._sum.amount?.toString() ?? 0);
       if (a.type === LedgerAccountType.CLIENT_CASH_AVAILABLE) cash.available = bal;
       else if (a.type === LedgerAccountType.CLIENT_CASH_RESERVED) cash.reserved = bal;
-      else if (a.type === LedgerAccountType.CLIENT_POSITION && !bal.isZero()) {
-        positions.push({ isin: a.unit, nominal: bal.toFixed(2) });
-      }
+      else if (a.type === LedgerAccountType.CLIENT_POSITION) pos(a.unit).free = bal;
+      else if (a.type === LedgerAccountType.CLIENT_POSITION_RESERVED) pos(a.unit).reserved = bal;
     }
     return {
       currency: 'EGP',
       cash: { available: cash.available.toFixed(2), reserved: cash.reserved.toFixed(2) },
-      positions,
+      positions: [...positions]
+        .filter(([, p]) => !p.free.plus(p.reserved).isZero())
+        .map(([isin, p]) => ({
+          isin,
+          /** Total held; `reservedForSale` of it is committed to open sell orders */
+          nominal: p.free.plus(p.reserved).toFixed(2),
+          reservedForSale: p.reserved.toFixed(2),
+        })),
     };
   }
 

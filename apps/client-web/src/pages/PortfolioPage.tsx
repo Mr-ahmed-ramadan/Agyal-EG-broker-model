@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { TradePanel } from '../components/TradePanel';
 import { useApp } from '../context';
 import { api } from '../lib/api';
 import { date, money, nominal } from '../lib/format';
@@ -6,17 +7,18 @@ import type { Instrument } from './MarketsPage';
 
 interface Portfolio {
   cash: { available: string; reserved: string };
-  positions: { isin: string; nominal: string }[];
+  positions: { isin: string; nominal: string; reservedForSale: string }[];
 }
 
 interface Order {
   id: string;
+  side: 'BUY' | 'SELL';
   isin: string;
   quantity: string;
   ordStatus: string;
   createdAt: string;
   text: string | null;
-  price: { totalCost: string; clientYield: string | null };
+  price: { netAmount: string; clientYield: string | null };
 }
 
 export function PortfolioPage({ depositReference }: { depositReference: string }) {
@@ -24,6 +26,8 @@ export function PortfolioPage({ depositReference }: { depositReference: string }
   const [pf, setPf] = useState<Portfolio | null>(null);
   const [orders, setOrders] = useState<Order[]>([]);
   const [names, setNames] = useState<Record<string, Instrument>>({});
+  const [selling, setSelling] = useState<string | null>(null);
+  const [reload, setReload] = useState(0);
 
   useEffect(() => {
     const load = () => {
@@ -36,11 +40,12 @@ export function PortfolioPage({ depositReference }: { depositReference: string }
     );
     const timer = window.setInterval(load, 3000);
     return () => window.clearInterval(timer);
-  }, []);
+  }, [reload]);
 
   const name = (isin: string) => (names[isin] ? (locale === 'ar' ? names[isin].nameAr : names[isin].nameEn) : isin);
 
   if (!pf) return <p>{t('loading')}</p>;
+  const sellPosition = selling ? pf.positions.find((p) => p.isin === selling) : undefined;
 
   return (
     <div className="grid">
@@ -60,12 +65,29 @@ export function PortfolioPage({ depositReference }: { depositReference: string }
         <h2>{t('holdings')}</h2>
         {pf.positions.length === 0 ? <p className="muted">{t('noHoldings')}</p> : null}
         <ul className="list">
-          {pf.positions.map((p) => (
-            <li key={p.isin} className="row static">
-              <strong>{name(p.isin)}</strong>
-              <span>{nominal(p.nominal, locale)}</span>
-            </li>
-          ))}
+          {pf.positions.map((p) => {
+            const free = Number(p.nominal) - Number(p.reservedForSale);
+            return (
+              <li key={p.isin} className="row static">
+                <span>
+                  <strong>{name(p.isin)}</strong>
+                  <span className="meta muted">
+                    <span>{nominal(p.nominal, locale)}</span>
+                    {Number(p.reservedForSale) > 0 ? (
+                      <span>
+                        {nominal(p.reservedForSale, locale)} {t('reservedForSale')}
+                      </span>
+                    ) : null}
+                  </span>
+                </span>
+                {free > 0 && names[p.isin] ? (
+                  <button className="secondary" onClick={() => setSelling(p.isin)}>
+                    {t('sell')}
+                  </button>
+                ) : null}
+              </li>
+            );
+          })}
         </ul>
         <h2>{t('orders')}</h2>
         {orders.length === 0 ? <p className="muted">{t('noOrders')}</p> : null}
@@ -73,7 +95,10 @@ export function PortfolioPage({ depositReference }: { depositReference: string }
           {orders.map((o) => (
             <li key={o.id} className="row static">
               <span>
-                <strong>{name(o.isin)}</strong>
+                <strong>
+                  <span className={`pill side-${o.side}`}>{t(`side_${o.side}`)}</span>
+                  {name(o.isin)}
+                </strong>
                 <span className="meta muted">
                   <span>{date(o.createdAt, locale)}</span>
                   <span>{nominal(o.quantity, locale)}</span>
@@ -81,13 +106,26 @@ export function PortfolioPage({ depositReference }: { depositReference: string }
               </span>
               <span>
                 <span className={`pill status-${o.ordStatus}`}>{t(`ord_${o.ordStatus}`)}</span>
-                <span className="muted">{money(o.price.totalCost, locale)}</span>
+                <span className="muted">{money(o.price.netAmount, locale)}</span>
                 {o.text ? <small className="muted">{o.text}</small> : null}
               </span>
             </li>
           ))}
         </ul>
       </section>
+      {sellPosition && names[sellPosition.isin] ? (
+        <TradePanel
+          key={sellPosition.isin}
+          side="SELL"
+          instrument={names[sellPosition.isin]}
+          maxQuantity={String(Number(sellPosition.nominal) - Number(sellPosition.reservedForSale))}
+          onClose={() => setSelling(null)}
+          onOrdered={() => {
+            setSelling(null);
+            setReload((n) => n + 1);
+          }}
+        />
+      ) : null}
     </div>
   );
 }

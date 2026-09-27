@@ -1,7 +1,7 @@
 import Decimal from 'decimal.js';
 import { describe, expect, it } from 'vitest';
 import { tbillPriceFromYield } from '../../src/domain/fixed-income';
-import { priceClientBuy, resolvePricingRule, type PricingConfig } from '../../src/domain/pricing';
+import { priceClient, resolvePricingRule, type PricingConfig } from '../../src/domain/pricing';
 
 const d = (s: string) => new Date(`${s}T00:00:00Z`);
 
@@ -34,7 +34,8 @@ describe('client buy pricing', () => {
 
   it('gives a T-bill client a lower yield and higher price than the bank', () => {
     const bankPx = tbillPriceFromYield(0.26, settle, maturity);
-    const p = priceClientBuy({
+    const p = priceClient({
+      side: 'BUY',
       instrument: { type: 'TREASURY_BILL', couponRate: null, couponFreq: null, maturityDate: maturity },
       bankCleanPx: bankPx,
       quantity: '100000',
@@ -46,11 +47,12 @@ describe('client buy pricing', () => {
     expect(Number(p.clientCleanPx)).toBeGreaterThan(bankPx);
     expect(p.accruedInterest).toBe('0.00');
     expect(p.commission).toBe('100.00'); // 10 bps of 100,000
-    expect(new Decimal(p.principal).plus(p.accruedInterest).plus(p.commission).toFixed(2)).toBe(p.totalCost);
+    expect(new Decimal(p.principal).plus(p.accruedInterest).plus(p.commission).toFixed(2)).toBe(p.netAmount);
   });
 
   it('applies the minimum commission and accrued interest on a bond', () => {
-    const p = priceClientBuy({
+    const p = priceClient({
+      side: 'BUY',
       instrument: { type: 'TREASURY_BOND', couponRate: 0.22, couponFreq: 2, maturityDate: d('2029-06-15') },
       bankCleanPx: 98.5,
       quantity: '5000',
@@ -65,7 +67,8 @@ describe('client buy pricing', () => {
 
   it('rejects a non-positive quantity', () => {
     expect(() =>
-      priceClientBuy({
+      priceClient({
+      side: 'BUY',
         instrument: { type: 'TREASURY_BILL', couponRate: null, couponFreq: null, maturityDate: maturity },
         bankCleanPx: 95,
         quantity: '0',
@@ -73,5 +76,42 @@ describe('client buy pricing', () => {
         rule: config.default,
       }),
     ).toThrow();
+  });
+
+  it('gives a selling client a higher yield and lower price than the bank bid, net of commission', () => {
+    const bankPx = tbillPriceFromYield(0.27, settle, maturity);
+    const p = priceClient({
+      side: 'SELL',
+      instrument: { type: 'TREASURY_BILL', couponRate: null, couponFreq: null, maturityDate: maturity },
+      bankCleanPx: bankPx,
+      quantity: '100000',
+      settlDate: settle,
+      rule: resolvePricingRule(config, 'TREASURY_BILL'),
+    });
+    expect(Number(p.clientYield)).toBeCloseTo(0.2725, 6);
+    expect(Number(p.clientCleanPx)).toBeLessThan(bankPx);
+    expect(new Decimal(p.principal).plus(p.accruedInterest).minus(p.commission).toFixed(2)).toBe(p.netAmount);
+  });
+
+  it('adds accrued interest to bond sale proceeds', () => {
+    const bond = { type: 'TREASURY_BOND' as const, couponRate: 0.22, couponFreq: 2, maturityDate: d('2029-06-15') };
+    const buy = priceClient({ side: 'BUY', instrument: bond, bankCleanPx: 98.5, quantity: '5000', settlDate: d('2026-08-01'), rule: config.default });
+    const sell = priceClient({ side: 'SELL', instrument: bond, bankCleanPx: 98.5, quantity: '5000', settlDate: d('2026-08-01'), rule: config.default });
+    expect(sell.accruedInterest).toBe(buy.accruedInterest);
+    expect(Number(sell.clientCleanPx)).toBeLessThan(98.5);
+    expect(Number(buy.clientCleanPx)).toBeGreaterThan(98.5);
+  });
+
+  it('refuses a sale whose commission exceeds the proceeds', () => {
+    expect(() =>
+      priceClient({
+        side: 'SELL',
+        instrument: { type: 'TREASURY_BILL', couponRate: null, couponFreq: null, maturityDate: maturity },
+        bankCleanPx: 95,
+        quantity: '10',
+        settlDate: settle,
+        rule: { markupBps: 0, commissionBps: 0, commissionMin: '25.00' },
+      }),
+    ).toThrow(/Commission exceeds/);
   });
 });

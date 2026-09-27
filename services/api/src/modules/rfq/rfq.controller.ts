@@ -6,6 +6,7 @@ import { parseBody } from '../../common/validation';
 import { RfqService } from './rfq.service';
 
 const RfqSchema = z.object({
+  side: z.enum(['BUY', 'SELL']).default('BUY'),
   isin: z.string().regex(/^[A-Z]{2}[A-Z0-9]{9}\d$/, 'ISIN'),
   quantity: z.string().regex(/^\d+(\.\d{1,2})?$/),
 });

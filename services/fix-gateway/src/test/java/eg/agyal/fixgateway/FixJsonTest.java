@@ -101,4 +101,21 @@ class FixJsonTest {
         assertEquals("94.132818", json.get("lastPx").asText());
         assertEquals("O1", json.get("clOrdId").asText());
     }
+
+    @Test
+    void sellQuoteMapsBidFields() throws Exception {
+        quickfix.fix44.Quote q = new quickfix.fix44.Quote(new quickfix.field.QuoteID("Q-9"));
+        q.set(new quickfix.field.QuoteReqID("QR9"));
+        q.set(new Symbol("[N/A]"));
+        q.set(new SecurityID("EGT91DEMO012"));
+        q.set(new SecurityIDSource("4"));
+        q.setDecimal(quickfix.field.BidPx.FIELD, new BigDecimal("93.500000"));
+        q.setDecimal(quickfix.field.BidYield.FIELD, new BigDecimal("0.268000"));
+        q.set(new quickfix.field.PriceType(1));
+        q.set(new quickfix.field.ValidUntilTime(java.time.LocalDateTime.of(2026, 9, 27, 12, 0)));
+        JsonNode json = FixJson.fromFix(q);
+        assertEquals("93.500000", json.get("bidPx").asText());
+        assertEquals("0.268000", json.get("bidYield").asText());
+        assertEquals(false, json.has("offerPx"));
+    }
 }

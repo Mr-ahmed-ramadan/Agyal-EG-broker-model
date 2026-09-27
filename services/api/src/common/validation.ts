@@ -1,7 +1,8 @@
 import { BadRequestException } from '@nestjs/common';
-import type { ZodType } from 'zod';
+import type { z, ZodTypeAny } from 'zod';
 
-export function parseBody<T>(schema: ZodType<T>, body: unknown): T {
+/** Validates a request body; returns the schema's output type (defaults applied). */
+export function parseBody<S extends ZodTypeAny>(schema: S, body: unknown): z.output<S> {
   const result = schema.safeParse(body);
   if (!result.success) {
     throw new BadRequestException({

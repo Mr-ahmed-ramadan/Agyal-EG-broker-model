@@ -43,8 +43,12 @@ The first end-to-end slice runs locally and in CI:
 5. The client accepts: pre-trade checks, cash reserve, immutable price
    snapshot, FIX `NewOrderSingle`; the bank's `ExecutionReport`s drive the
    FIX order state machine and post balanced ledger entries.
-6. Broker console shows orders, clients and a trial balance that nets to
-   zero per currency and per ISIN.
+6. The client can sell a holding before maturity the same way: a sell RFQ
+   gets bank bids, the client sees net proceeds (bid yield plus markup, less
+   commission), the securities are reserved while the order is open, and the
+   fill credits cash and books a receivable from the bank.
+7. Broker console shows buy and sell orders, clients and a trial balance
+   that nets to zero per currency and per ISIN.
 
 Screenshots from an automated browser run are in
 [`docs/screenshots/`](docs/screenshots/).
@@ -122,7 +126,7 @@ npm test                                      # API unit tests (pricing, fixed i
 ## Not built yet
 
 eKYC/AML/MCDR vendor integrations (mocks and a manual adapter stand in),
-OTP/MFA, sell orders and early redemption, settlement confirmation and
+OTP/MFA, settlement confirmation and
 automated reconciliation imports, PORTAL/FILE bank adapters, the admin and
 bank-portal UIs, billing, notifications, and production hosting. See the
 ADRs and open questions.

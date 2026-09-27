@@ -5,8 +5,11 @@ import {
   depositEntry,
   displayBalance,
   LedgerAccountType as T,
+  positionReleaseEntry,
+  positionReserveEntry,
   releaseEntry,
   reserveEntry,
+  sellFillEntry,
   validateEntry,
   type PostingLine,
 } from '../../src/domain/ledger-rules';
@@ -71,5 +74,27 @@ describe('ledger rules', () => {
 
   it('rejects a non-positive deposit', () => {
     expect(() => depositEntry('c1', '0')).toThrow();
+  });
+
+  it('keeps the book balanced through a partial sale and release of the rest', () => {
+    const isin = 'EGT91DEMO012';
+    const entries = [
+      depositEntry('c1', '100000'),
+      reserveEntry('c1', '95100.00'),
+      buyFillEntry({ clientId: 'c1', bankId: 'b1', isin, quantity: '100000', clientTotal: '95100.00', bankTotal: '94900.00' }),
+      positionReserveEntry('c1', isin, '100000'),
+      sellFillEntry({ clientId: 'c1', bankId: 'b1', isin, quantity: '60000', clientTotal: '57300.00', bankTotal: '57450.00' }),
+      positionReleaseEntry('c1', isin, '40000'),
+    ];
+    const { bal, sums } = book(entries);
+    expect(bal(T.CLIENT_POSITION, isin, 'c1')).toBe('40000.00');
+    expect(bal(T.CLIENT_POSITION_RESERVED, isin, 'c1')).toBe('0.00');
+    expect(bal(T.CUSTODY_POSITION, isin)).toBe('40000.00');
+    expect(bal(T.CLIENT_CASH_AVAILABLE, 'EGP', 'c1')).toBe((4900 + 57300).toFixed(2));
+    expect(bal(T.SETTLEMENT_RECEIVABLE, 'EGP', '', 'b1')).toBe('57450.00');
+    expect(bal(T.BROKER_REVENUE)).toBe((200 + 150).toFixed(2));
+    const perUnit = new Map<string, Decimal>();
+    for (const [k, v] of sums) perUnit.set(k.split('|')[1], (perUnit.get(k.split('|')[1]) ?? new Decimal(0)).plus(v.sum));
+    for (const total of perUnit.values()) expect(total.isZero()).toBe(true);
   });
 });

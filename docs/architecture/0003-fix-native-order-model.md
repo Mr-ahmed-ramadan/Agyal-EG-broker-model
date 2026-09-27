@@ -78,6 +78,9 @@ Client          Platform (API)            FIX Gateway            Bank(s)
   |<---------------|                           |                      |
 ```
 
+- Sells before maturity use the same flow with `Side(54)=2`: banks answer with
+  `BidPx(132)`/`BidYield(632)`, the client's securities are reserved when the
+  order is accepted, and the fill credits net proceeds (ADR 0007, ADR 0008).
 - Quotes are firm for a bank-specified time (`ValidUntilTime(62)`); the
   client sees a countdown and the order is rejected by the platform if it
   expires before release.

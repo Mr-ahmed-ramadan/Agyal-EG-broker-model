@@ -31,6 +31,8 @@ import quickfix.SessionSettings;
 import quickfix.SocketAcceptor;
 import quickfix.field.AccruedInterestAmt;
 import quickfix.field.AvgPx;
+import quickfix.field.BidPx;
+import quickfix.field.BidYield;
 import quickfix.field.ClOrdID;
 import quickfix.field.CumQty;
 import quickfix.field.ExecID;
@@ -66,9 +68,10 @@ import quickfix.fix44.QuoteRequestReject;
  * A local bank FIX acceptor for development and tests (ADR 0004).
  *
  * <p>Answers QuoteRequest with a firm Quote priced off a flat demo yield per
- * instrument type (each bank session quotes slightly differently), and fills a
- * NewOrderSingle that references a live quote with New + Trade execution
- * reports. Unknown or expired quotes are rejected. Instrument data is read
+ * instrument type (each bank session quotes slightly differently): an offer
+ * for a buy request, a bid (at a higher yield, i.e. lower price) for a sell
+ * request. Fills a NewOrderSingle that references a live quote on the same
+ * side with New + Trade execution reports. Unknown or expired quotes are rejected. Instrument data is read
  * from the platform database.
  */
 public class BankSimulator extends quickfix.MessageCracker implements Application {
@@ -77,6 +80,9 @@ public class BankSimulator extends quickfix.MessageCracker implements Applicatio
     private static final DateTimeFormatter FIX_DATE = DateTimeFormatter.BASIC_ISO_DATE;
 
     /** Demo offer yields by instrument type. */
+    /** A bank buys at a higher yield than it sells: bid/offer spread in yield. */
+    private static final double BID_OFFER_SPREAD = 0.003;
+
     private static final Map<String, Double> BASE_YIELD = Map.of(
             "TREASURY_BILL", 0.265,
             "TREASURY_BOND", 0.245,
@@ -87,7 +93,7 @@ public class BankSimulator extends quickfix.MessageCracker implements Applicatio
     private final long quoteValiditySeconds;
     private final Map<String, LiveQuote> quotes = new ConcurrentHashMap<>();
 
-    record LiveQuote(String isin, BigDecimal qty, BigDecimal cleanPx, BigDecimal accruedPer100,
+    record LiveQuote(String isin, char side, BigDecimal qty, BigDecimal cleanPx, BigDecimal accruedPer100,
             LocalDate settle, LocalDateTime validUntil) {}
 
     record InstrumentData(String type, Double couponRate, Integer couponFreq, LocalDate maturity) {}
@@ -170,6 +176,7 @@ public class BankSimulator extends quickfix.MessageCracker implements Applicatio
         request.getGroup(1, sym);
         String isin = sym.getString(SecurityID.FIELD);
         BigDecimal qty = sym.getDecimal(OrderQty.FIELD);
+        char side = sym.isSetField(Side.FIELD) ? sym.getChar(Side.FIELD) : Side.BUY;
         LocalDate settle = sym.isSetField(SettlDate.FIELD)
                 ? LocalDate.parse(sym.getString(SettlDate.FIELD), FIX_DATE)
                 : LocalDate.now(ZoneOffset.UTC).plusDays(1);
@@ -179,7 +186,8 @@ public class BankSimulator extends quickfix.MessageCracker implements Applicatio
                 reject(session, quoteReqId, "Unknown instrument " + isin);
                 return;
             }
-            double yield = BASE_YIELD.getOrDefault(inst.type(), 0.25) + bankAdjustment(session);
+            double yield = BASE_YIELD.getOrDefault(inst.type(), 0.25) + bankAdjustment(session)
+                    + (side == Side.SELL ? BID_OFFER_SPREAD : 0);
             double clean;
             double accrued;
             if ("TREASURY_BILL".equals(inst.type())) {
@@ -193,15 +201,21 @@ public class BankSimulator extends quickfix.MessageCracker implements Applicatio
             LocalDateTime validUntil = LocalDateTime.now(ZoneOffset.UTC).plusSeconds(quoteValiditySeconds)
                     .truncatedTo(ChronoUnit.MILLIS);
             BigDecimal px = BigDecimal.valueOf(clean).setScale(6, RoundingMode.HALF_UP);
-            quotes.put(quoteId, new LiveQuote(isin, qty, px, BigDecimal.valueOf(accrued), settle, validUntil));
+            quotes.put(quoteId, new LiveQuote(isin, side, qty, px, BigDecimal.valueOf(accrued), settle, validUntil));
 
             Quote quote = new Quote(new QuoteID(quoteId));
             quote.set(new QuoteReqID(quoteReqId));
             quote.set(new Symbol("[N/A]"));
             quote.set(new SecurityID(isin));
             quote.set(new SecurityIDSource(SecurityIDSource.ISIN_NUMBER));
-            quote.setDecimal(OfferPx.FIELD, px);
-            quote.setDecimal(OfferYield.FIELD, BigDecimal.valueOf(yield).setScale(6, RoundingMode.HALF_UP));
+            BigDecimal quotedYield = BigDecimal.valueOf(yield).setScale(6, RoundingMode.HALF_UP);
+            if (side == Side.SELL) {
+                quote.setDecimal(BidPx.FIELD, px);
+                quote.setDecimal(BidYield.FIELD, quotedYield);
+            } else {
+                quote.setDecimal(OfferPx.FIELD, px);
+                quote.setDecimal(OfferYield.FIELD, quotedYield);
+            }
             quote.set(new PriceType(PriceType.PERCENTAGE));
             quote.set(new ValidUntilTime(validUntil));
             quote.set(new TransactTime(LocalDateTime.now(ZoneOffset.UTC).truncatedTo(ChronoUnit.MILLIS)));
@@ -223,6 +237,7 @@ public class BankSimulator extends quickfix.MessageCracker implements Applicatio
 
         if (q == null || q.validUntil().isBefore(LocalDateTime.now(ZoneOffset.UTC))
                 || q.qty().compareTo(qty) != 0
+                || q.side() != order.getChar(Side.FIELD)
                 || !q.isin().equals(order.getString(SecurityID.FIELD))) {
             send(session, report(order, orderId, ExecType.REJECTED, OrdStatus.REJECTED, BigDecimal.ZERO, BigDecimal.ZERO,
                     "Quote not found, expired or does not match the order"));

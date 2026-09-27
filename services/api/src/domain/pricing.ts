@@ -11,10 +11,15 @@ import {
 /**
  * Client pricing from a bank quote (ADR 0008).
  *
- * The broker's markup is expressed in yield basis points: for a buy, the
- * client's yield is the bank's yield minus the markup, and the client's price
- * is recomputed from that yield. Commission is a separate, disclosed fee.
+ * The broker's markup is expressed in yield basis points and always works
+ * against the client: on a buy the client's yield is the bank's offer yield
+ * minus the markup (client pays a higher price); on a sell it is the bank's
+ * bid yield plus the markup (client receives a lower price). The client's
+ * price is recomputed from that yield. Commission is a separate, disclosed
+ * fee added to a buy and deducted from sale proceeds.
  */
+
+export type TradeSide = 'BUY' | 'SELL';
 
 export type InstrumentType = 'TREASURY_BOND' | 'TREASURY_BILL' | 'CORPORATE_BOND' | 'SUKUK';
 
@@ -49,8 +54,9 @@ export interface PricingInstrument {
 }
 
 export interface ClientPriceInput {
+  side: TradeSide;
   instrument: PricingInstrument;
-  /** Bank's offer, clean price per 100 */
+  /** Bank's offer (buy) or bid (sell), clean price per 100 */
   bankCleanPx: number;
   /** Nominal (face value) */
   quantity: string;
@@ -69,7 +75,8 @@ export interface ClientPrice {
   /** quantity x clientCleanPx / 100 */
   principal: string;
   commission: string;
-  totalCost: string;
+  /** Buy: total the client pays. Sell: net proceeds the client receives. */
+  netAmount: string;
 }
 
 const PX_DP = 6;
@@ -83,12 +90,13 @@ function asBond(i: PricingInstrument): CouponBond {
   return { couponRate: i.couponRate, couponFreq: i.couponFreq, maturity: i.maturityDate };
 }
 
-/** Prices a client buy from the bank's offer. */
-export function priceClientBuy(input: ClientPriceInput): ClientPrice {
+/** Prices a client trade from the bank's quote. */
+export function priceClient(input: ClientPriceInput): ClientPrice {
   const { instrument, bankCleanPx, settlDate, rule } = input;
   const qty = new Decimal(input.quantity);
   if (!qty.gt(0)) throw new Error('Quantity must be positive');
-  const markup = rule.markupBps / 10_000;
+  // Yield adjustment against the client: lower yield on a buy, higher on a sell.
+  const yieldAdjustment = ((input.side === 'BUY' ? -1 : 1) * rule.markupBps) / 10_000;
 
   let bankYield: number;
   let clientCleanPx: number;
@@ -96,16 +104,16 @@ export function priceClientBuy(input: ClientPriceInput): ClientPrice {
 
   if (instrument.type === 'TREASURY_BILL') {
     bankYield = tbillYieldFromPrice(bankCleanPx, settlDate, instrument.maturityDate);
-    clientCleanPx = tbillPriceFromYield(bankYield - markup, settlDate, instrument.maturityDate);
+    clientCleanPx = tbillPriceFromYield(bankYield + yieldAdjustment, settlDate, instrument.maturityDate);
     accruedPer100 = 0;
   } else {
     const bond = asBond(instrument);
     bankYield = bondYieldFromCleanPrice(bond, bankCleanPx, settlDate);
-    clientCleanPx = bondCleanPrice(bond, bankYield - markup, settlDate);
+    clientCleanPx = bondCleanPrice(bond, bankYield + yieldAdjustment, settlDate);
     accruedPer100 = accruedInterest(bond, settlDate);
   }
 
-  const clientYield = bankYield - markup;
+  const clientYield = bankYield + yieldAdjustment;
   if (clientYield <= 0) throw new Error('Markup leaves a non-positive client yield');
 
   const px = new Decimal(clientCleanPx).toDecimalPlaces(PX_DP);
@@ -115,6 +123,9 @@ export function priceClientBuy(input: ClientPriceInput): ClientPrice {
     new Decimal(rule.commissionMin),
     qty.mul(rule.commissionBps).div(10_000),
   ).toDecimalPlaces(MONEY_DP);
+  const gross = principal.plus(accrued);
+  const netAmount = input.side === 'BUY' ? gross.plus(commission) : gross.minus(commission);
+  if (!netAmount.gt(0)) throw new Error('Commission exceeds sale proceeds');
 
   return {
     bankCleanPx: new Decimal(bankCleanPx).toDecimalPlaces(PX_DP).toFixed(PX_DP),
@@ -125,14 +136,16 @@ export function priceClientBuy(input: ClientPriceInput): ClientPrice {
     accruedInterest: accrued.toFixed(MONEY_DP),
     principal: principal.toFixed(MONEY_DP),
     commission: commission.toFixed(MONEY_DP),
-    totalCost: principal.plus(accrued).plus(commission).toFixed(MONEY_DP),
+    netAmount: netAmount.toFixed(MONEY_DP),
   };
 }
 
-export function disclosureText(p: ClientPrice): string {
+export function disclosureText(side: TradeSide, p: ClientPrice): string {
   return (
-    `Clean price ${p.clientCleanPx} per 100 (yield ${(Number(p.clientYield) * 100).toFixed(3)}%), ` +
+    `${side === 'BUY' ? 'Buy' : 'Sell'} at clean price ${p.clientCleanPx} per 100 ` +
+    `(yield ${(Number(p.clientYield) * 100).toFixed(3)}%), ` +
     `principal EGP ${p.principal}, accrued interest EGP ${p.accruedInterest}, ` +
-    `commission EGP ${p.commission}, total EGP ${p.totalCost}.`
+    `commission EGP ${p.commission}, ` +
+    `${side === 'BUY' ? 'total to pay' : 'net proceeds'} EGP ${p.netAmount}.`
   );
 }

@@ -287,9 +287,11 @@ model Quote {
   quoteId        String
   /// PriceType(423)
   priceType      String
-  /// Clean price, % of par
-  offerPx        Decimal  @db.Decimal(18, 8)
+  /// Clean prices, % of par: OfferPx(133) answers a buy RFQ, BidPx(132) a sell RFQ
+  offerPx        Decimal? @db.Decimal(18, 8)
   offerYield     Decimal? @db.Decimal(9, 6)
+  bidPx          Decimal? @db.Decimal(18, 8)
+  bidYield       Decimal? @db.Decimal(9, 6)
   /// ValidUntilTime(62)
   validUntil     DateTime
   receivedAt     DateTime @default(now())
@@ -317,8 +319,10 @@ model Order {
   /// OrdStatus(39), current-state projection of the executions
   ordStatus       String
   cumQty          Decimal  @default(0) @db.Decimal(20, 2)
-  /// Client cash reserved when the order was accepted
-  reservedAmount  Decimal  @db.Decimal(20, 2)
+  /// Buy: client cash reserved when the order was accepted
+  reservedAmount  Decimal  @default(0) @db.Decimal(20, 2)
+  /// Sell: client nominal reserved when the order was accepted
+  reservedQty     Decimal  @default(0) @db.Decimal(20, 2)
   priceSnapshotId String   @unique
   text            String?
   createdAt       DateTime @default(now())
@@ -362,6 +366,8 @@ model PriceSnapshot {
   id              String   @id @default(uuid())
   tenantId        String
   quoteId         String
+  /// BUY or SELL
+  side            String
   pricingRule     Json
   bankCleanPx     Decimal  @db.Decimal(18, 8)
   bankYield       Decimal? @db.Decimal(9, 6)
@@ -371,7 +377,8 @@ model PriceSnapshot {
   accruedInterest Decimal  @db.Decimal(20, 2)
   principal       Decimal  @db.Decimal(20, 2)
   commission      Decimal  @db.Decimal(20, 2)
-  totalCost       Decimal  @db.Decimal(20, 2)
+  /// Buy: total the client pays. Sell: net proceeds to the client.
+  netAmount       Decimal  @db.Decimal(20, 2)
   settlDate       DateTime
   disclosure      String
   createdAt       DateTime @default(now())

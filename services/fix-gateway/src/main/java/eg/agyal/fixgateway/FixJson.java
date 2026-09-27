@@ -12,6 +12,8 @@ import quickfix.FieldMap;
 import quickfix.FieldNotFound;
 import quickfix.Message;
 import quickfix.field.AccruedInterestAmt;
+import quickfix.field.BidPx;
+import quickfix.field.BidYield;
 import quickfix.field.ClOrdID;
 import quickfix.field.CumQty;
 import quickfix.field.ExecID;
@@ -135,6 +137,8 @@ public final class FixJson {
         o.put("priceType", String.valueOf(m.getInt(PriceType.FIELD)));
         putDecimal(o, "offerPx", m, OfferPx.FIELD);
         putDecimal(o, "offerYield", m, OfferYield.FIELD);
+        putDecimal(o, "bidPx", m, BidPx.FIELD);
+        putDecimal(o, "bidYield", m, BidYield.FIELD);
         o.put("validUntilTime", iso(m.getUtcTimeStamp(ValidUntilTime.FIELD)));
         o.put("transactTime", m.isSetField(TransactTime.FIELD)
                 ? iso(m.getUtcTimeStamp(TransactTime.FIELD)) : Instant.now().toString());

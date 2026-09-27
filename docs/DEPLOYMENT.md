@@ -22,26 +22,41 @@ starter services, roughly USD 20/month; Vercel Hobby and Resend's free tier
 are enough for a demo. Render's free plans are not suitable (free databases
 are deleted after 30 days; free web services sleep).
 
-**Before you start**: Render and Vercel deploy from GitHub. Either merge the
-branch `claude/eloquent-einstein-ivn1h6` into `main`, or pick that branch
-when you create each service/project below.
+**Before you start**: Render and Vercel deploy from the `main` branch on
+GitHub; every push to `main` redeploys. Check that `main` is the repository's
+default branch (GitHub → **Settings** → **General** → **Default branch**).
 
 ---
 
 ## Step 1 — Resend (emails)
 
-1. Resend → **Domains** → **Add domain** → `agyal.net` (region EU/Ireland).
-2. Resend shows DNS records (TXT for SPF/DKIM, MX for bounces). Your DNS is
-   in Vercel: Vercel → **Domains** → `agyal.net` → **DNS Records** → add each
-   record exactly as Resend shows it. Then click **Verify** in Resend.
+`agyal.net` does not need an email service or mailboxes: Resend only needs
+DNS records proving you own the domain. Nobody can reply to
+`codes@agyal.net`, and the platform never needs replies there.
+
+1. Resend → **Domains** → **Add domain** → `agyal.net` (region Ireland,
+   eu-west-1).
+2. Resend shows 3–4 DNS records: a TXT at `resend._domainkey` (DKIM), and an
+   MX and a TXT at `send` (bounces/SPF). Your DNS is in Vercel: Vercel →
+   **Domains** → `agyal.net` → **DNS Records** → add each record:
+   - **Name**: only the part Resend shows (`send`, `resend._domainkey`);
+     Vercel appends `.agyal.net` itself.
+   - **Value**: exactly as Resend shows it; **MX priority** as shown
+     (usually 10).
+
+   The records sit on subdomains, so they don't clash with anything else on
+   `agyal.net`. Then click **Verify** in Resend (minutes, up to an hour).
 3. Resend → **API Keys** → **Create API key** (sending access, `agyal.net`
    only). Copy the `re_...` key.
 4. Sender address: `codes@agyal.net` (no mailbox needed).
+5. Use your normal inbox (e.g. Gmail) for `CONTACT_TO` and `ADMIN_EMAIL` in
+   Step 2. Lead emails set *Reply-To* to the prospect, so **Reply** answers
+   them directly.
 
 ## Step 2 — Render (database, API, FIX)
 
 1. Render → **New** → **Blueprint** → connect the GitHub repository
-   `Mr-ahmed-ramadan/Agyal-EG-broker-model` → choose the branch.
+   `Mr-ahmed-ramadan/Agyal-EG-broker-model` (branch `main`).
 2. Render reads `render.yaml` and proposes `agyal-db`, `agyal-api` and
    `agyal-fix`. It asks for:
 
@@ -73,7 +88,7 @@ when you create each service/project below.
 ## Step 3 — Vercel (four projects)
 
 Vercel → **Add New** → **Project** → import the same repository four times
-(pick the branch each time):
+(production branch `main`):
 
 | Project | Root Directory | Environment variables | Domain |
 | --- | --- | --- | --- |

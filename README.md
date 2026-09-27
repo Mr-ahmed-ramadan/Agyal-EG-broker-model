@@ -32,22 +32,25 @@ all traded OTC with partner banks, one order per client.
 The first end-to-end slice runs locally and in CI:
 
 1. Agyal admin creates a broker (tenant), its staff and bank relationships.
-2. A client registers on the broker's branded app and completes onboarding
+2. Every sign-in is two steps: password, then a 6-digit code sent by SMS
+   (codes are hashed, expire in 5 minutes, allow 5 attempts, resends are
+   rate-limited). Registration sends a code too, verifying the client's mobile.
+3. A client registers on the broker's branded app and completes onboarding
    (mock eKYC and AML providers; the broker's auto-approval rules decide, or
    the application goes to the broker's compliance queue).
-3. Broker operations verify the client's MCDR unified code and record custody
+4. Broker operations verify the client's MCDR unified code and record custody
    accounts (manual MCDR adapter), and confirm the client's deposit.
-4. The client requests a price: a FIX `QuoteRequest` goes to every partner
+5. The client requests a price: a FIX `QuoteRequest` goes to every partner
    bank; `Quote`s come back; the client sees the best **client** yield after
    the broker's markup, with commission and accrued interest disclosed.
-5. The client accepts: pre-trade checks, cash reserve, immutable price
+6. The client accepts: pre-trade checks, cash reserve, immutable price
    snapshot, FIX `NewOrderSingle`; the bank's `ExecutionReport`s drive the
    FIX order state machine and post balanced ledger entries.
-6. The client can sell a holding before maturity the same way: a sell RFQ
+7. The client can sell a holding before maturity the same way: a sell RFQ
    gets bank bids, the client sees net proceeds (bid yield plus markup, less
    commission), the securities are reserved while the order is open, and the
    fill credits cash and books a receivable from the bank.
-7. Broker console shows buy and sell orders, clients and a trial balance
+8. Broker console shows buy and sell orders, clients and a trial balance
    that nets to zero per currency and per ISIN.
 
 Screenshots from an automated browser run are in
@@ -96,7 +99,7 @@ cd services/fix-gateway && ./gradlew runSimulator
 cd services/fix-gateway && ./gradlew run
 
 # Terminal 3-5: API and apps
-npm run dev:api                               # http://localhost:3000/health
+OTP_DEV_ECHO=true npm run dev:api             # http://localhost:3000/health
 npm run dev:client-web                        # http://localhost:5173
 npm run dev:broker-console                    # http://localhost:5174
 ```
@@ -110,7 +113,9 @@ Seeded demo users (password `Demo-Pass-2026!`, local only):
 | `ops@demo-broker.example` | Broker console: unified codes, deposits, ledger |
 | `dealer@demo-broker.example` | Broker console: orders |
 
-Clients register themselves in the client app. For the mock eKYC, use any
+Sign-in asks for an SMS code. There is no SMS gateway yet: the API logs each
+message, and with `OTP_DEV_ECHO=true` (never in production) the apps show
+the code on screen. Clients register themselves in the client app. For the mock eKYC, use any
 valid 14-digit national ID of an adult (e.g. `29001011234567`); IDs ending
 in `9999` fail the face match. Names containing "Minister Example" are PEP
 hits and go to the compliance queue.
@@ -125,8 +130,8 @@ npm test                                      # API unit tests (pricing, fixed i
 
 ## Not built yet
 
-eKYC/AML/MCDR vendor integrations (mocks and a manual adapter stand in),
-OTP/MFA, settlement confirmation and
+eKYC/AML/MCDR vendor integrations (mocks and a manual adapter stand in), a
+real SMS gateway, OTP step-up for withdrawals, settlement confirmation and
 automated reconciliation imports, PORTAL/FILE bank adapters, the admin and
 bank-portal UIs, billing, notifications, and production hosting. See the
 ADRs and open questions.

@@ -38,9 +38,18 @@ when volume requires.
 ### Security
 
 - TLS everywhere; FIX over TLS or VPN per bank.
-- Authentication in the API (JWT access + rotating refresh tokens), MFA
-  required for all broker, bank and Agyal users; OTP step-up for client
-  sensitive actions (withdrawals, bank account change).
+- Authentication in the API: password, then a one-time SMS code for every
+  sign-in (clients, broker staff and Agyal operators); a JWT is only issued
+  after the code is verified. Registration verifies the client's mobile the
+  same way. Codes are 6 digits, stored as an HMAC bound to the challenge,
+  valid 5 minutes and 5 attempts, with a 30-second resend cooldown and at
+  most 6 codes per user per hour. SMS goes through an `SmsProvider`
+  interface under the broker's sender name; in development the code is
+  logged, and returned in the response only if `OTP_DEV_ECHO=true` outside
+  production.
+- Next: rotating refresh tokens, OTP step-up for client sensitive actions
+  (withdrawals, bank account change), device binding, and authenticator-app
+  or hardware-key MFA for staff as an alternative to SMS.
 - Per-tenant data keys (ADR 0002); secrets in a managed secrets store.
 - Immutable audit log for every state-changing action, with actor, tenant,
   IP and before/after.

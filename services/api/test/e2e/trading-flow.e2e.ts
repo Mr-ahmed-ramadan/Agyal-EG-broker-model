@@ -48,14 +48,25 @@ async function waitFor<T>(what: string, fn: () => Promise<T | undefined>, timeou
   throw new Error(`Timed out waiting for ${what}`);
 }
 
-const login = async (tenant: string | undefined, email: string) =>
-  (await call('POST', '/auth/login', { tenant, body: { email, password: PASSWORD } })).accessToken as string;
+/** Completes the SMS code step using the development echo (OTP_DEV_ECHO=true). */
+async function verifyOtp(tenant: string | undefined, challenge: Json): Promise<Json> {
+  assert.match(challenge.devCode, /^\d{6}$/, 'dev code echoed');
+  assert.equal(challenge.accessToken, undefined, 'no token before the code is verified');
+  return call('POST', '/auth/verify-otp', { tenant, body: { challengeId: challenge.challengeId, code: challenge.devCode } });
+}
+
+const login = async (tenant: string | undefined, email: string) => {
+  const challenge = await call('POST', '/auth/login', { tenant, body: { email, password: PASSWORD } });
+  return (await verifyOtp(tenant, challenge)).accessToken as string;
+};
 
 async function onboardClient(tenant: string, name: string, nationalId: string, isPep = false) {
-  const reg = await call('POST', '/auth/register', {
+  const challenge = await call('POST', '/auth/register', {
     tenant,
     body: { email: `${name.toLowerCase().replace(/\s/g, '.')}.${run}@example.com`, mobile: '01012345678', password: PASSWORD, fullNameEn: name },
   });
+  assert.equal(challenge.purpose, 'VERIFY_MOBILE');
+  const reg = await verifyOtp(tenant, challenge);
   const token = reg.accessToken as string;
   const o = { tenant, token };
   const idv = await call('POST', '/onboarding/identity', { ...o, body: { nationalId, fullNameEn: name } });
@@ -100,6 +111,19 @@ async function trade(side: 'BUY' | 'SELL', tenant: string, token: string, isin: 
 
 async function main() {
   const T = 'demo-broker';
+  // 0. Two-step sign-in: wrong codes are refused and limited; a fresh code works
+  const ch = await call('POST', '/auth/login', { tenant: T, body: { email: 'dealer@demo-broker.example', password: PASSWORD } });
+  assert.equal(ch.purpose, 'LOGIN');
+  assert.equal(ch.sentTo, '•••• 0004');
+  const wrong = ch.devCode === '000000' ? '111111' : '000000';
+  for (let i = 0; i < 5; i++) {
+    await call('POST', '/auth/verify-otp', { tenant: T, body: { challengeId: ch.challengeId, code: wrong }, expect: 401 });
+  }
+  await call('POST', '/auth/verify-otp', { tenant: T, body: { challengeId: ch.challengeId, code: ch.devCode }, expect: 429 });
+  await call('POST', '/auth/resend-otp', { tenant: T, body: { challengeId: ch.challengeId }, expect: 429 }); // cooldown
+  await call('POST', '/auth/login', { tenant: T, body: { email: 'dealer@demo-broker.example', password: 'wrong-password' }, expect: 401 });
+  console.log('✓ SMS code required; wrong codes refused, attempts and resends limited');
+
   const compliance = await login(T, 'compliance@demo-broker.example');
   const ops = await login(T, 'ops@demo-broker.example');
 
@@ -218,10 +242,13 @@ async function main() {
       },
     },
   });
-  const other = await call('POST', '/auth/register', {
-    tenant: slug,
-    body: { email: `x.${run}@example.com`, mobile: '01112345678', password: PASSWORD, fullNameEn: 'Other Client' },
-  });
+  const other = await verifyOtp(
+    slug,
+    await call('POST', '/auth/register', {
+      tenant: slug,
+      body: { email: `x.${run}@example.com`, mobile: '01112345678', password: PASSWORD, fullNameEn: 'Other Client' },
+    }),
+  );
   await call('GET', `/orders/${t1.filled.id}`, { tenant: slug, token: other.accessToken, expect: 404 });
   // A token for one broker is refused on another broker's host
   await call('GET', '/portfolio', { tenant: slug, token: c.token, expect: 403 });

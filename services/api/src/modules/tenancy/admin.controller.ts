@@ -7,6 +7,7 @@ import { hashPassword } from '../../common/crypto.util';
 import { DbService } from '../../common/db.service';
 import { DEFAULT_TENANT_CONFIG } from '../../common/tenant-config';
 import { parseBody } from '../../common/validation';
+import { EGYPT_MOBILE } from '../identity/identity.controller';
 
 const TenantSchema = z.object({
   slug: z.string().regex(/^[a-z0-9-]{3,40}$/),
@@ -30,6 +31,8 @@ const TenantSchema = z.object({
 
 const StaffSchema = z.object({
   email: z.string().email(),
+  /** Receives the sign-in codes */
+  mobile: z.string().regex(EGYPT_MOBILE, 'Egyptian mobile number'),
   password: z.string().min(10),
   roles: z.array(z.enum(BROKER_STAFF as [Role, ...Role[]])).min(1),
 });
@@ -85,6 +88,7 @@ export class AdminController {
       data: {
         tenantId: tenant.id,
         email: input.email.toLowerCase(),
+        mobile: input.mobile,
         passwordHash: hashPassword(input.password),
         roles: input.roles,
       },

@@ -45,7 +45,13 @@ async function main() {
   const adminEmail = 'admin@agyal.local';
   if (!(await prisma.user.findFirst({ where: { tenantId: null, email: adminEmail } }))) {
     await prisma.user.create({
-      data: { email: adminEmail, passwordHash: hashPassword(DEMO_PASSWORD), roles: ['PLATFORM_ADMIN'] },
+      data: {
+        email: adminEmail,
+        mobile: '01000000000',
+        mobileVerifiedAt: new Date(),
+        passwordHash: hashPassword(DEMO_PASSWORD),
+        roles: ['PLATFORM_ADMIN'],
+      },
     });
   }
 
@@ -84,15 +90,22 @@ async function main() {
   });
 
   const staff = [
-    { email: 'admin@demo-broker.example', roles: ['BROKER_ADMIN'] },
-    { email: 'compliance@demo-broker.example', roles: ['BROKER_COMPLIANCE'] },
-    { email: 'ops@demo-broker.example', roles: ['BROKER_OPS', 'BROKER_FINANCE'] },
-    { email: 'dealer@demo-broker.example', roles: ['BROKER_DEALER'] },
+    { email: 'admin@demo-broker.example', mobile: '01000000001', roles: ['BROKER_ADMIN'] },
+    { email: 'compliance@demo-broker.example', mobile: '01000000002', roles: ['BROKER_COMPLIANCE'] },
+    { email: 'ops@demo-broker.example', mobile: '01000000003', roles: ['BROKER_OPS', 'BROKER_FINANCE'] },
+    { email: 'dealer@demo-broker.example', mobile: '01000000004', roles: ['BROKER_DEALER'] },
   ];
   for (const s of staff) {
     await prisma.user.upsert({
       where: { tenantId_email: { tenantId: tenant.id, email: s.email } },
-      create: { tenantId: tenant.id, email: s.email, passwordHash: hashPassword(DEMO_PASSWORD), roles: s.roles },
+      create: {
+        tenantId: tenant.id,
+        email: s.email,
+        mobile: s.mobile,
+        mobileVerifiedAt: new Date(),
+        passwordHash: hashPassword(DEMO_PASSWORD),
+        roles: s.roles,
+      },
       update: {},
     });
   }

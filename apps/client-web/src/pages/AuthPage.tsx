@@ -2,9 +2,17 @@ import { useState, type FormEvent } from 'react';
 import { useApp } from '../context';
 import { api } from '../lib/api';
 
+interface Challenge {
+  challengeId: string;
+  sentTo: string;
+  expiresAt: string;
+  devCode?: string;
+}
+
 export function AuthPage({ onSignedIn }: { onSignedIn: (token: string) => void }) {
   const { t } = useApp();
   const [mode, setMode] = useState<'login' | 'register'>('register');
+  const [challenge, setChallenge] = useState<Challenge | null>(null);
   const [form, setForm] = useState({ email: '', password: '', mobile: '', fullNameEn: '' });
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -16,16 +24,31 @@ export function AuthPage({ onSignedIn }: { onSignedIn: (token: string) => void }
     setBusy(true);
     setError(null);
     try {
+      // Step 1 (password or registration) sends an SMS code; step 2 verifies it.
       const res =
         mode === 'login'
-          ? await api('POST', '/auth/login', { email: form.email, password: form.password })
-          : await api('POST', '/auth/register', form);
-      onSignedIn(res.accessToken);
+          ? await api<Challenge>('POST', '/auth/login', { email: form.email, password: form.password })
+          : await api<Challenge>('POST', '/auth/register', form);
+      setChallenge(res);
     } catch (err) {
       setError((err as Error).message);
     } finally {
       setBusy(false);
     }
+  }
+
+  if (challenge) {
+    return (
+      <CodeStep
+        challenge={challenge}
+        onChallenge={setChallenge}
+        onSignedIn={onSignedIn}
+        onBack={() => {
+          setChallenge(null);
+          setMode('login');
+        }}
+      />
+    );
   }
 
   return (
@@ -61,6 +84,89 @@ export function AuthPage({ onSignedIn }: { onSignedIn: (token: string) => void }
       </form>
       <button className="link" onClick={() => setMode(mode === 'login' ? 'register' : 'login')}>
         {mode === 'login' ? t('noAccount') : t('haveAccount')}
+      </button>
+    </section>
+  );
+}
+
+function CodeStep({
+  challenge,
+  onChallenge,
+  onSignedIn,
+  onBack,
+}: {
+  challenge: Challenge;
+  onChallenge: (c: Challenge) => void;
+  onSignedIn: (token: string) => void;
+  onBack: () => void;
+}) {
+  const { t } = useApp();
+  const [code, setCode] = useState('');
+  const [error, setError] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+
+  async function verify(e: FormEvent) {
+    e.preventDefault();
+    setBusy(true);
+    setError(null);
+    try {
+      const res = await api('POST', '/auth/verify-otp', { challengeId: challenge.challengeId, code });
+      onSignedIn(res.accessToken);
+    } catch (err) {
+      setError((err as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function resend() {
+    setError(null);
+    try {
+      onChallenge(await api<Challenge>('POST', '/auth/resend-otp', { challengeId: challenge.challengeId }));
+      setCode('');
+      setNotice(t('codeResent'));
+    } catch (err) {
+      setError((err as Error).message);
+    }
+  }
+
+  return (
+    <section className="card narrow">
+      <h1>{t('codeTitle')}</h1>
+      <p className="muted">
+        {t('codeSentTo')} <span dir="ltr" className="nowrap">{challenge.sentTo}</span>
+      </p>
+      <form onSubmit={verify} className="form">
+        <label>
+          {t('code')}
+          <input
+            className="code"
+            value={code}
+            onChange={(e) => setCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+            inputMode="numeric"
+            autoComplete="one-time-code"
+            dir="ltr"
+            required
+            autoFocus
+          />
+        </label>
+        {challenge.devCode ? (
+          <p className="muted">
+            {t('devCode')}: <span dir="ltr">{challenge.devCode}</span>
+          </p>
+        ) : null}
+        {notice ? <p className="muted">{notice}</p> : null}
+        {error ? <p className="error">{error}</p> : null}
+        <button className="primary" disabled={busy || code.length !== 6}>
+          {t('verify')}
+        </button>
+      </form>
+      <button className="link" onClick={resend}>
+        {t('resendCode')}
+      </button>
+      <button className="link" onClick={onBack}>
+        {t('back')}
       </button>
     </section>
   );

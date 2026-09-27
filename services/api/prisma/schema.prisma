@@ -52,15 +52,36 @@ model User {
   id           String   @id @default(uuid())
   /// null for Agyal platform operators
   tenantId     String?
-  email        String
-  mobile       String?
-  passwordHash String
-  roles        String[]
-  createdAt    DateTime @default(now())
+  email            String
+  mobile           String?
+  /// Set when the user first proves possession of the mobile with an OTP
+  mobileVerifiedAt DateTime?
+  passwordHash     String
+  roles            String[]
+  createdAt        DateTime  @default(now())
 
-  tenant Tenant? @relation(fields: [tenantId], references: [id])
+  tenant        Tenant?        @relation(fields: [tenantId], references: [id])
+  otpChallenges OtpChallenge[]
 
   @@unique([tenantId, email])
+}
+
+/// One-time code sent by SMS (login second factor, mobile verification).
+model OtpChallenge {
+  id         String    @id @default(uuid())
+  userId     String
+  /// LOGIN or VERIFY_MOBILE
+  purpose    String
+  /// HMAC of the code; the code itself is never stored
+  codeHash   String
+  expiresAt  DateTime
+  attempts   Int       @default(0)
+  consumedAt DateTime?
+  createdAt  DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([userId, createdAt])
 }
 
 // ---------------------------------------------------------------------------

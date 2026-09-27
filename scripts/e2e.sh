@@ -7,6 +7,8 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 export DATABASE_URL="${DATABASE_URL:-postgresql://agyal:agyal@localhost:5432/agyal_broker?schema=public}"
 export PORT="${PORT:-3000}"
+# Return OTP codes in API responses so the test can complete sign-in (never in production).
+export OTP_DEV_ECHO=true
 export API_URL="http://localhost:${PORT}"
 LOG_DIR="$(mktemp -d)"
 PIDS=()

@@ -91,3 +91,15 @@ code { background: var(--bg); padding: 2px 6px; border-radius: 4px; }
 }
 textarea { font: inherit; padding: 8px 10px; border-radius: 6px; border: 1px solid var(--border); background: var(--surface); color: var(--text); width: 100%; }
 .inline { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 4px 6px; }
+.econ-grid { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); align-items: start; margin-bottom: 16px; }
+.econ-grid .fields { display: grid; gap: 10px; }
+.econ-grid fieldset { border: 1px solid var(--border); border-radius: 8px; display: grid; gap: 8px; }
+label.check { flex-direction: row; align-items: center; gap: 8px; display: flex; }
+label.override input, td.override { background: color-mix(in srgb, #f5c518 22%, var(--surface)); }
+.waterfall { width: 100%; }
+.waterfall caption { text-align: start; font-weight: 600; margin-bottom: 8px; }
+.waterfall td:last-child { text-align: end; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.waterfall tr.sub td { font-weight: 700; border-top: 1px solid var(--border); }
+.waterfall tr.good td { color: #067647; font-weight: 700; }
+.waterfall tr.bad td { color: #b42318; font-weight: 700; }
+.ok { color: #067647; }

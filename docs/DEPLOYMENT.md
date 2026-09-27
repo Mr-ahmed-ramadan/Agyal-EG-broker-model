@@ -167,6 +167,12 @@ certificates appear once records resolve (minutes; up to an hour).
    **Ledger**.
 6. Close with the landing page's pricing and "you stay the licensed party".
 
+**Set your economics** (admin console → **Economics**): custody, broker and
+Agyal margins, commission, tax per paper type and deposit rates by term, with a
+live one-year-bond illustration. Defaults: 0.05% / 0.50% / 1.00%, no
+commission, 20% tax, 17% deposit (placeholder: set current rates). Override
+any value per broker; highlighted cells differ from the defaults.
+
 **Keep it fresh**: admin console → **Instruments & rates** sets the
 indicative yields clients see before a live price (live bank quotes update
 them automatically); **News** posts to every client's home page. Each broker

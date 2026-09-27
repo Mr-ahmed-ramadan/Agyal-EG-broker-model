@@ -79,3 +79,11 @@ th { color: var(--muted); font-weight: 600; }
   dl { grid-template-columns: 1fr; }
 }
 textarea { font: inherit; padding: 8px 10px; border-radius: 6px; border: 1px solid var(--border); background: var(--surface); color: var(--text); width: 100%; }
+.waterfall { width: 100%; max-width: 520px; }
+.waterfall caption { text-align: start; font-weight: 600; margin-bottom: 8px; }
+.waterfall td:last-child { text-align: end; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.waterfall tr.sub td { font-weight: 700; border-top: 1px solid var(--border); }
+.waterfall tr.good td, td.ok { color: #067647; font-weight: 600; }
+.waterfall tr.bad td { color: #b42318; font-weight: 700; }
+tr.warn td { background: color-mix(in srgb, #b42318 8%, var(--surface)); }
+.payout { border-top: 1px solid var(--border); padding-top: 10px; margin-top: 10px; }

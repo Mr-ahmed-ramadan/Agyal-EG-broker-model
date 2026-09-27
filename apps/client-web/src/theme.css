@@ -219,3 +219,19 @@ details.htm summary { cursor: pointer; font-weight: 600; }
   .summary { grid-template-columns: minmax(0, 1fr); }
 }
 details.htm .summary > div strong { font-size: clamp(0.8rem, 3.5vw, 1.1rem); }
+
+/* Return breakdown (waterfall) */
+.breakdown { margin: 12px 0; border: 1px solid var(--border); border-radius: 10px; padding: 12px; }
+.breakdown h3 { margin-top: 0; }
+.wf { width: 100%; border-collapse: collapse; font-size: 0.92rem; }
+.wf td { padding: 4px 0; }
+.wf td:last-child { text-align: end; font-variant-numeric: tabular-nums; white-space: nowrap; padding-inline-start: 12px; }
+.wf tr.sub td { font-weight: 700; border-top: 1px solid var(--border); padding-top: 6px; }
+.wf-note { margin: 10px 0 4px; padding: 8px 10px; border-radius: 8px; background: color-mix(in srgb, var(--accent) 12%, var(--surface)); }
+.wf-note.good { background: color-mix(in srgb, var(--ok) 12%, var(--surface)); color: var(--ok); font-weight: 700; }
+.net-line { color: var(--muted); }
+.net-line .plus { color: var(--ok); font-weight: 600; }
+.row.rate { flex-wrap: wrap; }
+.row.rate > span:first-child { flex: 1 1 0; }
+.row.rate .net-row { flex-basis: 100%; display: block; font-size: 0.85rem; color: var(--muted); border-top: 1px dashed var(--border); padding-top: 6px; }
+.row.rate .net-row .plus { color: var(--ok); font-weight: 600; }

@@ -20,6 +20,7 @@ export interface Instrument {
   indicativeYield: string | null;
   indicativeAsOf: string | null;
   taxRate: number;
+  returnBreakdown: { netYield?: number; vsDeposit?: number; belowDeposit?: boolean } | null;
 }
 
 const TYPES = ['TREASURY_BILL', 'TREASURY_BOND', 'SUKUK', 'CORPORATE_BOND'];
@@ -73,6 +74,14 @@ export function RatesPage({ canBuy, onOrdered }: { canBuy: boolean; onOrdered: (
                     <small>{t('noRate')}</small>
                   )}
                 </span>
+                {i.indicativeYield && i.returnBreakdown?.netYield != null ? (
+                  <span className="net-row">
+                    {percent(i.returnBreakdown.netYield, locale)} {t('netPa')}
+                    {!i.returnBreakdown.belowDeposit ? (
+                      <span className="plus"> · +{percent(i.returnBreakdown.vsDeposit ?? 0, locale)} {t('vsDeposit')}</span>
+                    ) : null}
+                  </span>
+                ) : null}
               </button>
             </li>
           ))}

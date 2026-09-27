@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react';
 import { api, getToken, setToken } from './api';
 import { BrokersScreen } from './screens/BrokersScreen';
+import { EconomicsScreen } from './screens/EconomicsScreen';
 import { FixScreen } from './screens/FixScreen';
 import { InstrumentsScreen } from './screens/InstrumentsScreen';
 import { LeadsScreen } from './screens/LeadsScreen';
@@ -11,6 +12,7 @@ const SCREENS = {
   prospects: { label: 'Prospect demos', el: ProspectsScreen },
   leads: { label: 'Leads', el: LeadsScreen },
   brokers: { label: 'Brokers', el: BrokersScreen },
+  economics: { label: 'Economics', el: EconomicsScreen },
   instruments: { label: 'Instruments & rates', el: InstrumentsScreen },
   news: { label: 'News', el: NewsScreen },
   fix: { label: 'FIX monitor', el: FixScreen },

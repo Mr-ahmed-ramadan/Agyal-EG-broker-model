@@ -4,11 +4,13 @@ import { api } from '../lib/api';
 import { date, fill, money, percent } from '../lib/format';
 import type { Instrument } from '../pages/RatesPage';
 import { ProjectionDetail, ProjectionSummary, type Projection } from './ProjectionView';
+import { ReturnBreakdown, type Breakdown } from './ReturnBreakdown';
 import { TradePanel } from './TradePanel';
 
 interface IndicativeProjection extends Projection {
   commissionRule: { bps: number; min: string };
   taxRate: number;
+  returnBreakdown: Breakdown;
 }
 
 /**
@@ -116,16 +118,19 @@ export function PaperDetails({
           {error ? <p className="error">{error}</p> : null}
           {proj ? (
             <>
+              <ReturnBreakdown b={proj.returnBreakdown} />
               <ProjectionSummary p={proj} />
               <ProjectionDetail p={proj} />
               <h3>{t('feesTitle')}</h3>
               <ul className="fees">
                 <li>{fill(t('feesYield'), { broker: tenant.branding.displayName[locale] })}</li>
                 <li>
-                  {fill(t('feesCommission'), {
-                    pct: percent(proj.commissionRule.bps / 10_000, locale),
-                    min: money(proj.commissionRule.min, locale),
-                  })}
+                  {proj.commissionRule.bps > 0 || Number(proj.commissionRule.min) > 0
+                    ? fill(t('feesCommission'), {
+                        pct: percent(proj.commissionRule.bps / 10_000, locale),
+                        min: money(proj.commissionRule.min, locale),
+                      })
+                    : t('noCommission')}
                 </li>
                 <li>{fill(t('feesTax'), { pct: percent(proj.taxRate, locale) })}</li>
                 <li>{t('feesNone')}</li>

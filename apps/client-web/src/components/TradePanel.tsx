@@ -4,6 +4,7 @@ import { api } from '../lib/api';
 import { date, money, nominal, percent, price } from '../lib/format';
 import type { Instrument } from '../pages/RatesPage';
 import { ProjectionDetail, ProjectionSummary, type Projection } from './ProjectionView';
+import { ReturnBreakdown, type Breakdown } from './ReturnBreakdown';
 
 interface ClientQuote {
   quoteId: string;
@@ -16,6 +17,7 @@ interface ClientQuote {
   netAmount: string;
   /** Buying: this quote held to maturity, after tax */
   holdToMaturity: Projection | null;
+  returnBreakdown: Breakdown | null;
 }
 
 interface Rfq {
@@ -172,6 +174,7 @@ export function TradePanel({
           {best.holdToMaturity ? (
             <details className="htm" open>
               <summary>{t('holdToMaturityTitle')}</summary>
+              {best.returnBreakdown ? <ReturnBreakdown b={best.returnBreakdown} /> : null}
               <ProjectionSummary p={best.holdToMaturity} />
               <ProjectionDetail p={best.holdToMaturity} />
             </details>

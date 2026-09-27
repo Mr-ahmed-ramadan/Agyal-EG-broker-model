@@ -66,10 +66,15 @@ The first end-to-end slice runs locally and in CI:
     pay (price, accrued interest, commission), every payment until maturity,
     tax (20% of the interest by default, configurable), net profit and net
     annual return. The same view is shown for each live bank quote.
-12. Client home page (invested, cash, income, upcoming payments, maturities,
+12. Economics set by Agyal in the admin console: custody, broker and Agyal
+    margins are deducted from the market yield (defaults 0.05% / 0.50% /
+    1.00%, no commission), booked separately on every trade and paid out
+    separately; clients see how their net yield compares with a bank deposit
+    of the same term.
+13. Client home page (invested, cash, income, upcoming payments, maturities,
     highlights and news from Agyal and the broker) and an account statement
     for any period that reconciles to the ledger and prints as a PDF.
-13. Broker console shows buy and sell orders, clients, settlements,
+14. Broker console shows buy and sell orders, clients, settlements,
     withdrawals, coupons and a trial balance that nets to zero per currency
     and per ISIN. The admin console manages brokers, staff, bank links and
     instruments and monitors the FIX bridge.

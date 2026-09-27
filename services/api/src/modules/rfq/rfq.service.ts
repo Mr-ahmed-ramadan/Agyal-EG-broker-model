@@ -17,11 +17,13 @@ import {
 } from '@agyal/shared-types';
 import { newId } from '../../common/crypto.util';
 import { DbService, type Tx } from '../../common/db.service';
+import { taxRateFor, tenantConfig } from '../../common/tenant-config';
 import { LedgerAccountType } from '../../domain/ledger-rules';
 import { isInstrumentSuitable } from '../../domain/onboarding-rules';
 import type { TradeSide } from '../../domain/pricing';
+import { projectHolding } from '../../domain/projection';
 import { FixOutboxService } from '../bank-adapters/fix-outbox.service';
-import { InstrumentsService } from '../instruments/instruments.service';
+import { InstrumentsService, pricingInstrument, yieldFromCleanPrice } from '../instruments/instruments.service';
 import { LedgerService } from '../ledger/ledger.service';
 import { bankPriceFor, PricingService, tradeSide } from '../pricing/pricing.service';
 
@@ -154,6 +156,19 @@ export class RfqService {
             return [];
           }
           // Clients only see their own price, never the bank price or markup (ADR 0008).
+          // Buying: what this exact quote earns if held to maturity, after tax.
+          const holdToMaturity =
+            side === 'BUY'
+              ? projectHolding({
+                  instrument: pricingInstrument(instrument),
+                  settlDate: request.settlDate,
+                  clientYield: Number(p.clientYield),
+                  clientCleanPx: Number(p.clientCleanPx),
+                  nominal: request.orderQty.toString(),
+                  rule: p.rule,
+                  taxRate: taxRateFor(tenantConfig(tenant.config), instrument.type),
+                })
+              : null;
           return [{
             quoteId: q.id,
             validUntil: q.validUntil,
@@ -163,6 +178,7 @@ export class RfqService {
             accruedInterest: p.accruedInterest,
             commission: p.commission,
             netAmount: p.netAmount,
+            holdToMaturity,
           }];
         })
         .sort((a, b) =>
@@ -210,6 +226,20 @@ export class RfqService {
       },
       update: {},
     });
+    await this.recordIndicative(tx, request.isin, request.settlDate, isBuy ? msg.offerPx : msg.bidPx, isBuy);
+  }
+
+  /** Keeps the platform's indicative rate current from real bank quotes (best effort). */
+  private async recordIndicative(tx: Tx, isin: string, settle: Date, px: string | undefined, isOffer: boolean) {
+    try {
+      const instrument = await tx.instrument.findUnique({ where: { isin } });
+      if (!instrument || !px) return;
+      const y = yieldFromCleanPrice(instrument, Number(px), settle).toFixed(6);
+      const data = { ...(isOffer ? { offerYield: y } : { bidYield: y }), source: 'BANK_QUOTE', asOf: new Date() };
+      await tx.indicativeRate.upsert({ where: { isin }, create: { isin, ...data }, update: data });
+    } catch (err) {
+      this.log.warn(`Could not update indicative rate for ${isin}: ${(err as Error).message}`);
+    }
   }
 
   /** Looks up which tenant an inbound quote belongs to (platform scope). */

@@ -3,7 +3,7 @@ import Decimal from 'decimal.js';
 import type { Instrument, Tenant } from '@prisma/client';
 import { AuditService } from '../../common/audit.service';
 import { DbService, type Tx } from '../../common/db.service';
-import { tenantConfig } from '../../common/tenant-config';
+import { taxRateFor, tenantConfig } from '../../common/tenant-config';
 import { toUtcDate } from '../../domain/fixed-income';
 import {
   entitlementAmount,
@@ -14,6 +14,7 @@ import {
   type ScheduledPayment,
 } from '../../domain/income';
 import { incomeReceivedEntry, LedgerAccountType } from '../../domain/ledger-rules';
+import { billRedemptionTax } from '../../domain/projection';
 import { LedgerService } from '../ledger/ledger.service';
 
 const DAY = 86_400_000;
@@ -54,13 +55,21 @@ export class IncomeService {
 
   /** Broker ops: payments not yet confirmed, due or upcoming. */
   async pending(tenant: Tenant) {
-    const rate = tenantConfig(tenant.config).couponWithholdingRate;
+    const config = tenantConfig(tenant.config);
     return this.db.forTenant(tenant.id, async (tx) => {
       const events = await this.projected(tx);
       const today = toUtcDate(new Date());
-      return events.map((e) => {
-        const gross = e.holdings.reduce((s, h) => s.plus(entitlementAmount(h.nominal, e.per100)), new Decimal(0));
-        return {
+      const out = [];
+      for (const e of events) {
+        const rate = taxRateFor(config, e.instrument.type);
+        let gross = new Decimal(0);
+        let tax = new Decimal(0);
+        for (const h of e.holdings) {
+          const g = entitlementAmount(h.nominal, e.per100);
+          gross = gross.plus(g);
+          tax = tax.plus(await this.taxOn(tx, e, h, g, rate));
+        }
+        out.push({
           key: e.key,
           isin: e.instrument.isin,
           name: e.instrument.nameEn,
@@ -70,18 +79,19 @@ export class IncomeService {
           holders: e.holdings.length,
           totalNominal: e.holdings.reduce((s, h) => s.plus(h.nominal), new Decimal(0)).toFixed(2),
           totalGross: gross.toFixed(2),
-          totalTax: e.type === 'COUPON' ? withholding(gross, rate).toFixed(2) : '0.00',
+          totalTax: tax.toFixed(2),
           due: e.paymentDate <= today,
           canConfirm: e.paymentDate <= today || demoMode(),
-        };
-      });
+        });
+      }
+      return out;
     });
   }
 
   /** Broker ops: confirm the issuer's payment was received; credits clients. Idempotent. */
   async confirm(tenant: Tenant, actorId: string, input: { isin: string; type: IncomeType; paymentDate: string; reference: string }) {
     const paymentDate = new Date(`${input.paymentDate}T00:00:00Z`);
-    const rate = tenantConfig(tenant.config).couponWithholdingRate;
+    const config = tenantConfig(tenant.config);
     return this.db.forTenant(tenant.id, async (tx) => {
       const existing = await tx.incomeEvent.findUnique({
         where: { tenantId_isin_type_paymentDate: { tenantId: tenant.id, isin: input.isin, type: input.type, paymentDate } },
@@ -102,11 +112,13 @@ export class IncomeService {
         if (finalCoupon) throw new ConflictException('Confirm the final coupon before the redemption');
       }
 
-      const lines = event.holdings.map((h) => {
+      const rate = taxRateFor(config, event.instrument.type);
+      const lines = [];
+      for (const h of event.holdings) {
         const gross = entitlementAmount(h.nominal, event.per100);
-        const tax = event.type === 'COUPON' ? withholding(gross, rate) : new Decimal(0);
-        return { clientId: h.clientId, nominal: h.nominal, gross, tax };
-      });
+        const tax = await this.taxOn(tx, event, h, gross, rate);
+        lines.push({ clientId: h.clientId, nominal: h.nominal, gross, tax });
+      }
       const totalGross = lines.reduce((s, l) => s.plus(l.gross), new Decimal(0));
       const totalTax = lines.reduce((s, l) => s.plus(l.tax), new Decimal(0));
 
@@ -162,16 +174,25 @@ export class IncomeService {
 
   /** Client: upcoming payments on their holdings and income received. */
   async forClient(tenant: Tenant, clientId: string) {
-    const rate = tenantConfig(tenant.config).couponWithholdingRate;
+    const config = tenantConfig(tenant.config);
     return this.db.forTenant(tenant.id, async (tx) => {
       const events = await this.projected(tx);
-      const upcoming = events.flatMap((e) => {
+      const upcoming = [];
+      for (const e of events) {
         const h = e.holdings.find((x) => x.clientId === clientId);
-        if (!h) return [];
+        if (!h) continue;
         const gross = entitlementAmount(h.nominal, e.per100);
-        const tax = e.type === 'COUPON' ? withholding(gross, rate) : new Decimal(0);
-        return [{ isin: e.instrument.isin, type: e.type, paymentDate: e.paymentDate, nominal: h.nominal.toFixed(2), expectedNet: gross.minus(tax).toFixed(2) }];
-      });
+        const tax = await this.taxOn(tx, e, h, gross, taxRateFor(config, e.instrument.type));
+        upcoming.push({
+          isin: e.instrument.isin,
+          type: e.type,
+          paymentDate: e.paymentDate,
+          nominal: h.nominal.toFixed(2),
+          expectedGross: gross.toFixed(2),
+          expectedTax: tax.toFixed(2),
+          expectedNet: gross.minus(tax).toFixed(2),
+        });
+      }
       const received = await tx.incomeEntitlement.findMany({
         where: { clientId },
         include: { event: true },
@@ -190,6 +211,29 @@ export class IncomeService {
         })),
       };
     });
+  }
+
+  /**
+   * Tax on one holder's payment: the rate on a coupon; on a T-bill redemption,
+   * the rate on the discount the client earned (face value minus their average
+   * buy price). Other redemptions return capital and are not taxed.
+   */
+  private async taxOn(tx: Tx, e: ProjectedEvent, h: Holding, gross: Decimal, rate: number): Promise<Decimal> {
+    if (e.type === 'COUPON') return withholding(gross, rate);
+    if (e.instrument.type !== 'TREASURY_BILL') return new Decimal(0);
+    return billRedemptionTax(h.nominal, await this.averageBuyPrice(tx, h.clientId, e.instrument.isin), rate);
+  }
+
+  /** Client's average clean price paid per 100 on filled buys of an ISIN (100 if none). */
+  private async averageBuyPrice(tx: Tx, clientId: string, isin: string): Promise<Decimal> {
+    const orders = await tx.order.findMany({
+      where: { clientId, isin, side: 'BUY', cumQty: { gt: 0 } },
+      include: { priceSnapshot: true },
+    });
+    const qty = orders.reduce((s, o) => s.plus(o.cumQty.toString()), new Decimal(0));
+    if (qty.isZero()) return new Decimal(100);
+    const cost = orders.reduce((s, o) => s.plus(new Decimal(o.cumQty.toString()).mul(o.priceSnapshot.clientCleanPx.toString())), new Decimal(0));
+    return cost.div(qty);
   }
 
   // --- projection -----------------------------------------------------------------------------

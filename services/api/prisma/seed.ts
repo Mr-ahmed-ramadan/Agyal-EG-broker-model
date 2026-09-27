@@ -149,6 +149,40 @@ async function main() {
     await prisma.instrument.upsert({ where: { isin: i.isin }, create: i, update: {} });
   }
 
+  // --- Indicative rates (same demo yields as the bank simulator; real quotes replace them) ---
+  const demoYield: Record<string, number> = { TREASURY_BILL: 0.265, TREASURY_BOND: 0.245, CORPORATE_BOND: 0.285, SUKUK: 0.275 };
+  for (const i of instruments) {
+    const offer = demoYield[i.type];
+    await prisma.indicativeRate.upsert({
+      where: { isin: i.isin },
+      create: { isin: i.isin, offerYield: offer.toFixed(6), bidYield: (offer + 0.003).toFixed(6), source: 'SEED' },
+      update: {},
+    });
+  }
+
+  // --- Demo platform news (shown on every client's home page) ------------------------
+  await prisma.$transaction(async (tx) => {
+    // Platform news has no tenant: written as the platform (RLS bypass).
+    await tx.$executeRaw`SELECT set_config('app.bypass_rls', 'on', true)`;
+    if ((await tx.announcement.count({ where: { tenantId: null } })) > 0) return;
+    await tx.announcement.createMany({
+      data: [
+        {
+          titleEn: 'Welcome to your fixed-income app (demo)',
+          titleAr: 'مرحبًا بك في تطبيق أدوات الدخل الثابت (تجريبي)',
+          bodyEn: 'Browse treasury bills, bonds and sukuk, see what you would earn after tax and fees, and buy at the best price from several banks.',
+          bodyAr: 'تصفّح أذون وسندات الخزانة والصكوك، واعرف عائدك بعد الضرائب والرسوم، واشترِ بأفضل سعر من عدة بنوك.',
+        },
+        {
+          titleEn: 'How your papers are held (demo)',
+          titleAr: 'كيف تُحفظ أوراقك المالية (تجريبي)',
+          bodyEn: 'Every paper you buy is registered under your own unified code at the Central Bank of Egypt or MCDR, not in the name of your broker or the platform.',
+          bodyAr: 'كل ورقة مالية تشتريها تُسجَّل باسمك وبكودك الموحد لدى البنك المركزي المصري أو شركة مصر للمقاصة، وليس باسم الوسيط أو المنصة.',
+        },
+      ],
+    });
+  });
+
   console.log(`Seeded tenant ${tenant.slug}, ${banks.length} banks, ${instruments.length} instruments.`);
   console.log(`Platform admin: ${ADMIN_EMAIL}`);
   if (SEED_DEMO_STAFF) console.log(`Demo staff seeded; demo password: ${DEMO_PASSWORD}`);

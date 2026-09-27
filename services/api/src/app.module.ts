@@ -20,6 +20,7 @@ import { FixInboxModule } from './modules/fix-inbox/fix-inbox.module';
 import { CashModule } from './modules/cash/cash.module';
 import { IncomeModule } from './modules/income/income.module';
 import { ShowcaseModule } from './modules/showcase/showcase.module';
+import { ExperienceModule } from './modules/experience/experience.module';
 
 @Module({
   imports: [
@@ -42,6 +43,7 @@ import { ShowcaseModule } from './modules/showcase/showcase.module';
     CashModule,
     IncomeModule,
     ShowcaseModule,
+    ExperienceModule,
   ],
   controllers: [HealthController],
 })

@@ -618,3 +618,35 @@ model AuditLog {
 
   @@index([tenantId, entity, entityId])
 }
+
+// ---------------------------------------------------------------------------
+// Client experience: indicative rates and news
+// ---------------------------------------------------------------------------
+
+/// Latest indicative bank yields per instrument (platform-wide), for browsing
+/// rates before a live quote. Updated from bank quotes; seeded for the demo.
+model IndicativeRate {
+  isin       String   @id
+  /// Bank offer yield (what a buyer gets before the broker's markup)
+  offerYield Decimal? @db.Decimal(9, 6)
+  /// Bank bid yield (what a seller gets before the broker's markup)
+  bidYield   Decimal? @db.Decimal(9, 6)
+  /// SEED, BANK_QUOTE or ADMIN
+  source     String
+  asOf       DateTime @default(now())
+}
+
+/// News shown on the client home page: platform-wide (tenantId null, posted
+/// by Agyal) or for one broker's clients.
+model Announcement {
+  id          String   @id @default(uuid())
+  tenantId    String?
+  titleEn     String
+  titleAr     String
+  bodyEn      String
+  bodyAr      String
+  publishedAt DateTime @default(now())
+  createdById String?
+
+  @@index([tenantId, publishedAt])
+}

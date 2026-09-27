@@ -9,5 +9,6 @@ import { CashService } from './cash.service';
   imports: [LedgerModule, IdentityModule],
   controllers: [ClientCashController, BrokerCashController],
   providers: [CashService],
+  exports: [CashService],
 })
 export class CashModule {}

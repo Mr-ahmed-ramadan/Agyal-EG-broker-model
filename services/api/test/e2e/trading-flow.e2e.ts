@@ -98,6 +98,13 @@ async function trade(side: 'BUY' | 'SELL', tenant: string, token: string, isin: 
   if (side === 'BUY') assert.ok(Number(best.clientYield) >= Number(second.clientYield), 'best yield first');
   else assert.ok(Number(best.netAmount) >= Number(second.netAmount), 'best proceeds first');
   assert.equal(best.bankCleanPx, undefined, 'bank price is never shown to clients');
+  if (side === 'BUY') {
+    // The hold-to-maturity view prices exactly what the client pays for this quote.
+    assert.equal(best.holdToMaturity.totalCost, best.netAmount, 'projection cost matches the quote');
+    assert.ok(best.holdToMaturity.payments.length >= 1);
+  } else {
+    assert.equal(best.holdToMaturity, null);
+  }
 
   const order = await call('POST', '/orders', { tenant, token, body: { quoteId: best.quoteId } });
   assert.equal(order.ordStatus, 'A', 'PendingNew until the bank acknowledges');
@@ -176,6 +183,13 @@ async function main() {
   const instruments = await call('GET', '/instruments', { tenant: T });
   const tbill = instruments.find((i: Json) => i.nameEn.startsWith('91-day'));
   const bond = instruments.find((i: Json) => i.type === 'TREASURY_BOND');
+  assert.ok(Number(tbill.indicativeYield) > 0, 'indicative rate shown before any live price');
+  assert.equal(tbill.taxRate, 0.2);
+  const proj = await call('GET', `/instruments/${tbill.isin}/projection?amount=100000`, { tenant: T });
+  assert.ok(Number(proj.totalCost) <= 100000 && Number(proj.totalCost) > 90000, 'largest nominal that fits the amount');
+  assert.equal(proj.payments.length, 1);
+  assert.equal(proj.payments[0].tax, (Math.round(Number(proj.payments[0].interest) * 20) / 100).toFixed(2), '20% of the discount');
+  await call('GET', `/instruments/${tbill.isin}/projection?amount=100`, { tenant: T, expect: 400 }); // below the minimum
   const t1 = await trade('BUY', T, c.token, tbill.isin, '100000');
   assert.equal(t1.filled.executions.length, 2, 'New + Trade execution reports');
   pf = await call('GET', '/portfolio', { tenant: T, token: c.token });
@@ -183,6 +197,9 @@ async function main() {
   assert.equal(pf.cash.reserved, '0.00');
   assert.equal(pf.cash.available, (250000 - spent1).toFixed(2));
   assert.deepEqual(pf.positions, [{ isin: tbill.isin, nominal: '100000.00', reservedForSale: '0.00' }]);
+  const admin = await login(undefined, 'admin@agyal.local');
+  const rates = await call('GET', '/admin/indicative-rates', { token: admin });
+  assert.equal(rates.find((r: Json) => r.isin === tbill.isin).source, 'BANK_QUOTE', 'live bank quotes refresh indicative rates');
   console.log(`✓ T-bill bought over FIX: client yield ${(Number(t1.best.clientYield) * 100).toFixed(3)}%, cost EGP ${spent1}`);
 
   // 5. Buy a treasury bond (accrued interest, MCDR custody)
@@ -302,7 +319,6 @@ async function main() {
 
 
   // 9. Coupons and maturity: admin adds a short-dated bond; client buys; ops confirm coupon then redemption
-  const admin = await login(undefined, 'admin@agyal.local');
   const shortIsin = withCheckDigit(`EGS${run.slice(-7).toUpperCase().padStart(7, '0')}1`);
   const maturity = new Date(Date.now() + 10 * 86_400_000).toISOString().slice(0, 10);
   await call('POST', '/admin/instruments', {
@@ -326,6 +342,8 @@ async function main() {
   const due = (await call('GET', '/broker/income', { tenant: T, token: ops })).filter((e: Json) => e.isin === shortIsin);
   assert.deepEqual(due.map((e: Json) => e.type), ['COUPON', 'REDEMPTION'], 'only the final coupon and redemption (earlier coupons predate the purchase)');
   assert.equal(due[0].totalGross, '200.00'); // 10,000 x 24% / 12
+  assert.equal(due[0].totalTax, '40.00'); // 20% of the coupon
+  assert.equal(due[1].totalTax, '0.00'); // a bond's redemption returns capital
   assert.equal(due[1].totalGross, '10000.00');
   const conf = (type: string, expect?: number) =>
     call('POST', '/broker/income/confirm', { tenant: T, token: ops, body: { isin: shortIsin, type, paymentDate: maturity, reference: `CUST-${type}` }, expect });
@@ -334,20 +352,46 @@ async function main() {
   assert.equal((await conf('COUPON')).alreadyConfirmed, true);
   await conf('REDEMPTION');
   const inc = await call('GET', '/income', { tenant: T, token: c.token });
-  assert.deepEqual(inc.received.map((r: Json) => [r.type, r.net]).sort(), [['COUPON', '200.00'], ['REDEMPTION', '10000.00']]);
+  assert.deepEqual(inc.received.map((r: Json) => [r.type, r.net]).sort(), [['COUPON', '160.00'], ['REDEMPTION', '10000.00']]);
   assert.equal(inc.upcoming.filter((u: Json) => u.isin === shortIsin).length, 0);
   pf = await call('GET', '/portfolio', { tenant: T, token: c.token });
   assert.ok(!pf.positions.some((p: Json) => p.isin === shortIsin), 'matured bond leaves the portfolio');
-  assert.equal(money((await call('GET', '/cash', { tenant: T, token: c.token })).available), money(cashBeforeIncome + 10200));
+  assert.equal(money((await call('GET', '/cash', { tenant: T, token: c.token })).available), money(cashBeforeIncome + 10160));
   const tb3 = await call('GET', '/broker/ledger/trial-balance', { tenant: T, token: finance });
   const perUnit3 = new Map<string, number>();
   for (const r of tb3) perUnit3.set(r.unit, (perUnit3.get(r.unit) ?? 0) + Number(r.rawSum));
   for (const [unit, total] of perUnit3) assert.ok(Math.abs(total) < 0.005, `${unit} nets to zero after income`);
-  console.log('✓ admin-added bond paid its final coupon (EGP 200) and matured (EGP 10,000); position closed');
+  // Statement and home page reflect the ledger
+  const stmt = await call('GET', '/statement?from=2000-01-01', { tenant: T, token: c.token });
+  const cashNow = await call('GET', '/cash', { tenant: T, token: c.token });
+  assert.equal(stmt.openingBalance, '0.00');
+  assert.equal(
+    stmt.closingBalance,
+    money(Number(cashNow.available) + Number(cashNow.reserved) + Number(cashNow.pendingWithdrawal)),
+    'statement closing balance = client cash in the ledger',
+  );
+  const couponLine = stmt.lines.find((l: Json) => l.kind === 'COUPON' && l.isin === null && l.reference.startsWith(shortIsin));
+  assert.ok(couponLine, 'coupon on the statement');
+  assert.deepEqual([couponLine.gross, couponLine.tax, couponLine.amount], ['200.00', '40.00', '160.00']);
+  assert.equal(stmt.totals.deposits, '250000.00');
+  assert.ok(Number(stmt.totals.commissions) > 0);
+  assert.ok(stmt.lines.every((l: Json) => l.kind !== 'OTHER'), 'no unexplained lines');
+  const home = await call('GET', '/home', { tenant: T, token: c.token });
+  pf = await call('GET', '/portfolio', { tenant: T, token: c.token });
+  assert.equal(home.holdings.length, pf.positions.length);
+  assert.equal(home.totals.incomeReceivedNet, '160.00');
+  assert.ok(home.news.length >= 1, 'platform news on the home page');
+  console.log('✓ statement reconciles to the ledger; home page shows holdings, income and news');
+  console.log('✓ admin-added bond paid its final coupon (EGP 200, EGP 40 tax withheld) and matured (EGP 10,000); position closed');
 
   // 10. Manual compliance path: a PEP goes to the queue and is approved by compliance
   const pep = await onboardClient(T, 'Minister Example', '28505151234561', true);
   assert.equal(pep.submitted.status, 'PENDING_APPROVAL');
+  // Under review: can browse rates and see the home page, but not request prices
+  const pendingHome = await call('GET', '/home', { tenant: T, token: pep.token });
+  assert.equal(pendingHome.clientStatus, 'PENDING_APPROVAL');
+  assert.equal(pendingHome.highlights[0].kind, 'FUND_ACCOUNT');
+  await call('POST', '/rfq', { tenant: T, token: pep.token, body: { side: 'BUY', isin: tbill.isin, quantity: '25000' }, expect: 403 });
   const queue = await call('GET', '/broker/compliance/queue', { tenant: T, token: compliance });
   assert.ok(queue.some((q: Json) => q.id === pep.clientId));
   await call('POST', `/broker/compliance/${pep.clientId}/decision`, {

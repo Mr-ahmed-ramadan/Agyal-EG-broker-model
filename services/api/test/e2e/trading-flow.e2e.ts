@@ -489,6 +489,31 @@ async function main() {
   assert.equal(flagged.client.nationalIdEncrypted, undefined, 'encrypted ID never leaves the API');
   console.log('✓ KYC/AML monitoring: Agyal flagged a PEP, broker responded and resolved');
 
+  // Audit trail and data console: failed sign-in and deposit are recorded with IP; data changes carry the actor; 360° view
+  await call('POST', '/auth/login', { tenant: T, body: { email: 'ops@demo-broker.example', password: 'not-the-password' }, expect: 401 });
+  const fails = await call('GET', '/admin/audit?action=POST%20/auth/login&text=' , { token: admin });
+  assert.ok(fails.rows.some((r: Json) => r.outcome === 401 && r.data?.email === 'ops@demo-broker.example' && r.ip), 'failed sign-in audited with email and IP');
+  const deposits = await call('GET', `/admin/audit?action=deposits&tenant=${T}`, { token: admin });
+  assert.ok(deposits.rows.some((r: Json) => r.outcome === 201 && r.actor === 'ops@demo-broker.example'), 'deposit request audited with actor');
+  const changes = await call('GET', `/admin/audit?type=changes&entity=JournalEntry&tenant=${T}`, { token: admin });
+  assert.ok(changes.rows.some((r: Json) => r.op === 'INSERT' && r.actor === 'ops@demo-broker.example'), 'data change carries the acting user');
+  const users = await call('GET', '/admin/audit?type=changes&entity=User', { token: admin });
+  assert.ok(users.rows.every((r: Json) => !JSON.stringify(r.changes).includes('scrypt')), 'password hashes never stored in the trail');
+  const hits = await call('GET', `/admin/data/search?q=${encodeURIComponent('Nour Hassan')}`, { token: admin });
+  const nour = hits.find((h: Json) => h.kind === 'client');
+  const view = await call('GET', `/admin/data/360/client/${nour.id}`, { token: admin });
+  assert.ok(view.sections.orders.length >= 3 && view.sections.balances.length >= 1);
+  assert.ok(view.timeline.some((t: Json) => t.kind === 'LEDGER') && view.timeline.some((t: Json) => t.kind === 'DATA') && view.timeline.some((t: Json) => t.kind === 'FIX'));
+  assert.equal(view.summary.nationalIdEncrypted, '[redacted]');
+  const tables = await call('GET', '/admin/data/tables', { token: admin });
+  assert.ok(tables.find((t: Json) => t.name === 'Order').count >= 3);
+  const orderRows = await call('GET', '/admin/data/tables/Order?take=5', { token: admin });
+  assert.equal(orderRows.rows.length, 5);
+  await call('GET', '/admin/data/tables/Order', { tenant: T, token: compliance, expect: 403 }); // brokers never see the platform console
+  const viewed = await call('GET', '/admin/audit?action=%2Fadmin%2Fdata%2F360', { token: admin });
+  assert.ok(viewed.rows.length >= 1, 'admin views of personal data are themselves audited');
+  console.log('✓ audit trail: sign-ins, requests and data changes with actor and IP; 360° client view');
+
   // 11. Tenant isolation: a second broker cannot see the first broker's data
   const slug = `other-${run}`;
   await call('POST', '/admin/tenants', {

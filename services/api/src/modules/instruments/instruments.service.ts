@@ -135,6 +135,6 @@ export class InstrumentsService {
   setIndicative(isin: string, offerYield: number) {
     if (!(offerYield > 0 && offerYield < 1)) throw new BadRequestException('Yield must be between 0 and 1 (e.g. 0.25 for 25%)');
     const data = { offerYield: offerYield.toFixed(6), bidYield: (offerYield + 0.003).toFixed(6), source: 'ADMIN', asOf: new Date() };
-    return this.db.indicativeRate.upsert({ where: { isin }, create: { isin, ...data }, update: data });
+    return this.db.asSystem((tx) => tx.indicativeRate.upsert({ where: { isin }, create: { isin, ...data }, update: data }));
   }
 }

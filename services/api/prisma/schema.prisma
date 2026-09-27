@@ -614,9 +614,37 @@ model AuditLog {
   entity    String
   entityId  String
   data      Json?
+  /// Request context: client IP, user agent, HTTP status, correlation id
+  ip        String?
+  userAgent String?
+  outcome   Int?
+  requestId String?
   createdAt DateTime @default(now())
 
   @@index([tenantId, entity, entityId])
+  @@index([actorId, createdAt])
+  @@index([createdAt])
+}
+
+/// Every insert/update/delete on business tables, written by a PostgreSQL
+/// trigger (see the audit_trail migration). Secrets are redacted.
+model DataChange {
+  id        BigInt   @id @default(autoincrement())
+  at        DateTime @default(now())
+  tableName String
+  /// INSERT, UPDATE or DELETE
+  op        String
+  rowId     String?
+  tenantId  String?
+  actorId   String?
+  requestId String?
+  /// INSERT/DELETE: the row; UPDATE: { column: { from, to } } for changed columns
+  changes   Json
+
+  @@index([tableName, rowId])
+  @@index([tenantId, at])
+  @@index([actorId, at])
+  @@index([requestId])
 }
 
 // ---------------------------------------------------------------------------

@@ -13,6 +13,7 @@ import { Reflector } from '@nestjs/core';
 import type { Tenant } from '@prisma/client';
 import type { Request } from 'express';
 import jwt from 'jsonwebtoken';
+import { currentContext } from './request-context';
 
 export type Role =
   | 'CLIENT'
@@ -92,6 +93,11 @@ export class AuthGuard implements CanActivate {
       throw new ForbiddenException('Insufficient role');
     }
     req.user = user;
+    const ctx = currentContext();
+    if (ctx) {
+      ctx.actorId = user.sub;
+      ctx.tenantId = user.tenantId;
+    }
     return true;
   }
 }

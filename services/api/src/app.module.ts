@@ -1,4 +1,7 @@
 import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
+import { APP_INTERCEPTOR } from '@nestjs/core';
+import { AuditInterceptor } from './common/audit.interceptor';
+import { RequestContextMiddleware } from './common/request-context.middleware';
 import { CommonModule } from './common/common.module';
 import { TenantMiddleware } from './common/tenant.middleware';
 import { HealthController } from './health/health.controller';
@@ -22,6 +25,7 @@ import { IncomeModule } from './modules/income/income.module';
 import { ShowcaseModule } from './modules/showcase/showcase.module';
 import { ExperienceModule } from './modules/experience/experience.module';
 import { MonitoringModule } from './modules/monitoring/monitoring.module';
+import { PlatformDataModule } from './modules/platform-data/platform-data.module';
 
 @Module({
   imports: [
@@ -46,11 +50,13 @@ import { MonitoringModule } from './modules/monitoring/monitoring.module';
     ShowcaseModule,
     ExperienceModule,
     MonitoringModule,
+    PlatformDataModule,
   ],
   controllers: [HealthController],
+  providers: [{ provide: APP_INTERCEPTOR, useClass: AuditInterceptor }],
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
-    consumer.apply(TenantMiddleware).forRoutes('*');
+    consumer.apply(RequestContextMiddleware, TenantMiddleware).forRoutes('*');
   }
 }

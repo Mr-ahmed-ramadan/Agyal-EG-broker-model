@@ -53,3 +53,17 @@ export async function api<T = any>(method: string, path: string, body?: unknown)
   }
   return data as T;
 }
+
+/** Downloads an authenticated file (e.g. CSV export) and saves it with the server's file name. */
+export async function download(path: string) {
+  const token = getToken();
+  const res = await fetch(`${API_URL}${path}`, { headers: token ? { Authorization: `Bearer ${token}` } : {} }).catch(unreachable);
+  if (!res.ok) throw new ApiError(`Download failed (${res.status})`, res.status);
+  const name = /filename="([^"]+)"/.exec(res.headers.get('Content-Disposition') ?? '')?.[1] ?? 'export.csv';
+  const url = URL.createObjectURL(await res.blob());
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = name;
+  a.click();
+  URL.revokeObjectURL(url);
+}

@@ -1,5 +1,6 @@
 import { Injectable, OnModuleDestroy } from '@nestjs/common';
 import { Prisma, PrismaClient } from '@prisma/client';
+import { currentContext } from './request-context';
 
 export type Tx = Prisma.TransactionClient;
 
@@ -17,6 +18,7 @@ export class DbService extends PrismaClient implements OnModuleDestroy {
   async forTenant<T>(tenantId: string, work: (tx: Tx) => Promise<T>): Promise<T> {
     return this.$transaction(async (tx) => {
       await tx.$executeRaw`SELECT set_config('app.tenant_id', ${tenantId}, true)`;
+      await this.setActor(tx);
       return work(tx);
     });
   }
@@ -24,8 +26,16 @@ export class DbService extends PrismaClient implements OnModuleDestroy {
   async asSystem<T>(work: (tx: Tx) => Promise<T>): Promise<T> {
     return this.$transaction(async (tx) => {
       await tx.$executeRaw`SELECT set_config('app.bypass_rls', 'on', true)`;
+      await this.setActor(tx);
       return work(tx);
     });
+  }
+
+  /** Tells the data-change trigger who is acting and in which request (audit trail). */
+  private async setActor(tx: Tx) {
+    const ctx = currentContext();
+    if (!ctx) return;
+    await tx.$executeRaw`SELECT set_config('app.actor_id', ${ctx.actorId ?? ''}, true), set_config('app.request_id', ${ctx.requestId}, true)`;
   }
 
   async onModuleDestroy() {

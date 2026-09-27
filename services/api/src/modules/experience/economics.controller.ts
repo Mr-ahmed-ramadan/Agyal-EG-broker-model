@@ -139,7 +139,7 @@ export class EconomicsController {
     const config = { ...((tenant.config ?? {}) as Record<string, unknown>) };
     if (overrides && Object.keys(overrides).length) config.economics = overrides;
     else delete config.economics;
-    await this.db.tenant.update({ where: { id: tenant.id }, data: { config: config as Prisma.InputJsonValue } });
+    await this.db.asSystem((tx) => tx.tenant.update({ where: { id: tenant.id }, data: { config: config as Prisma.InputJsonValue } }));
   }
 
   /** Volume and revenue split per month from fill journal entries (RLS scopes the rows). */

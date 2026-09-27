@@ -113,7 +113,7 @@ export class ShowcaseService {
     let slug = base;
     for (let n = 2; await this.db.tenant.findUnique({ where: { slug } }); n++) slug = `${base}-${n}`;
 
-    const tenant = await this.db.tenant.create({
+    const tenant = await this.db.asSystem((tx) => tx.tenant.create({
       data: {
         slug,
         kind: 'PROSPECT_DEMO',
@@ -129,7 +129,7 @@ export class ShowcaseService {
         },
         config: (template.config ?? DEFAULT_TENANT_CONFIG) as Prisma.InputJsonValue,
       },
-    });
+    }));
 
     // Same partner banks as the template, so prices work immediately.
     const templateBanks = await this.db.forTenant(template.id, (tx) => tx.brokerBankRelationship.findMany({ where: { active: true } }));
@@ -142,18 +142,19 @@ export class ShowcaseService {
     });
 
     let credentials: { email: string; temporaryPassword: string } | undefined;
-    if (input.login) {
+    const login = input.login;
+    if (login) {
       const temporaryPassword = randomBytes(9).toString('base64url');
-      await this.db.user.create({
+      await this.db.asSystem((tx) => tx.user.create({
         data: {
           tenantId: tenant.id,
-          email: input.login.email.toLowerCase(),
-          mobile: input.login.mobile,
+          email: login.email.toLowerCase(),
+          mobile: login.mobile,
           passwordHash: hashPassword(temporaryPassword),
           roles: ALL_BROKER_ROLES,
         },
-      });
-      credentials = { email: input.login.email.toLowerCase(), temporaryPassword };
+      }));
+      credentials = { email: login.email.toLowerCase(), temporaryPassword };
     }
 
     await this.audit.record(this.db, {

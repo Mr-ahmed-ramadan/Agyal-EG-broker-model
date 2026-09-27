@@ -81,7 +81,7 @@ export class AdminController {
   @Post('tenants')
   async createTenant(@CurrentUser() user: AuthUser, @Body() body: unknown) {
     const input = parseBody(TenantSchema, body);
-    const tenant = await this.db.tenant.create({
+    const tenant = await this.db.asSystem((tx) => tx.tenant.create({
       data: {
         slug: input.slug,
         legalNameEn: input.legalNameEn,
@@ -91,7 +91,7 @@ export class AdminController {
         branding: { tenantSlug: input.slug, ...input.branding },
         config: DEFAULT_TENANT_CONFIG as unknown as Prisma.InputJsonValue,
       },
-    });
+    }));
     await this.audit.record(this.db, {
       tenantId: tenant.id,
       actorId: user.sub,
@@ -127,7 +127,7 @@ export class AdminController {
     if (await this.db.user.findUnique({ where: { tenantId_email: { tenantId: tenant.id, email } } })) {
       throw new ConflictException('A user with this email already exists for this broker');
     }
-    const user = await this.db.user.create({
+    const user = await this.db.asSystem((tx) => tx.user.create({
       data: {
         tenantId: tenant.id,
         email,
@@ -135,7 +135,7 @@ export class AdminController {
         passwordHash: hashPassword(input.password),
         roles: input.roles,
       },
-    });
+    }));
     await this.audit.record(this.db, {
       tenantId: tenant.id,
       actorId: actor.sub,
@@ -195,13 +195,13 @@ export class AdminController {
     if (await this.db.instrument.findUnique({ where: { isin: input.isin } })) {
       throw new ConflictException('An instrument with this ISIN already exists');
     }
-    const instrument = await this.db.instrument.create({
+    const instrument = await this.db.asSystem((tx) => tx.instrument.create({
       data: {
         ...input,
         issueDate: input.issueDate ? new Date(`${input.issueDate}T00:00:00Z`) : null,
         maturityDate: maturity,
       },
-    });
+    }));
     await this.audit.record(this.db, {
       tenantId: null,
       actorId: actor.sub,

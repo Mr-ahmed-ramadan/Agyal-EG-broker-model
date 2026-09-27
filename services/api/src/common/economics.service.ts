@@ -54,11 +54,11 @@ export class EconomicsService {
     const merged = mergeEconomics(DEFAULT_ECONOMICS, value);
     const problems = economicsProblems(merged);
     if (problems.length) throw new BadRequestException(problems.join('; '));
-    await this.db.platformSetting.upsert({
+    await this.db.asSystem((tx) => tx.platformSetting.upsert({
       where: { key: KEY },
       create: { key: KEY, value: merged as unknown as Prisma.InputJsonValue, updatedBy: actorId },
       update: { value: merged as unknown as Prisma.InputJsonValue, updatedBy: actorId },
-    });
+    }));
     this.cache = null;
     return merged;
   }

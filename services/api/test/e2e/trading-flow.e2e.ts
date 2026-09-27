@@ -467,6 +467,28 @@ async function main() {
   assert.equal(status.clientStatus, 'ACTIVE');
   console.log('✓ PEP routed to compliance queue and approved');
 
+  // Agyal KYC/AML monitoring: sees the PEP across brokers, raises a flag; the broker responds and resolves
+  const mon = await call('GET', '/admin/compliance/clients?aml=PEP', { token: admin });
+  const pepRow = mon.clients.find((r: Json) => r.id === pep.clientId);
+  assert.ok(pepRow && pepRow.aml.isPep && pepRow.broker.slug === T, 'PEP visible to Agyal with broker');
+  assert.ok(mon.kpis.amlHits >= 1);
+  await call('GET', '/admin/compliance/clients', { tenant: T, token: compliance, expect: 403 }); // brokers can't use the platform view
+  const flag = await call('POST', '/admin/compliance/flags', {
+    token: admin,
+    body: { clientId: pep.clientId, reason: 'PEP_NOT_ESCALATED', note: 'Please confirm enhanced due diligence and MLRO sign-off.' },
+  });
+  const brokerFlags = await call('GET', '/broker/compliance/flags', { tenant: T, token: compliance });
+  assert.ok(brokerFlags.some((f: Json) => f.id === flag.id && f.status === 'OPEN'));
+  await call('POST', `/broker/compliance/flags/${flag.id}/resolve`, { tenant: T, token: compliance, body: { response: 'ok' }, expect: 400 });
+  await call('POST', `/broker/compliance/flags/${flag.id}/resolve`, {
+    tenant: T, token: compliance, body: { response: 'EDD file completed, MLRO signed off on 28 Sep.' },
+  });
+  const flagged = await call('GET', `/admin/compliance/clients/${pep.clientId}`, { token: admin });
+  assert.equal(flagged.flags[0].status, 'RESOLVED');
+  assert.ok(flagged.audit.some((a: Json) => a.action === 'COMPLIANCE_FLAG_RESOLVED'));
+  assert.equal(flagged.client.nationalIdEncrypted, undefined, 'encrypted ID never leaves the API');
+  console.log('✓ KYC/AML monitoring: Agyal flagged a PEP, broker responded and resolved');
+
   // 11. Tenant isolation: a second broker cannot see the first broker's data
   const slug = `other-${run}`;
   await call('POST', '/admin/tenants', {

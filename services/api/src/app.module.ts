@@ -21,6 +21,7 @@ import { CashModule } from './modules/cash/cash.module';
 import { IncomeModule } from './modules/income/income.module';
 import { ShowcaseModule } from './modules/showcase/showcase.module';
 import { ExperienceModule } from './modules/experience/experience.module';
+import { MonitoringModule } from './modules/monitoring/monitoring.module';
 
 @Module({
   imports: [
@@ -44,6 +45,7 @@ import { ExperienceModule } from './modules/experience/experience.module';
     IncomeModule,
     ShowcaseModule,
     ExperienceModule,
+    MonitoringModule,
   ],
   controllers: [HealthController],
 })

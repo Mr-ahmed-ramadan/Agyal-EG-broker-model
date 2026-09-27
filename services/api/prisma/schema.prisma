@@ -660,3 +660,25 @@ model PlatformSetting {
   updatedAt DateTime @updatedAt
   updatedBy String?
 }
+
+/// A concern Agyal raises about a broker's client (KYC/AML monitoring). The
+/// broker, as the licensed party, responds and resolves it; Agyal cannot
+/// approve or reject clients.
+model ComplianceFlag {
+  id             String    @id @default(uuid())
+  tenantId       String
+  clientId       String
+  /// PEP_NOT_ESCALATED, SANCTIONS_HIT, ADVERSE_MEDIA, REVIEW_OVERDUE, DOCUMENTS, OTHER
+  reason         String
+  note           String
+  raisedById     String
+  raisedAt       DateTime  @default(now())
+  /// OPEN or RESOLVED
+  status         String    @default("OPEN")
+  brokerResponse String?
+  respondedById  String?
+  resolvedAt     DateTime?
+
+  @@index([tenantId, status])
+  @@index([clientId])
+}

@@ -4,6 +4,7 @@ import { BrokersScreen } from './screens/BrokersScreen';
 import { EconomicsScreen } from './screens/EconomicsScreen';
 import { FixScreen } from './screens/FixScreen';
 import { InstrumentsScreen } from './screens/InstrumentsScreen';
+import { KycAmlScreen } from './screens/KycAmlScreen';
 import { LeadsScreen } from './screens/LeadsScreen';
 import { NewsScreen } from './screens/NewsScreen';
 import { ProspectsScreen } from './screens/ProspectsScreen';
@@ -13,6 +14,7 @@ const SCREENS = {
   leads: { label: 'Leads', el: LeadsScreen },
   brokers: { label: 'Brokers', el: BrokersScreen },
   economics: { label: 'Economics', el: EconomicsScreen },
+  kyc: { label: 'KYC / AML', el: KycAmlScreen },
   instruments: { label: 'Instruments & rates', el: InstrumentsScreen },
   news: { label: 'News', el: NewsScreen },
   fix: { label: 'FIX monitor', el: FixScreen },

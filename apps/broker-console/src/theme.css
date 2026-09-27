@@ -121,3 +121,6 @@ input, select, textarea { border-radius: var(--radius-sm); }
 input:focus, select:focus, textarea:focus { outline: 2px solid var(--forest-tint); outline-offset: 1px; }
 table { background: var(--surface); }
 th { color: var(--muted); font-weight: 600; }
+.card.flags { border-inline-start: 4px solid var(--bronze); }
+.flag-item { border-top: 1px solid var(--border); padding-top: 10px; margin-top: 10px; }
+.flag-item p { margin: 6px 0; }

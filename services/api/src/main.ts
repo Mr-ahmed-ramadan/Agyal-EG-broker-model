@@ -4,6 +4,7 @@ import { NestFactory } from '@nestjs/core';
 import type { NestExpressApplication } from '@nestjs/platform-express';
 import { AppModule } from './app.module';
 import { assertProductionConfig } from './common/config-check';
+import { originChecker, parseOrigins } from './common/cors';
 
 async function bootstrap() {
   assertProductionConfig();
@@ -15,8 +16,17 @@ async function bootstrap() {
   if (process.env.DEMO_MODE === 'true') {
     new Logger('Bootstrap').warn('DEMO_MODE is on: coupons/redemptions can be confirmed before their payment date');
   }
+  const allowedOrigins = parseOrigins(
+    process.env.CORS_ORIGINS ??
+      'http://localhost:5173,http://localhost:5174,http://localhost:5175,http://localhost:5176,http://localhost:5177',
+  );
+  const refused = new Set<string>();
   app.enableCors({
-    origin: (process.env.CORS_ORIGINS ?? 'http://localhost:5173,http://localhost:5174,http://localhost:5175,http://localhost:5176,http://localhost:5177').split(','),
+    origin: originChecker(allowedOrigins, (origin) => {
+      if (refused.has(origin)) return;
+      refused.add(origin);
+      new Logger('CORS').warn(`Refused origin ${origin} (allowed: ${allowedOrigins.join(', ')}); check CORS_ORIGINS`);
+    }),
     allowedHeaders: ['Authorization', 'Content-Type', 'X-Tenant', 'X-Tenant-Host'],
   });
   app.enableShutdownHooks();

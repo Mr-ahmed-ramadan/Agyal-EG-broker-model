@@ -19,6 +19,7 @@ import { NotificationsModule } from './modules/notifications/notifications.modul
 import { FixInboxModule } from './modules/fix-inbox/fix-inbox.module';
 import { CashModule } from './modules/cash/cash.module';
 import { IncomeModule } from './modules/income/income.module';
+import { ShowcaseModule } from './modules/showcase/showcase.module';
 
 @Module({
   imports: [
@@ -40,6 +41,7 @@ import { IncomeModule } from './modules/income/income.module';
     FixInboxModule,
     CashModule,
     IncomeModule,
+    ShowcaseModule,
   ],
   controllers: [HealthController],
 })

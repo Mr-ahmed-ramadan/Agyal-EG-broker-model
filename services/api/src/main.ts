@@ -8,13 +8,15 @@ import { assertProductionConfig } from './common/config-check';
 async function bootstrap() {
   assertProductionConfig();
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
+  // Prospect logos arrive as data URLs (up to 200 KB); allow room for them.
+  app.useBodyParser('json', { limit: '512kb' });
   // Behind Render/Vercel proxies: use the client's IP from X-Forwarded-For (consents, audit).
   app.set('trust proxy', 1);
   if (process.env.DEMO_MODE === 'true') {
     new Logger('Bootstrap').warn('DEMO_MODE is on: coupons/redemptions can be confirmed before their payment date');
   }
   app.enableCors({
-    origin: (process.env.CORS_ORIGINS ?? 'http://localhost:5173,http://localhost:5174,http://localhost:5175,http://localhost:5176').split(','),
+    origin: (process.env.CORS_ORIGINS ?? 'http://localhost:5173,http://localhost:5174,http://localhost:5175,http://localhost:5176,http://localhost:5177').split(','),
     allowedHeaders: ['Authorization', 'Content-Type', 'X-Tenant', 'X-Tenant-Host'],
   });
   app.enableShutdownHooks();

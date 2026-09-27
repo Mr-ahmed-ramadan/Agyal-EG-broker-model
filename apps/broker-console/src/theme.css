@@ -19,12 +19,12 @@
 body { margin: 0; background: var(--bg); }
 .layout { display: grid; grid-template-columns: 220px 1fr; min-height: 100vh; }
 @media (max-width: 720px) { .layout { grid-template-columns: 1fr; } }
-aside { background: var(--brand); color: #fff; padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+aside { background: var(--brand); color: var(--brand-contrast, #fff); padding: 16px; display: flex; flex-direction: column; gap: 12px; }
 aside h1 { font-size: 1.1rem; margin: 0 0 8px; }
 aside nav { display: flex; flex-direction: column; gap: 4px; }
-aside nav button { text-align: start; background: none; border: 0; color: #fff; padding: 8px 10px; border-radius: 6px; cursor: pointer; font: inherit; }
+aside nav button { text-align: start; background: none; border: 0; color: inherit; padding: 8px 10px; border-radius: 6px; cursor: pointer; font: inherit; }
 aside nav button.on { background: rgb(255 255 255 / 0.16); }
-aside .link { color: #fff; }
+aside .link { color: inherit; }
 main { padding: 20px; overflow-x: auto; }
 h2 { margin: 0 0 8px; }
 .card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 16px; margin: 12px 0; }
@@ -35,7 +35,7 @@ label { display: flex; flex-direction: column; gap: 4px; font-size: 0.9rem; }
 input { font: inherit; padding: 8px 10px; border-radius: 6px; border: 1px solid var(--border); background: var(--surface); color: var(--text); }
 button { font: inherit; padding: 8px 14px; border-radius: 6px; border: 1px solid var(--border); background: var(--surface); color: var(--text); cursor: pointer; }
 button:disabled { opacity: 0.5; cursor: default; }
-button.primary { background: var(--brand); color: #fff; border-color: var(--brand); }
+button.primary { background: var(--brand); color: var(--brand-contrast, #fff); border-color: var(--brand); }
 button.danger { color: var(--error); border-color: var(--error); }
 button.link { background: none; border: 0; text-decoration: underline; padding: 4px 0; text-align: start; }
 .actions { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
@@ -56,3 +56,25 @@ th { color: var(--muted); font-weight: 600; }
 .badge.PAID { color: var(--ok); border-color: var(--ok); }
 .badge.REJECTED { color: var(--error); border-color: var(--error); }
 .badge.APPROVED { color: var(--warn); border-color: var(--warn); }
+
+.brandmark { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+.brandmark img { width: 40px; height: 40px; object-fit: contain; border-radius: 8px; background: #fff; padding: 2px; }
+.brandmark div { display: flex; flex-direction: column; }
+.brandmark small { opacity: 0.8; }
+.card.login .brandmark { color: var(--text); }
+
+/* Grid children may shrink below their content width (lets menus and tables scroll inside). */
+.layout > * { min-width: 0; }
+
+/* Phones: sidebar becomes a top bar with a scrolling menu; wide tables scroll sideways. */
+@media (max-width: 720px) {
+  .layout { grid-template-rows: auto 1fr; }
+  aside { padding: 12px; gap: 8px; }
+  aside nav { flex-direction: row; overflow-x: auto; gap: 4px; padding-bottom: 4px; }
+  aside nav button { white-space: nowrap; flex: none; }
+  main { padding: 12px; }
+  table { display: block; overflow-x: auto; white-space: nowrap; }
+  .fields { grid-template-columns: 1fr; }
+  .card.login { margin: 24px 16px; }
+  dl { grid-template-columns: 1fr; }
+}

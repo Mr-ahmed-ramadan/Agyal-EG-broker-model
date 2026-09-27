@@ -3,8 +3,12 @@ import { api, getToken, setToken } from './api';
 import { BrokersScreen } from './screens/BrokersScreen';
 import { FixScreen } from './screens/FixScreen';
 import { InstrumentsScreen } from './screens/InstrumentsScreen';
+import { LeadsScreen } from './screens/LeadsScreen';
+import { ProspectsScreen } from './screens/ProspectsScreen';
 
 const SCREENS = {
+  prospects: { label: 'Prospect demos', el: ProspectsScreen },
+  leads: { label: 'Leads', el: LeadsScreen },
   brokers: { label: 'Brokers', el: BrokersScreen },
   instruments: { label: 'Instruments', el: InstrumentsScreen },
   fix: { label: 'FIX monitor', el: FixScreen },
@@ -13,7 +17,7 @@ type ScreenKey = keyof typeof SCREENS;
 
 export function App() {
   const [token, setTok] = useState(getToken());
-  const [screen, setScreen] = useState<ScreenKey>('brokers');
+  const [screen, setScreen] = useState<ScreenKey>('prospects');
   if (!token) {
     return <Login onSignedIn={(t) => { setToken(t); setTok(t); }} />;
   }

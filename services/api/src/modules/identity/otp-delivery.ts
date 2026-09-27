@@ -1,4 +1,5 @@
 import { Logger } from '@nestjs/common';
+import { fromHeader, sendResendEmail } from '../../common/resend';
 import { maskMobile, type OtpPurpose } from '../../domain/otp';
 
 /**
@@ -53,19 +54,11 @@ export class ResendEmailOtpDelivery implements OtpDelivery {
     const text =
       `${code} is your ${senderName} ${SUBJECT[purpose]}. It expires in 5 minutes.\n\n` +
       `Do not share this code with anyone, including ${senderName} staff.`;
-    const res = await this.fetchImpl('https://api.resend.com/emails', {
-      method: 'POST',
-      headers: { Authorization: `Bearer ${this.apiKey}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        from: `${senderName.replace(/[<>"]/g, '')} <${this.fromAddress}>`,
-        to: [to.email],
-        subject,
-        text,
-      }),
-    });
-    if (!res.ok) {
-      throw new Error(`Resend rejected the email (${res.status}): ${await res.text()}`);
-    }
+    await sendResendEmail(
+      this.apiKey,
+      { from: fromHeader(senderName, this.fromAddress), to: [to.email], subject, text },
+      this.fetchImpl,
+    );
     return maskEmail(to.email);
   }
 }

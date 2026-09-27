@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from 'react';
+import { useEffect, useState, type FormEvent } from 'react';
 import { api, getToken, setToken } from './api';
 import { ClientsScreen } from './screens/ClientsScreen';
 import { ComplianceScreen } from './screens/ComplianceScreen';
@@ -32,7 +32,41 @@ function rolesFromToken(token: string | null): string[] {
   }
 }
 
+interface BrokerBrand {
+  legalNameEn: string;
+  branding: { displayName: { en: string }; logoUrl: string; colors: { primary: string; primaryContrast: string } };
+}
+
+/** The broker's own name, logo and colour for the console (prospect demos look like the prospect). */
+function useBrokerBrand() {
+  const [brand, setBrand] = useState<BrokerBrand | null>(null);
+  useEffect(() => {
+    api<BrokerBrand>('GET', '/tenant')
+      .then((b) => {
+        setBrand(b);
+        document.documentElement.style.setProperty('--brand', b.branding.colors.primary);
+        document.documentElement.style.setProperty('--brand-contrast', b.branding.colors.primaryContrast);
+        document.title = `${b.branding.displayName.en} · Broker console`;
+      })
+      .catch(() => setBrand(null));
+  }, []);
+  return brand;
+}
+
+function BrandMark({ brand }: { brand: BrokerBrand | null }) {
+  return (
+    <div className="brandmark">
+      {brand?.branding.logoUrl ? <img src={brand.branding.logoUrl} alt="" /> : null}
+      <div>
+        <strong>{brand?.branding.displayName.en ?? 'Broker console'}</strong>
+        <small>Broker console</small>
+      </div>
+    </div>
+  );
+}
+
 export function App() {
+  const brand = useBrokerBrand();
   const [token, setTok] = useState(getToken());
   const roles = rolesFromToken(token);
   const allowed = (Object.keys(SCREENS) as ScreenKey[]).filter((k) =>
@@ -42,13 +76,13 @@ export function App() {
   const current = screen && allowed.includes(screen) ? screen : allowed[0];
 
   if (!token || roles.includes('CLIENT')) {
-    return <Login onSignedIn={(t) => { setToken(t); setTok(t); }} />;
+    return <Login brand={brand} onSignedIn={(t) => { setToken(t); setTok(t); }} />;
   }
   const Screen = current ? SCREENS[current].el : null;
   return (
     <div className="layout">
       <aside>
-        <h1>Broker console</h1>
+        <BrandMark brand={brand} />
         <nav>
           {allowed.map((k) => (
             <button key={k} className={k === current ? 'on' : ''} onClick={() => setScreen(k)}>
@@ -72,7 +106,7 @@ interface Challenge {
 }
 
 /** Two-step sign-in: password, then the SMS code (required for all broker staff). */
-function Login({ onSignedIn }: { onSignedIn: (token: string) => void }) {
+function Login({ brand, onSignedIn }: { brand: BrokerBrand | null; onSignedIn: (token: string) => void }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [challenge, setChallenge] = useState<Challenge | null>(null);
@@ -114,8 +148,9 @@ function Login({ onSignedIn }: { onSignedIn: (token: string) => void }) {
   if (challenge) {
     return (
       <form className="card login" onSubmit={submitCode}>
+        <BrandMark brand={brand} />
         <h1>Enter your code</h1>
-        <p className="muted">We sent a 6-digit code by SMS to {challenge.sentTo}.</p>
+        <p className="muted">We sent a 6-digit code to {challenge.sentTo}.</p>
         <label>
           Verification code
           <input
@@ -138,7 +173,8 @@ function Login({ onSignedIn }: { onSignedIn: (token: string) => void }) {
 
   return (
     <form className="card login" onSubmit={submitPassword}>
-      <h1>Broker console</h1>
+      <BrandMark brand={brand} />
+      <h1>Sign in</h1>
       <label>Email<input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required /></label>
       <label>Password<input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required /></label>
       {error ? <p className="error">{error}</p> : null}

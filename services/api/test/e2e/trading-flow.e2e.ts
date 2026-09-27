@@ -399,6 +399,41 @@ async function main() {
   }
   console.log('✓ tenant isolation enforced by API and PostgreSQL RLS');
 
+  // 12. Showcase: branded prospect demo and landing-page contact form
+  const tinyPng = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==';
+  const bigLogo = `data:image/png;base64,${Buffer.alloc(210 * 1024, 7).toString('base64')}`;
+  await call('POST', '/admin/prospects', { token: admin, body: { nameEn: 'Big Logo Securities', nameAr: 'شعار كبير', logoDataUrl: bigLogo, primary: '#123456', accent: '#abcdef' }, expect: 400 });
+  const prospect = await call('POST', '/admin/prospects', {
+    token: admin,
+    body: {
+      nameEn: `Nile Capital ${run}`, nameAr: 'النيل كابيتال', logoDataUrl: tinyPng, primary: '#f5c518', accent: '#0b4f6c',
+      login: { email: `prospect.${run}@example.com`, mobile: '01055555555' },
+    },
+  });
+  assert.match(prospect.slug, /^nile-capital-/);
+  assert.ok(prospect.links.clientApp.endsWith(`/?broker=${prospect.slug}`));
+  assert.ok(prospect.credentials.temporaryPassword.length >= 12);
+  const branded = await call('GET', '/tenant', { tenant: prospect.slug });
+  assert.equal(branded.branding.displayName.en, `Nile Capital ${run}`);
+  assert.equal(branded.branding.colors.primaryContrast, '#111111', 'dark text on a light brand colour');
+  assert.equal((await call('GET', '/instruments', { tenant: prospect.slug })).length >= 6, true);
+  const pch = await call('POST', '/auth/login', { tenant: prospect.slug, body: { email: `prospect.${run}@example.com`, password: prospect.credentials.temporaryPassword } });
+  const pToken = (await verifyOtp(prospect.slug, pch)).accessToken;
+  assert.deepEqual(await call('GET', '/broker/clients', { tenant: prospect.slug, token: pToken }), []);
+  assert.ok((await call('GET', '/admin/prospects', { token: admin })).some((p: Json) => p.slug === prospect.slug));
+  console.log(`✓ prospect demo "${prospect.slug}" created with branding, bank links and a login`);
+
+  const lead = { name: 'Mona Adel', firm: 'Delta Brokerage', role: 'CEO', email: `mona.${run}@example.com`, mobile: '+20 100 000 0000', message: 'We would like a demo.' };
+  await call('POST', '/public/contact', { body: lead, expect: 202 });
+  await call('POST', '/public/contact', { body: { ...lead, email: `bot.${run}@example.com`, website: 'http://spam' }, expect: 202 });
+  await call('POST', '/public/contact', { body: { ...lead, email: 'not-an-email' }, expect: 400 });
+  const leads = await call('GET', '/admin/leads', { token: admin });
+  assert.ok(leads.some((l: Json) => l.email === `mona.${run}@example.com`));
+  assert.ok(!leads.some((l: Json) => l.email === `bot.${run}@example.com`), 'honeypot submissions are not stored');
+  for (let i = 0; i < 4; i++) await call('POST', '/public/contact', { body: lead, expect: 202 });
+  await call('POST', '/public/contact', { body: lead, expect: 429 });
+  console.log('✓ contact form: lead stored, bot ignored, invalid refused, rate limited');
+
   console.log('\nAll end-to-end checks passed.');
 }
 

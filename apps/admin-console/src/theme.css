@@ -64,3 +64,28 @@ tr.selected td { background: color-mix(in srgb, var(--brand) 10%, var(--surface)
 fieldset { border: 1px solid var(--border); border-radius: 6px; display: flex; gap: 10px; flex-wrap: wrap; }
 label.check { flex-direction: row; align-items: center; gap: 6px; }
 select { font: inherit; padding: 8px 10px; border-radius: 6px; border: 1px solid var(--border); background: var(--surface); color: var(--text); }
+
+.copy { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 6px 0; }
+.copy a { word-break: break-all; flex: 1 1 240px; }
+.copy .muted { flex: 0 0 140px; }
+.preview { border-radius: 10px; min-height: 64px; display: flex; align-items: center; gap: 12px; padding: 12px; }
+.preview img { width: 48px; height: 48px; object-fit: contain; background: #fff; border-radius: 8px; }
+.highlight { border-color: var(--ok); }
+.quote { border-inline-start: 3px solid var(--border); padding-inline-start: 10px; white-space: pre-wrap; }
+code { background: var(--bg); padding: 2px 6px; border-radius: 4px; }
+
+/* Grid children may shrink below their content width (lets menus and tables scroll inside). */
+.layout > * { min-width: 0; }
+
+/* Phones: sidebar becomes a top bar with a scrolling menu; wide tables scroll sideways. */
+@media (max-width: 720px) {
+  .layout { grid-template-rows: auto 1fr; }
+  aside { padding: 12px; gap: 8px; }
+  aside nav { flex-direction: row; overflow-x: auto; gap: 4px; padding-bottom: 4px; }
+  aside nav button { white-space: nowrap; flex: none; }
+  main { padding: 12px; }
+  table { display: block; overflow-x: auto; white-space: nowrap; }
+  .fields { grid-template-columns: 1fr; }
+  .card.login { margin: 24px 16px; }
+  .copy .muted { flex-basis: 100%; }
+}

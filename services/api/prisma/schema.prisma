@@ -26,6 +26,8 @@ model Tenant {
   legalNameAr  String
   fraLicenseNo String?
   status       TenantStatus @default(ACTIVE)
+  /// BROKER (a customer) or PROSPECT_DEMO (a branded demo for a prospect)
+  kind         String       @default("BROKER")
   customDomain String?      @unique
   /// TenantBranding from @agyal/shared-types
   branding     Json
@@ -42,6 +44,21 @@ enum TenantStatus {
   ACTIVE
   SUSPENDED
   OFFBOARDED
+}
+
+/// A prospect broker who contacted Agyal from the landing page (platform-level).
+model Lead {
+  id        String    @id @default(uuid())
+  name      String
+  firm      String
+  role      String?
+  email     String
+  mobile    String?
+  message   String?
+  ip        String?
+  emailedAt DateTime?
+  error     String?
+  createdAt DateTime  @default(now())
 }
 
 // ---------------------------------------------------------------------------

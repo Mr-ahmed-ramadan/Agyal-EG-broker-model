@@ -71,10 +71,12 @@ Screenshots from an automated browser run are in
 
 ## Try it online
 
-[`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md) puts a demo online with your own
-domain: Vercel for the three apps, Render for the API, database and FIX
-gateway (`render.yaml` blueprint), and Resend to email sign-in codes. It
-includes a tester's checklist.
+[`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md) puts the demo online at
+`egypt.agyal.net`: a landing page for prospect brokers, the client app,
+broker console and admin console on Vercel; the API, database and FIX
+gateway on Render (`render.yaml` blueprint); Resend for sign-in codes and
+lead emails. It also explains how to create a **branded demo for a prospect**
+in two minutes and what to show in a 10-minute call.
 
 ## Start here
 
@@ -87,9 +89,10 @@ includes a tester's checklist.
 
 ```
 apps/
-  client-web/        # White-label client app (EN/AR, RTL, mobile-first)
+  showcase/          # Landing page for prospect brokers (EN/AR, contact form)
+  client-web/        # White-label client app (EN/AR, RTL, mobile-first; ?broker=<slug>)
   broker-console/    # Compliance queue, unified codes & custody, deposits, orders, ledger
-  admin-console/     # Agyal operators: brokers, staff, bank links, instruments, FIX monitor
+  admin-console/     # Agyal operators: prospect demos, leads, brokers, instruments, FIX monitor
   bank-portal/       # For banks without FIX (placeholder)
 services/
   api/               # NestJS modular monolith, Prisma, PostgreSQL
@@ -123,6 +126,7 @@ OTP_DEV_ECHO=true npm run dev:api             # http://localhost:3000/health
 npm run dev:client-web                        # http://localhost:5173
 npm run dev:broker-console                    # http://localhost:5174
 npm run dev:admin-console                     # http://localhost:5175
+npm run dev --workspace apps/showcase         # http://localhost:5177 (landing page)
 ```
 
 Seeded demo users (password `Demo-Pass-2026!`, local only):

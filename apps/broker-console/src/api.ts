@@ -1,6 +1,47 @@
 const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:3000';
-const TENANT = import.meta.env.VITE_TENANT as string | undefined;
-const TOKEN_KEY = 'agyal.broker.token';
+const DEFAULT_TENANT = import.meta.env.VITE_TENANT as string | undefined;
+const BROKER_KEY = 'agyal.broker';
+const TOKEN_PREFIX = 'agyal.broker.token';
+
+/** In-memory fallback when browser storage is unavailable (e.g. some private windows). */
+const memory = new Map<string, string>();
+
+function read(storage: 'local' | 'session', key: string): string | null {
+  try {
+    return (storage === 'local' ? localStorage : sessionStorage).getItem(key);
+  } catch {
+    return memory.get(`${storage}:${key}`) ?? null;
+  }
+}
+
+function write(storage: 'local' | 'session', key: string, value: string | null) {
+  try {
+    const s = storage === 'local' ? localStorage : sessionStorage;
+    if (value) s.setItem(key, value);
+    else s.removeItem(key);
+  } catch {
+    if (value) memory.set(`${storage}:${key}`, value);
+    else memory.delete(`${storage}:${key}`);
+  }
+}
+
+/**
+ * Which broker this app shows: `?broker=<slug>` in the link (remembered for
+ * the session, so prospect demo links work), else the build's VITE_TENANT,
+ * else undefined (the API then finds the broker from this app's domain).
+ */
+export function currentBroker(): string | undefined {
+  const fromLink = new URLSearchParams(window.location.search).get('broker');
+  if (fromLink && /^[a-z0-9-]{3,40}$/.test(fromLink)) {
+    write('session', BROKER_KEY, fromLink);
+    return fromLink;
+  }
+  return read('session', BROKER_KEY) ?? DEFAULT_TENANT;
+}
+
+const BROKER = currentBroker();
+/** Sign-ins are kept per broker, so one broker's session is never sent to another. */
+const TOKEN_KEY = `${TOKEN_PREFIX}.${BROKER ?? window.location.hostname}`;
 
 export class ApiError extends Error {
   constructor(
@@ -12,20 +53,11 @@ export class ApiError extends Error {
 }
 
 export function getToken(): string | null {
-  try {
-    return localStorage.getItem(TOKEN_KEY);
-  } catch {
-    return null;
-  }
+  return read('local', TOKEN_KEY);
 }
 
 export function setToken(token: string | null) {
-  try {
-    if (token) localStorage.setItem(TOKEN_KEY, token);
-    else localStorage.removeItem(TOKEN_KEY);
-  } catch {
-    // storage unavailable (private mode); session lasts until reload
-  }
+  write('local', TOKEN_KEY, token);
 }
 
 export async function api<T = any>(method: string, path: string, body?: unknown): Promise<T> {
@@ -34,8 +66,7 @@ export async function api<T = any>(method: string, path: string, body?: unknown)
     method,
     headers: {
       'Content-Type': 'application/json',
-      // A fixed broker for single-broker demos; otherwise the broker is found from this app's domain.
-      ...(TENANT ? { 'X-Tenant': TENANT } : { 'X-Tenant-Host': window.location.hostname }),
+      ...(BROKER ? { 'X-Tenant': BROKER } : { 'X-Tenant-Host': window.location.hostname }),
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
     },
     body: body === undefined ? undefined : JSON.stringify(body),

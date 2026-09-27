@@ -42,11 +42,19 @@ services:
         value: resend
       - key: RESEND_API_KEY
         sync: false
-      # A sender on your Resend-verified domain, e.g. codes@yourdomain.com
+      # A sender on your Resend-verified domain, e.g. codes@agyal.net
       - key: EMAIL_FROM
         sync: false
-      # Comma-separated app URLs, e.g. https://invest.yourdomain.com,https://broker.yourdomain.com,https://admin.yourdomain.com
+      # Browser origins allowed to call the API: the landing page and the three apps.
       - key: CORS_ORIGINS
+        value: https://egypt.agyal.net,https://invest.egypt.agyal.net,https://broker.egypt.agyal.net,https://admin.egypt.agyal.net
+      # Used to build the shareable links for prospect demos.
+      - key: PUBLIC_CLIENT_URL
+        value: https://invest.egypt.agyal.net
+      - key: PUBLIC_BROKER_URL
+        value: https://broker.egypt.agyal.net
+      # Where landing-page contact requests are emailed (comma-separated for several people).
+      - key: CONTACT_TO
         sync: false
       # Demo only: lets ops confirm coupons/redemptions before their payment date.
       - key: DEMO_MODE

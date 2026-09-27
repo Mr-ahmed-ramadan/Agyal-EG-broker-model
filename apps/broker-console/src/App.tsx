@@ -5,6 +5,7 @@ import { ComplianceScreen } from './screens/ComplianceScreen';
 import { DepositsScreen } from './screens/DepositsScreen';
 import { IncomeScreen } from './screens/IncomeScreen';
 import { LedgerScreen } from './screens/LedgerScreen';
+import { NewsScreen } from './screens/NewsScreen';
 import { OrdersScreen } from './screens/OrdersScreen';
 import { SettlementsScreen } from './screens/SettlementsScreen';
 import { WithdrawalsScreen } from './screens/WithdrawalsScreen';
@@ -20,6 +21,7 @@ const SCREENS = {
   income: { label: 'Coupons & maturities', roles: ['BROKER_OPS', 'BROKER_FINANCE', 'BROKER_ADMIN'], el: IncomeScreen },
   withdrawals: { label: 'Withdrawals', roles: ['BROKER_FINANCE', 'BROKER_OPS', 'BROKER_ADMIN'], el: WithdrawalsScreen },
   ledger: { label: 'Ledger', roles: ['BROKER_FINANCE', 'BROKER_OPS', 'BROKER_ADMIN'], el: LedgerScreen },
+  news: { label: 'News for clients', roles: ['BROKER_OPS', 'BROKER_ADMIN'], el: NewsScreen },
 } as const;
 type ScreenKey = keyof typeof SCREENS;
 

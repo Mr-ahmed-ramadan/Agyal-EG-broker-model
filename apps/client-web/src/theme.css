@@ -113,3 +113,109 @@ dd { margin: 0; text-align: end; font-variant-numeric: tabular-nums; }
 .footer { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; padding: 16px; color: var(--muted); font-size: 0.85rem; max-width: 1040px; margin: 0 auto; }
 .footer a { color: inherit; }
 .nowrap { white-space: nowrap; }
+
+/* --- Rates ---------------------------------------------------------------- */
+.chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 8px 0 12px; }
+.chip {
+  border: 1px solid var(--border); background: var(--surface); color: var(--text);
+  border-radius: 999px; padding: 6px 12px; cursor: pointer; font: inherit; font-size: 0.9rem;
+}
+.chip.on { border-color: var(--brand); background: color-mix(in srgb, var(--brand) 12%, var(--surface)); font-weight: 600; }
+.row.rate { flex-wrap: nowrap; }
+.row.rate > span:first-child { min-width: 0; }
+.rate-figure { align-items: flex-end; text-align: end; flex-shrink: 0; }
+.rate-figure strong { font-size: 1.35rem; color: var(--brand); font-variant-numeric: tabular-nums; }
+.faq { border-top: 1px solid var(--border); padding: 10px 0; }
+.faq summary { cursor: pointer; font-weight: 600; }
+.faq p { color: var(--muted); margin: 8px 0 0; line-height: 1.5; }
+.big-yield strong { font-size: 2rem; color: var(--brand); }
+
+/* --- Projection ------------------------------------------------------------ */
+.summary { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin: 12px 0; }
+.summary > div { border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; display: flex; flex-direction: column; gap: 2px; }
+.summary > div strong { font-size: 1.1rem; font-variant-numeric: tabular-nums; }
+.summary > div.good { background: color-mix(in srgb, var(--ok) 8%, var(--surface)); border-color: color-mix(in srgb, var(--ok) 35%, var(--border)); }
+.summary > div.good strong { color: var(--ok); }
+.summary .wide { grid-column: 1 / -1; margin: 0; }
+.table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+.table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+.table th, .table td { padding: 8px 6px; border-bottom: 1px solid var(--border); text-align: start; vertical-align: top; }
+.table th { color: var(--muted); font-weight: 600; font-size: 0.8rem; }
+.table .num { text-align: end; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.table tfoot td { font-weight: 700; border-bottom: 0; }
+.table .neg { color: var(--text); }
+.table .pos { color: var(--ok); }
+.block { display: block; }
+.fees { margin: 0 0 8px; padding-inline-start: 20px; line-height: 1.6; }
+.small { font-size: 0.8rem; }
+details.htm { margin-top: 12px; border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; }
+details.htm summary { cursor: pointer; font-weight: 600; }
+
+/* --- Home ------------------------------------------------------------------ */
+.stats { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.stats > div { background: color-mix(in srgb, var(--brand) 6%, var(--surface)); border-radius: 10px; padding: 12px; display: flex; flex-direction: column; gap: 4px; }
+.stats strong { font-size: 1.15rem; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.alloc-bar { display: flex; height: 12px; border-radius: 999px; overflow: hidden; background: var(--border); }
+.seg-TREASURY_BILL { background: var(--brand); }
+.seg-TREASURY_BOND { background: color-mix(in srgb, var(--brand) 55%, #ffffff); }
+.seg-SUKUK { background: var(--accent); }
+.seg-CORPORATE_BOND { background: color-mix(in srgb, var(--accent) 50%, #ffffff); }
+.legend { list-style: none; padding: 0; margin: 8px 0 0; display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 0.85rem; color: var(--muted); }
+.dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; }
+.highlights { list-style: none; padding: 0; margin: 0 0 8px; display: flex; flex-direction: column; gap: 8px; }
+.hl { border-inline-start: 4px solid var(--brand); background: color-mix(in srgb, var(--brand) 6%, var(--surface)); padding: 10px 12px; border-radius: 6px; }
+.hl-FUND_ACCOUNT, .hl-IDLE_CASH { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 10%, var(--surface)); }
+.news { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 14px; }
+.news li { display: flex; flex-direction: column; gap: 4px; border-bottom: 1px solid var(--border); padding-bottom: 12px; }
+.news p { margin: 0; color: var(--muted); line-height: 1.5; }
+
+/* --- Statement ------------------------------------------------------------- */
+.period { display: flex; gap: 12px; margin-bottom: 12px; }
+.stmt-head { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin: 12px 0; padding: 12px; border: 1px solid var(--border); border-radius: 10px; }
+.stmt-head > div { display: flex; flex-direction: column; gap: 2px; }
+
+/* --- Phones: tabs become a bottom bar ---------------------------------------- */
+.tabs { display: flex; gap: 4px; flex-wrap: wrap; }
+@media (max-width: 640px) {
+  .tabs {
+    position: fixed; inset-inline: 0; bottom: 0; z-index: 10; flex-wrap: nowrap; justify-content: space-around;
+    background: var(--surface); border-top: 1px solid var(--border); padding: 6px 4px calc(6px + env(safe-area-inset-bottom));
+  }
+  .tabs .tab { color: var(--text); flex: 1; padding: 10px 4px; font-size: 0.85rem; }
+  .tabs .tab.on { background: color-mix(in srgb, var(--brand) 12%, var(--surface)); color: var(--brand); font-weight: 600; }
+  body { padding-bottom: 64px; }
+  .grid { grid-template-columns: minmax(0, 1fr); }
+  .card { padding: 16px; }
+}
+
+/* --- Print: statement only ------------------------------------------------- */
+@media print {
+  .topbar, .footer, .no-print, .tabs, .banner { display: none !important; }
+  body, :root { background: #ffffff; color: #000000; }
+  .container { max-width: none; padding: 0; }
+  .card { border: 0; padding: 0; }
+  .table th, .table td { border-color: #cccccc; }
+}
+
+/* Tables become stacked cards on phones (no sideways scrolling) */
+.table .show-stacked { display: none; }
+@media (max-width: 640px) {
+  .table.stack thead { display: none; }
+  .table.stack, .table.stack tbody, .table.stack tfoot { display: block; }
+  .table.stack tr { display: flex; flex-direction: column; gap: 2px; padding: 10px 0; border-bottom: 1px solid var(--border); }
+  .table.stack td { border: 0; padding: 0; text-align: start; white-space: normal; }
+  .table.stack td.hide-stacked { display: none; }
+  .table.stack .show-stacked { display: inline; }
+  .table.stack td.lead-cell { font-weight: 600; }
+  .table.stack td[data-label] { display: flex; justify-content: space-between; gap: 12px; }
+  .table.stack td[data-label]::before { content: attr(data-label); color: var(--muted); font-weight: 400; }
+  .table.stack td.lead-cell[data-label]::before { content: none; }
+}
+
+/* Money figures in small cards: shrink rather than wrap or clip */
+.summary > div, .stats > div { min-width: 0; }
+.summary > div strong, .stats strong { white-space: nowrap; overflow-wrap: normal; font-size: clamp(0.85rem, 3.9vw, 1.15rem); }
+@media (max-width: 380px) {
+  .summary { grid-template-columns: minmax(0, 1fr); }
+}
+details.htm .summary > div strong { font-size: clamp(0.8rem, 3.5vw, 1.1rem); }

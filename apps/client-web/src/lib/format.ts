@@ -33,3 +33,18 @@ export function date(value: string | Date, locale: Locale) {
     new Date(value),
   );
 }
+
+/** Fills {placeholders} in a translated message. */
+export function fill(template: string, vars: Record<string, string | number>) {
+  return template.replace(/\{(\w+)\}/g, (_, k: string) => (k in vars ? String(vars[k]) : `{${k}}`));
+}
+
+/** "91 days" or "36 months" for a term. */
+export function termLabel(days: number, t: (k: string) => string, locale: Locale) {
+  const n = (v: number) => new Intl.NumberFormat(locale === 'ar' ? 'ar-EG' : 'en-EG').format(v);
+  return days <= 400 ? `${n(days)} ${t('days')}` : `${n(Math.round(days / 30.44))} ${t('months')}`;
+}
+
+export function daysUntil(value: string | Date) {
+  return Math.max(0, Math.round((new Date(value).getTime() - Date.now()) / 86_400_000));
+}

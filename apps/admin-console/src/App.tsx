@@ -4,13 +4,15 @@ import { BrokersScreen } from './screens/BrokersScreen';
 import { FixScreen } from './screens/FixScreen';
 import { InstrumentsScreen } from './screens/InstrumentsScreen';
 import { LeadsScreen } from './screens/LeadsScreen';
+import { NewsScreen } from './screens/NewsScreen';
 import { ProspectsScreen } from './screens/ProspectsScreen';
 
 const SCREENS = {
   prospects: { label: 'Prospect demos', el: ProspectsScreen },
   leads: { label: 'Leads', el: LeadsScreen },
   brokers: { label: 'Brokers', el: BrokersScreen },
-  instruments: { label: 'Instruments', el: InstrumentsScreen },
+  instruments: { label: 'Instruments & rates', el: InstrumentsScreen },
+  news: { label: 'News', el: NewsScreen },
   fix: { label: 'FIX monitor', el: FixScreen },
 } as const;
 type ScreenKey = keyof typeof SCREENS;

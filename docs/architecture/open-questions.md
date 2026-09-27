@@ -12,7 +12,7 @@ the ADR it affects. Move answered questions into the relevant ADR.
 | L3 | Which FRA decrees govern digital onboarding / e-KYC and e-signature for brokerage clients, and what evidence must be retained (liveness video, images, timestamps)? | Broker compliance / FRA | 0005 |
 | L4 | Must the broker's markup be disclosed to the client, or only commission and fees? | Counsel / FRA | 0008 |
 | L5 | Data residency: must personal data and books and records be hosted in Egypt, and which cloud providers are acceptable? | Counsel / FRA / brokers | 0010 |
-| L6 | What tax is withheld on coupons and T-bill returns for each client type (individual/corporate, resident/non-resident), and who withholds it (issuer, bank, broker)? The platform supports a per-broker coupon withholding rate, default 0. | Tax adviser | 0007 |
+| L6 | What tax is withheld on coupons and T-bill returns for each client type (individual/corporate, resident/non-resident), and who withholds it (issuer, bank, broker)? The platform applies a per-broker tax rate by paper type (default 20% of the interest: coupons, and a T-bill's discount at maturity from the client's average buy price) and shows it as an estimate. Confirm the rates, whether the broker or the issuer/bank withholds, and the treatment of accrued interest and bond price gains. | Tax adviser | 0007 |
 
 ## Market infrastructure
 

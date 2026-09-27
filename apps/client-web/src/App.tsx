@@ -1,13 +1,15 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { AppContext, translator, type TenantInfo } from './context';
 import type { Locale } from './i18n/messages';
 import { api, getToken, setToken } from './lib/api';
 import { AuthPage } from './pages/AuthPage';
-import { MarketsPage } from './pages/MarketsPage';
+import { HomePage } from './pages/HomePage';
 import { OnboardingPage, type OnboardingStatus } from './pages/OnboardingPage';
 import { PortfolioPage } from './pages/PortfolioPage';
+import { RatesPage } from './pages/RatesPage';
+import { StatementPage } from './pages/StatementPage';
 
-type Tab = 'markets' | 'portfolio';
+type Tab = 'home' | 'rates' | 'portfolio' | 'statement' | 'application';
 
 function applyBranding(tenant: TenantInfo) {
   const root = document.documentElement.style;
@@ -22,7 +24,8 @@ export function App() {
   const [error, setError] = useState<string | null>(null);
   const [token, setTok] = useState<string | null>(getToken());
   const [status, setStatus] = useState<OnboardingStatus | null>(null);
-  const [tab, setTab] = useState<Tab>('markets');
+  const [tab, setTab] = useState<Tab>('home');
+  const lastStatus = useRef<string | null>(null);
 
   const t = useMemo(() => translator(locale), [locale]);
 
@@ -55,6 +58,13 @@ export function App() {
     void refreshStatus();
   }, [token, refreshStatus]);
 
+  // Just submitted the application: go straight to the rates.
+  useEffect(() => {
+    const now = status?.clientStatus ?? null;
+    if (lastStatus.current === 'ONBOARDING' && now && now !== 'ONBOARDING') setTab('rates');
+    lastStatus.current = now;
+  }, [status]);
+
   const signIn = (tok: string) => {
     setToken(tok);
     setTok(tok);
@@ -69,6 +79,10 @@ export function App() {
   if (!tenant) return <main className="container"><p>{t('loading')}</p></main>;
 
   const active = status?.clientStatus === 'ACTIVE';
+  // Under review: clients can already browse rates and their home page.
+  const inReview = status?.clientStatus === 'PENDING_APPROVAL' || status?.clientStatus === 'NEEDS_INFO';
+  const tabs: Tab[] = active ? ['home', 'rates', 'portfolio', 'statement'] : inReview ? ['home', 'rates', 'application'] : [];
+  const current = tabs.includes(tab) ? tab : 'home';
 
   return (
     <AppContext.Provider value={{ locale, tenant, t }}>
@@ -78,15 +92,14 @@ export function App() {
           <span>{tenant.branding.displayName[locale]}</span>
         </div>
         <nav>
-          {token && active ? (
-            <>
-              <button className={`tab ${tab === 'markets' ? 'on' : ''}`} onClick={() => setTab('markets')}>
-                {t('markets')}
-              </button>
-              <button className={`tab ${tab === 'portfolio' ? 'on' : ''}`} onClick={() => setTab('portfolio')}>
-                {t('portfolio')}
-              </button>
-            </>
+          {token && tabs.length ? (
+            <div className="tabs">
+              {tabs.map((x) => (
+                <button key={x} className={`tab ${current === x ? 'on' : ''}`} onClick={() => setTab(x)}>
+                  {t(`tab_${x}`)}
+                </button>
+              ))}
+            </div>
           ) : null}
           <button className="link" onClick={() => setLocale(locale === 'en' ? 'ar' : 'en')}>
             {t('switchLanguage')}
@@ -103,16 +116,17 @@ export function App() {
           <AuthPage onSignedIn={signIn} />
         ) : !status ? (
           <p>{t('loading')}</p>
-        ) : !active ? (
+        ) : tabs.length === 0 || current === 'application' ? (
           <OnboardingPage status={status} onChange={refreshStatus} />
         ) : (
           <>
-            {!status.custodyReady ? <div className="banner">{t('custodyPending')}</div> : null}
-            {tab === 'markets' ? (
-              <MarketsPage onOrdered={() => setTab('portfolio')} />
-            ) : (
-              <PortfolioPage depositReference={status.depositReference} />
-            )}
+            {active && !status.custodyReady ? <div className="banner">{t('custodyPending')}</div> : null}
+            {current === 'home' ? <HomePage onExplore={() => setTab('rates')} /> : null}
+            {current === 'rates' ? (
+              <RatesPage canBuy={active && status.custodyReady} onOrdered={() => setTab('portfolio')} />
+            ) : null}
+            {current === 'portfolio' ? <PortfolioPage depositReference={status.depositReference} /> : null}
+            {current === 'statement' ? <StatementPage /> : null}
           </>
         )}
       </main>

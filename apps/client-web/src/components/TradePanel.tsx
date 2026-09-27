@@ -2,7 +2,8 @@ import { useEffect, useRef, useState } from 'react';
 import { useApp } from '../context';
 import { api } from '../lib/api';
 import { date, money, nominal, percent, price } from '../lib/format';
-import type { Instrument } from '../pages/MarketsPage';
+import type { Instrument } from '../pages/RatesPage';
+import { ProjectionDetail, ProjectionSummary, type Projection } from './ProjectionView';
 
 interface ClientQuote {
   quoteId: string;
@@ -13,6 +14,8 @@ interface ClientQuote {
   accruedInterest: string;
   commission: string;
   netAmount: string;
+  /** Buying: this quote held to maturity, after tax */
+  holdToMaturity: Projection | null;
 }
 
 interface Rfq {
@@ -29,6 +32,7 @@ export function TradePanel({
   side,
   instrument,
   maxQuantity,
+  initialQuantity,
   onOrdered,
   onClose,
 }: {
@@ -36,11 +40,15 @@ export function TradePanel({
   instrument: Instrument;
   /** Selling: nominal the client can sell */
   maxQuantity?: string;
+  /** Buying: nominal to start with (e.g. from "if you invest today") */
+  initialQuantity?: string;
   onOrdered: () => void;
   onClose?: () => void;
 }) {
   const { t, locale } = useApp();
-  const [quantity, setQuantity] = useState(String(Number(side === 'SELL' && maxQuantity ? maxQuantity : instrument.minQty)));
+  const [quantity, setQuantity] = useState(
+    String(Number(side === 'SELL' && maxQuantity ? maxQuantity : initialQuantity ?? instrument.minQty)),
+  );
   const [rfq, setRfq] = useState<Rfq | null>(null);
   const [waiting, setWaiting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -161,6 +169,13 @@ export function TradePanel({
             <dt>{t('settlement')}</dt>
             <dd>{date(rfq!.settlDate, locale)}</dd>
           </dl>
+          {best.holdToMaturity ? (
+            <details className="htm" open>
+              <summary>{t('holdToMaturityTitle')}</summary>
+              <ProjectionSummary p={best.holdToMaturity} />
+              <ProjectionDetail p={best.holdToMaturity} />
+            </details>
+          ) : null}
           <p className="muted">
             {t('validFor')} {Math.max(0, Math.round((new Date(best.validUntil).getTime() - now) / 1000))}
             {t('seconds')}

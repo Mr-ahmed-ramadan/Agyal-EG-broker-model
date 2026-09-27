@@ -1,8 +1,12 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import Decimal from 'decimal.js';
+import { Side } from '@agyal/shared-types';
 import type { Tenant } from '@prisma/client';
 import { DbService, type Tx } from '../../common/db.service';
+import { taxRateFor, tenantConfig } from '../../common/tenant-config';
 import { daysBetween, toUtcDate } from '../../domain/fixed-income';
+import { entitlementAmount, incomeSchedule, withholding } from '../../domain/income';
+import { billRedemptionTax } from '../../domain/projection';
 import { LedgerAccountType } from '../../domain/ledger-rules';
 import { statementLines, type StatementEntry } from '../../domain/statement';
 import { CashService } from '../cash/cash.service';
@@ -56,7 +60,7 @@ export class ExperienceService {
         (s, r) => ({ net: s.net.plus(r.type === 'COUPON' ? r.net : 0), tax: s.tax.plus(r.tax) }),
         { net: new Decimal(0), tax: new Decimal(0) },
       );
-      const upcoming = income.upcoming.filter((u) => toUtcDate(new Date(u.paymentDate)) >= today);
+      const upcoming = this.upcomingPayments(tenant, holdings, today);
       const maturing = holdings.filter((h) => h.daysToMaturity <= 90).sort((a, b) => a.daysToMaturity - b.daysToMaturity);
 
       // Highlights: structured so the app can word them in the client's language.
@@ -92,6 +96,35 @@ export class ExperienceService {
     });
   }
 
+  /** Expected payments on current holdings over the next 12 months, after tax. */
+  private upcomingPayments(tenant: Tenant, holdings: Awaited<ReturnType<ExperienceService['holdings']>>, today: Date) {
+    const config = tenantConfig(tenant.config);
+    const until = new Date(today.getTime() + 366 * DAY);
+    return holdings
+      .flatMap((h) =>
+        incomeSchedule(
+          { type: h.type, couponRate: h.couponRate == null ? null : Number(h.couponRate), couponFreq: h.couponFreq, maturityDate: new Date(h.maturityDate) },
+          today,
+          until,
+        ).map((p) => {
+          const gross = entitlementAmount(h.nominal, p.per100);
+          const rate = taxRateFor(config, h.type);
+          const tax =
+            p.type === 'COUPON' ? withholding(gross, rate) : h.type === 'TREASURY_BILL' ? billRedemptionTax(h.nominal, h.avgPrice, rate) : new Decimal(0);
+          return {
+            isin: h.isin,
+            type: p.type,
+            paymentDate: p.paymentDate,
+            nominal: h.nominal.toFixed(2),
+            expectedGross: gross.toFixed(2),
+            expectedTax: tax.toFixed(2),
+            expectedNet: gross.minus(tax).toFixed(2),
+          };
+        }),
+      )
+      .sort((a, b) => a.paymentDate.getTime() - b.paymentDate.getTime());
+  }
+
   /** Client holdings with cost (average buy price) and time to maturity. */
   private async holdings(tx: Tx, tenantId: string, clientId: string) {
     const portfolio = await this.ledger.clientPortfolio(tx, tenantId, clientId);
@@ -99,7 +132,7 @@ export class ExperienceService {
     const isins = portfolio.positions.map((p) => p.isin);
     const instruments = new Map((await tx.instrument.findMany({ where: { isin: { in: isins } } })).map((i) => [i.isin, i]));
     const buys = await tx.order.findMany({
-      where: { clientId, isin: { in: isins }, side: 'BUY', cumQty: { gt: 0 } },
+      where: { clientId, isin: { in: isins }, side: Side.Buy, cumQty: { gt: 0 } },
       include: { priceSnapshot: true },
     });
     const today = new Date();
@@ -118,6 +151,7 @@ export class ExperienceService {
         nameAr: i.nameAr,
         type: i.type as string,
         couponRate: i.couponRate?.toString() ?? null,
+        couponFreq: i.couponFreq,
         maturityDate: i.maturityDate,
         daysToMaturity: Math.max(0, daysBetween(today, i.maturityDate)),
         nominal,

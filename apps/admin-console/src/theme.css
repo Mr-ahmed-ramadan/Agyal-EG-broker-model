@@ -89,3 +89,5 @@ code { background: var(--bg); padding: 2px 6px; border-radius: 4px; }
   .card.login { margin: 24px 16px; }
   .copy .muted { flex-basis: 100%; }
 }
+textarea { font: inherit; padding: 8px 10px; border-radius: 6px; border: 1px solid var(--border); background: var(--surface); color: var(--text); width: 100%; }
+.inline { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 4px 6px; }

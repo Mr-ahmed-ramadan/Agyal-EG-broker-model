@@ -61,7 +61,15 @@ The first end-to-end slice runs locally and in CI:
 10. Coupons and maturities: ops confirm payments from the custodian/CBE;
     clients are credited (net of the broker's withholding rate, default 0)
     and matured holdings close.
-11. Broker console shows buy and sell orders, clients, settlements,
+11. Clients can browse today's indicative rates as soon as they apply. Each
+    paper has a plain-language explainer and "if you invest today": what you
+    pay (price, accrued interest, commission), every payment until maturity,
+    tax (20% of the interest by default, configurable), net profit and net
+    annual return. The same view is shown for each live bank quote.
+12. Client home page (invested, cash, income, upcoming payments, maturities,
+    highlights and news from Agyal and the broker) and an account statement
+    for any period that reconciles to the ledger and prints as a PDF.
+13. Broker console shows buy and sell orders, clients, settlements,
     withdrawals, coupons and a trial balance that nets to zero per currency
     and per ISIN. The admin console manages brokers, staff, bank links and
     instruments and monitors the FIX bridge.

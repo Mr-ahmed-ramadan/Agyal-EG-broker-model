@@ -167,6 +167,11 @@ certificates appear once records resolve (minutes; up to an hour).
    **Ledger**.
 6. Close with the landing page's pricing and "you stay the licensed party".
 
+**Keep it fresh**: admin console → **Instruments & rates** sets the
+indicative yields clients see before a live price (live bank quotes update
+them automatically); **News** posts to every client's home page. Each broker
+can post its own news from the broker console.
+
 **After the call**: send them the client link to play with; follow up from
 the **Leads** list.
 

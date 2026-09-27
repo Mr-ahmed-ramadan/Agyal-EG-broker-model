@@ -78,3 +78,4 @@ th { color: var(--muted); font-weight: 600; }
   .card.login { margin: 24px 16px; }
   dl { grid-template-columns: 1fr; }
 }
+textarea { font: inherit; padding: 8px 10px; border-radius: 6px; border: 1px solid var(--border); background: var(--surface); color: var(--text); width: 100%; }

@@ -1,5 +1,6 @@
 import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import Decimal from 'decimal.js';
+import { Side } from '@agyal/shared-types';
 import type { Instrument, Tenant } from '@prisma/client';
 import { AuditService } from '../../common/audit.service';
 import { DbService, type Tx } from '../../common/db.service';
@@ -227,7 +228,7 @@ export class IncomeService {
   /** Client's average clean price paid per 100 on filled buys of an ISIN (100 if none). */
   private async averageBuyPrice(tx: Tx, clientId: string, isin: string): Promise<Decimal> {
     const orders = await tx.order.findMany({
-      where: { clientId, isin, side: 'BUY', cumQty: { gt: 0 } },
+      where: { clientId, isin, side: Side.Buy, cumQty: { gt: 0 } },
       include: { priceSnapshot: true },
     });
     const qty = orders.reduce((s, o) => s.plus(o.cumQty.toString()), new Decimal(0));

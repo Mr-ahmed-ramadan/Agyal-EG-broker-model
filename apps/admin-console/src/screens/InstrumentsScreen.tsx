@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from 'react';
 import { api } from '../api';
-import { useLoad } from '../useLoad';
+import { useLoad, when } from '../useLoad';
 
 interface Instrument {
   id: string;
@@ -15,10 +15,42 @@ interface Instrument {
   minQty: string;
 }
 
+interface Rate {
+  isin: string;
+  offerYield: string | null;
+  source: string;
+  asOf: string;
+}
+
 const TYPES = ['TREASURY_BILL', 'TREASURY_BOND', 'CORPORATE_BOND', 'SUKUK'];
+
+/** Bank offer yield shown to clients (less each broker's markup) until a live quote refreshes it. */
+function IndicativeCell({ isin, rate, onSaved }: { isin: string; rate?: Rate; onSaved: () => void }) {
+  const [value, setValue] = useState(rate?.offerYield ? (Number(rate.offerYield) * 100).toFixed(2) : '');
+  const [err, setErr] = useState<string | null>(null);
+  async function save() {
+    setErr(null);
+    try {
+      await api('POST', `/admin/instruments/${isin}/indicative`, { offerYield: Number(value) / 100 });
+      onSaved();
+    } catch (e) {
+      setErr((e as Error).message);
+    }
+  }
+  return (
+    <span className="inline">
+      <input value={value} onChange={(e) => setValue(e.target.value)} size={6} inputMode="decimal" aria-label="Offer yield %" />%
+      <button className="link" onClick={save}>Save</button>
+      {rate ? <small className="muted">{rate.source === 'BANK_QUOTE' ? 'from bank quote' : rate.source.toLowerCase()} · {when(rate.asOf)}</small> : null}
+      {err ? <small className="error">{err}</small> : null}
+    </span>
+  );
+}
 
 export function InstrumentsScreen() {
   const { data, error, reload } = useLoad<Instrument[]>('/admin/instruments');
+  const rates = useLoad<Rate[]>('/admin/indicative-rates');
+  const rateOf = (isin: string) => rates.data?.find((r) => r.isin === isin);
   const [f, setF] = useState({
     isin: '', type: 'TREASURY_BOND', issuer: '', nameEn: '', nameAr: '', couponRate: '', couponFreq: '2',
     maturityDate: '', depository: 'MCDR', minQty: '1000', qtyIncrement: '1000',
@@ -54,10 +86,14 @@ export function InstrumentsScreen() {
   return (
     <section>
       <h2>Instruments</h2>
-      <p className="muted">Master data shared by all brokers. Each broker chooses which instrument types it offers.</p>
+      <p className="muted">
+        Master data shared by all brokers. Each broker chooses which instrument types it offers. The indicative
+        yield is the banks' offer yield clients see (less the broker's markup) before asking for a live price; live
+        bank quotes update it automatically.
+      </p>
       {error ? <p className="error">{error}</p> : null}
       <table>
-        <thead><tr><th>ISIN</th><th>Type</th><th>Name</th><th>Issuer</th><th>Coupon</th><th>Maturity</th><th>Depository</th><th>Minimum</th></tr></thead>
+        <thead><tr><th>ISIN</th><th>Type</th><th>Name</th><th>Issuer</th><th>Coupon</th><th>Maturity</th><th>Depository</th><th>Minimum</th><th>Indicative offer yield</th></tr></thead>
         <tbody>
           {data?.map((i) => (
             <tr key={i.id}>
@@ -69,6 +105,9 @@ export function InstrumentsScreen() {
               <td>{i.maturityDate.slice(0, 10)}</td>
               <td>{i.depository}</td>
               <td>{Number(i.minQty).toLocaleString('en')}</td>
+              <td>
+                {rates.data ? <IndicativeCell key={rateOf(i.isin)?.asOf ?? i.isin} isin={i.isin} rate={rateOf(i.isin)} onSaved={rates.reload} /> : null}
+              </td>
             </tr>
           ))}
         </tbody>

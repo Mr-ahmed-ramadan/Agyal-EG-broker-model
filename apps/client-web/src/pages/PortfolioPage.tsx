@@ -4,7 +4,7 @@ import { WithdrawPanel } from '../components/WithdrawPanel';
 import { useApp } from '../context';
 import { api } from '../lib/api';
 import { date, money, nominal } from '../lib/format';
-import type { Instrument } from './MarketsPage';
+import type { Instrument } from './RatesPage';
 
 interface Portfolio {
   cash: { available: string; reserved: string };

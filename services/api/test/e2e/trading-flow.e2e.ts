@@ -361,6 +361,30 @@ async function main() {
   const perUnit3 = new Map<string, number>();
   for (const r of tb3) perUnit3.set(r.unit, (perUnit3.get(r.unit) ?? 0) + Number(r.rawSum));
   for (const [unit, total] of perUnit3) assert.ok(Math.abs(total) < 0.005, `${unit} nets to zero after income`);
+  // A T-bill redeemed at maturity: 20% tax on the discount the client earned (face value - price paid)
+  const billIsin = withCheckDigit(`EGB${run.slice(-7).toUpperCase().padStart(7, '0')}1`);
+  await call('POST', '/admin/instruments', {
+    token: admin,
+    body: {
+      isin: billIsin, type: 'TREASURY_BILL', issuer: 'Ministry of Finance', nameEn: 'Short test bill', nameAr: 'إذن اختبار قصير',
+      maturityDate: maturity, depository: 'CBE', minQty: '25000', qtyIncrement: '25000',
+    },
+  });
+  const bill = await trade('BUY', T, c.token, billIsin, '100000');
+  const discount = 100000 - Number(bill.filled.price.principal);
+  const billTax = (Math.round(discount * 20) / 100).toFixed(2);
+  const homeBefore = await call('GET', '/home', { tenant: T, token: c.token });
+  const billPayment = homeBefore.upcoming.find((u: Json) => u.isin === billIsin);
+  assert.equal(billPayment.expectedTax, billTax, 'home shows the tax on the T-bill discount');
+  const billDue = (await call('GET', '/broker/income', { tenant: T, token: ops })).find((e: Json) => e.isin === billIsin);
+  assert.equal(billDue.totalTax, billTax);
+  await call('POST', '/broker/income/confirm', {
+    tenant: T, token: ops, body: { isin: billIsin, type: 'REDEMPTION', paymentDate: maturity, reference: 'CUST-BILL' },
+  });
+  const billIncome = (await call('GET', '/income', { tenant: T, token: c.token })).received.find((r: Json) => r.isin === billIsin);
+  assert.deepEqual([billIncome.gross, billIncome.tax, billIncome.net], ['100000.00', billTax, (100000 - Number(billTax)).toFixed(2)]);
+  console.log(`✓ T-bill matured: EGP ${billTax} tax (20% of the EGP ${discount.toFixed(2)} discount) withheld`);
+
   // Statement and home page reflect the ledger
   const stmt = await call('GET', '/statement?from=2000-01-01', { tenant: T, token: c.token });
   const cashNow = await call('GET', '/cash', { tenant: T, token: c.token });

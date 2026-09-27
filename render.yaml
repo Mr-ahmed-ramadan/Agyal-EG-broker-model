@@ -1,16 +1,9 @@
 # Render blueprint for the hosted demo (see docs/DEPLOYMENT.md).
-# Creates: PostgreSQL, the API (web service) and the FIX gateway + bank
-# simulator (background worker). The three web apps are hosted on Vercel.
+# Creates: the API (web service) and the FIX gateway + bank simulator
+# (background worker). The database is on Neon (Frankfurt); the web apps
+# are hosted on Vercel.
 #
 # Values marked `sync: false` are asked for when you create the blueprint.
-
-databases:
-  - name: agyal-db
-    databaseName: agyal_broker
-    user: agyal
-    region: frankfurt
-    # Paid plan: Render's free PostgreSQL is deleted after 30 days.
-    plan: basic-256mb
 
 services:
   - type: web
@@ -27,10 +20,9 @@ services:
         value: "20"
       - key: NODE_ENV
         value: production
+      # Neon connection string (direct, not "-pooler"), same value on both services.
       - key: DATABASE_URL
-        fromDatabase:
-          name: agyal-db
-          property: connectionString
+        sync: false
       - key: JWT_SECRET
         generateValue: true
       - key: OTP_SECRET
@@ -78,7 +70,6 @@ services:
     dockerfilePath: ./services/fix-gateway/Dockerfile
     dockerContext: ./services/fix-gateway
     envVars:
+      # Neon connection string (direct, not "-pooler"), same value on both services.
       - key: DATABASE_URL
-        fromDatabase:
-          name: agyal-db
-          property: connectionString
+        sync: false

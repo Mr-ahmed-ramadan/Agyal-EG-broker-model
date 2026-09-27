@@ -14,13 +14,18 @@ banks, mock identity checks and no real money.
 | `https://admin.egypt.agyal.net` | Agyal admin: prospect demos, leads, brokers, instruments, FIX monitor | Vercel |
 | `https://api.egypt.agyal.net` | API | Render (web service) |
 | — | FIX gateway + 2 simulated banks | Render (background worker) |
-| — | Database | Render PostgreSQL |
+| — | Database | Neon PostgreSQL (Frankfurt) |
 | — | Sign-in codes and lead emails, from e.g. `codes@agyal.net` | Resend |
 
-**Approximate cost** (check current prices): Render PostgreSQL basic plus two
-starter services, roughly USD 20/month; Vercel Hobby and Resend's free tier
-are enough for a demo. Render's free plans are not suitable (free databases
-are deleted after 30 days; free web services sleep).
+**Approximate cost** (check current prices): two Render starter services,
+roughly USD 14/month; Vercel Hobby and Resend's free tier are enough for a
+demo. Render's free web services are not suitable (they sleep).
+
+**Neon's free plan**: the FIX gateway and the API check their message queues
+several times a second, so the database never idles and uses compute all
+month. Watch **Usage** in Neon; if the free compute allowance runs out, the
+database stops until the next month, so move to Neon's paid plan (or a
+Render PostgreSQL database) before showing the demo to prospects.
 
 **Before you start**: Render and Vercel deploy from the `main` branch on
 GitHub; every push to `main` redeploys. Check that `main` is the repository's
@@ -53,15 +58,26 @@ DNS records proving you own the domain. Nobody can reply to
    Step 2. Lead emails set *Reply-To* to the prospect, so **Reply** answers
    them directly.
 
-## Step 2 — Render (database, API, FIX)
+## Step 1b — Neon (database)
+
+1. Neon → **New project** → name `agyal`, PostgreSQL 16 or later, region
+   **AWS Europe Central 1 (Frankfurt)** (next to Render's Frankfurt servers).
+2. Project dashboard → **Connect**: turn **Connection pooling off** (the
+   host must *not* contain `-pooler`) and copy the connection string, e.g.
+   `postgresql://neondb_owner:...@ep-xxxx.eu-central-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require`.
+   Keep it secret: it contains the database password.
+3. Nothing else: the API creates the tables on its first start.
+
+## Step 2 — Render (API, FIX)
 
 1. Render → **New** → **Blueprint** → connect the GitHub repository
    `Mr-ahmed-ramadan/Agyal-EG-broker-model` (branch `main`).
-2. Render reads `render.yaml` and proposes `agyal-db`, `agyal-api` and
-   `agyal-fix`. It asks for:
+2. Render reads `render.yaml` and proposes `agyal-api` and `agyal-fix`.
+   It asks for:
 
    | Variable | Value |
    | --- | --- |
+   | `DATABASE_URL` (both services) | the Neon connection string from Step 1b |
    | `RESEND_API_KEY` | the `re_...` key from Step 1 |
    | `EMAIL_FROM` | `codes@agyal.net` |
    | `CONTACT_TO` | the email(s) that should receive landing-page leads |
@@ -171,6 +187,7 @@ the **Leads** list.
 
 | Symptom | Cause / fix |
 | --- | --- |
+| `agyal-api` log: `P1001: Can't reach database server` | `DATABASE_URL` wrong, or Neon's compute allowance used up (Neon → **Usage**) |
 | "We could not send your code right now" | Resend key wrong or `agyal.net` not verified: see `agyal-api` logs |
 | Contact form works but no email arrives | `CONTACT_TO` not set or Resend not verified; the lead is still under **Leads** with the error |
 | Browser console: CORS error | The page's exact `https://` address is missing from `CORS_ORIGINS` on `agyal-api` |

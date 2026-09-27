@@ -44,9 +44,10 @@ public final class Database {
         String password = userInfo.length > 1
                 ? java.net.URLDecoder.decode(userInfo[1], java.nio.charset.StandardCharsets.UTF_8) : "";
         int port = uri.getPort() == -1 ? 5432 : uri.getPort();
-        // Prisma's "schema" parameter is not a JDBC option; other parameters (e.g. sslmode) are kept.
+        // Prisma's "schema" and libpq's "channel_binding" (in Neon URLs) are not JDBC options;
+        // other parameters (e.g. sslmode) are kept.
         String query = uri.getRawQuery() == null ? "" : java.util.Arrays.stream(uri.getRawQuery().split("&"))
-                .filter(p -> !p.startsWith("schema="))
+                .filter(p -> !p.startsWith("schema=") && !p.startsWith("channel_binding="))
                 .reduce((a, b) -> a + "&" + b).orElse("");
         String jdbc = "jdbc:postgresql://" + uri.getHost() + ":" + port + uri.getRawPath()
                 + (query.isEmpty() ? "" : "?" + query);

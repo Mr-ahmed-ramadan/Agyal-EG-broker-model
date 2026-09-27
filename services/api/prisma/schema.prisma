@@ -70,8 +70,10 @@ model User {
 model OtpChallenge {
   id         String    @id @default(uuid())
   userId     String
-  /// LOGIN or VERIFY_MOBILE
+  /// LOGIN, VERIFY_MOBILE or STEP_UP
   purpose    String
+  /// STEP_UP only: the action the code authorises, run when it is verified
+  payload    Json?
   /// HMAC of the code; the code itself is never stored
   codeHash   String
   expiresAt  DateTime
@@ -111,6 +113,8 @@ model Client {
   custodyAccounts CustodyAccount[]
   consents        Consent[]
   orders          Order[]
+  bankAccounts    ClientBankAccount[]
+  withdrawals     Withdrawal[]
 
   @@unique([tenantId, depositReference])
   @@index([tenantId, status])
@@ -167,6 +171,46 @@ model Consent {
   acceptedAt   DateTime @default(now())
 
   client Client @relation(fields: [clientId], references: [id])
+}
+
+/// The client's own bank account for withdrawals (ADR 0007).
+model ClientBankAccount {
+  id         String   @id @default(uuid())
+  tenantId   String
+  clientId   String
+  iban       String
+  bankName   String
+  holderName String
+  active     Boolean  @default(true)
+  createdAt  DateTime @default(now())
+
+  client      Client       @relation(fields: [clientId], references: [id])
+  withdrawals Withdrawal[]
+
+  @@index([clientId])
+}
+
+/// Client withdrawal to their own bank account, with maker-checker payout (ADR 0007).
+model Withdrawal {
+  id            String   @id @default(uuid())
+  tenantId      String
+  clientId      String
+  bankAccountId String
+  amount        Decimal  @db.Decimal(20, 2)
+  /// REQUESTED, APPROVED, PAID or REJECTED
+  status        String   @default("REQUESTED")
+  requestedAt   DateTime @default(now())
+  approvedById  String?
+  approvedAt    DateTime?
+  paidById      String?
+  paidAt        DateTime?
+  bankReference String?
+  rejectReason  String?
+
+  client      Client            @relation(fields: [clientId], references: [id])
+  bankAccount ClientBankAccount @relation(fields: [bankAccountId], references: [id])
+
+  @@index([tenantId, status])
 }
 
 // ---------------------------------------------------------------------------
@@ -346,6 +390,10 @@ model Order {
   reservedQty     Decimal  @default(0) @db.Decimal(20, 2)
   priceSnapshotId String   @unique
   text            String?
+  /// Set when broker ops confirm the bank settled this order (ADR 0007)
+  settledAt       DateTime?
+  /// Bank statement / payment reference of the settlement
+  settlementRef   String?
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
@@ -370,8 +418,10 @@ model Execution {
   lastPx             Decimal?  @db.Decimal(18, 8)
   accruedInterestAmt Decimal?  @db.Decimal(20, 2)
   netMoney           Decimal?  @db.Decimal(20, 2)
-  /// What the client was charged for this fill (ledger BUY_FILL)
+  /// Buy: what the client was charged. Sell: net proceeds credited to the client.
   clientAmount       Decimal?  @db.Decimal(20, 2)
+  /// Buy: owed to the bank. Sell: owed by the bank. Cleared at settlement.
+  bankAmount         Decimal?  @db.Decimal(20, 2)
   settlDate          DateTime?
   transactTime       DateTime
   text               String?

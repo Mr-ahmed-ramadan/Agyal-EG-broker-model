@@ -43,13 +43,18 @@ when volume requires.
   after the code is verified. Registration verifies the client's mobile the
   same way. Codes are 6 digits, stored as an HMAC bound to the challenge,
   valid 5 minutes and 5 attempts, with a 30-second resend cooldown and at
-  most 6 codes per user per hour. SMS goes through an `SmsProvider`
+  most 10 codes per user per hour. SMS goes through an `SmsProvider`
   interface under the broker's sender name; in development the code is
   logged, and returned in the response only if `OTP_DEV_ECHO=true` outside
   production.
-- Next: rotating refresh tokens, OTP step-up for client sensitive actions
-  (withdrawals, bank account change), device binding, and authenticator-app
-  or hardware-key MFA for staff as an alternative to SMS.
+- Step-up: sensitive client actions (adding a withdrawal bank account,
+  requesting a withdrawal) return a `STEP_UP` challenge that carries the
+  pending action; the action only runs when the code is confirmed. Codes are
+  bound to their purpose, so a step-up code can never be used to sign in.
+  The resend cooldown applies to the same purpose and action; distinct
+  actions are limited by an hourly cap (10 codes per user).
+- Next: rotating refresh tokens, device binding, and authenticator-app or
+  hardware-key MFA for staff as an alternative to SMS.
 - Per-tenant data keys (ADR 0002); secrets in a managed secrets store.
 - Immutable audit log for every state-changing action, with actor, tenant,
   IP and before/after.

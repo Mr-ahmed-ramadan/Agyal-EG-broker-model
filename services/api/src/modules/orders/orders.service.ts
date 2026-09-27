@@ -258,11 +258,13 @@ export class OrdersService {
     );
 
     let clientAmount: Decimal | null = null;
+    let bankAmount: Decimal | null = null;
     if (msg.execType === ExecType.Trade) {
       const snap = order.priceSnapshot;
       const qty = outcome.filledQty;
       const accrued = new Decimal(msg.accruedInterestAmt ?? 0);
       const bankTotal = qty.mul(msg.lastPx ?? 0).div(100).toDecimalPlaces(2).plus(accrued);
+      bankAmount = bankTotal;
       const commissionShare = new Decimal(snap.commission.toString())
         .mul(qty)
         .div(order.orderQty.toString())
@@ -297,6 +299,7 @@ export class OrdersService {
         accruedInterestAmt: msg.accruedInterestAmt ?? null,
         netMoney: msg.netMoney ?? null,
         clientAmount: clientAmount?.toFixed(2) ?? null,
+        bankAmount: bankAmount?.toFixed(2) ?? null,
         settlDate: msg.settlDate ? parseFixDate(msg.settlDate) : null,
         transactTime: new Date(msg.transactTime),
         text: msg.text ?? null,

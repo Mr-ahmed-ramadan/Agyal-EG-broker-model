@@ -96,6 +96,9 @@ button.link { background: none; border: 0; color: inherit; text-decoration: unde
 }
 .row.plain { border: 0; padding: 0; }
 .pill.side-SELL { background: color-mix(in srgb, var(--accent) 22%, var(--surface)); }
+.pill.wd-PAID { background: color-mix(in srgb, var(--ok) 18%, var(--surface)); }
+.pill.wd-REJECTED { background: color-mix(in srgb, var(--error) 18%, var(--surface)); }
+.ok { color: var(--ok); }
 .pill.status-2 { background: color-mix(in srgb, var(--ok) 18%, var(--surface)); }
 .pill.status-8 { background: color-mix(in srgb, var(--error) 18%, var(--surface)); }
 

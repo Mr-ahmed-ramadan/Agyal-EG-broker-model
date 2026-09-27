@@ -92,8 +92,9 @@ async function main() {
   const staff = [
     { email: 'admin@demo-broker.example', mobile: '01000000001', roles: ['BROKER_ADMIN'] },
     { email: 'compliance@demo-broker.example', mobile: '01000000002', roles: ['BROKER_COMPLIANCE'] },
-    { email: 'ops@demo-broker.example', mobile: '01000000003', roles: ['BROKER_OPS', 'BROKER_FINANCE'] },
+    { email: 'ops@demo-broker.example', mobile: '01000000003', roles: ['BROKER_OPS'] },
     { email: 'dealer@demo-broker.example', mobile: '01000000004', roles: ['BROKER_DEALER'] },
+    { email: 'finance@demo-broker.example', mobile: '01000000005', roles: ['BROKER_FINANCE'] },
   ];
   for (const s of staff) {
     await prisma.user.upsert({

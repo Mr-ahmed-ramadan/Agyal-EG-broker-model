@@ -38,17 +38,21 @@ describe('OTP codes', () => {
 });
 
 describe('OTP rate limit', () => {
-  it('enforces a cooldown between codes', () => {
-    const r = canIssue([new Date(now.getTime() - 10_000)], now);
-    expect(r).toEqual({ ok: false, retryAfterMs: 20_000 });
-    expect(canIssue([new Date(now.getTime() - 31_000)], now)).toEqual({ ok: true });
+  it('enforces a cooldown before re-sending the same kind of code', () => {
+    const tenSecondsAgo = [new Date(now.getTime() - 10_000)];
+    expect(canIssue(tenSecondsAgo, tenSecondsAgo, now)).toEqual({ ok: false, retryAfterMs: 20_000 });
+    const old = [new Date(now.getTime() - 31_000)];
+    expect(canIssue(old, old, now)).toEqual({ ok: true });
   });
 
-  it('caps codes per hour', () => {
-    const recent = Array.from({ length: 6 }, (_, i) => new Date(now.getTime() - (i + 1) * 5 * 60_000));
-    const r = canIssue(recent, now);
-    expect(r.ok).toBe(false);
-    expect(canIssue(recent.slice(0, 5), now)).toEqual({ ok: true });
+  it('lets a different action have its own code straight away', () => {
+    expect(canIssue([new Date(now.getTime() - 5_000)], [], now)).toEqual({ ok: true });
+  });
+
+  it('caps codes per hour across all purposes', () => {
+    const recent = Array.from({ length: 10 }, (_, i) => new Date(now.getTime() - (i + 1) * 5 * 60_000));
+    expect(canIssue(recent, [], now).ok).toBe(false);
+    expect(canIssue(recent.slice(0, 9), [], now)).toEqual({ ok: true });
   });
 
   it('masks mobile numbers', () => {

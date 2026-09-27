@@ -87,7 +87,7 @@ export class IdentityService {
 
   /** Step 2: the one-time code. Returns the access token. */
   async verifyOtp(tenant: Tenant | undefined, challengeId: string, code: string) {
-    const { user, purpose } = await this.otp.verify(challengeId, code);
+    const { user, purpose } = await this.otp.verify(challengeId, code, ['LOGIN', 'VERIFY_MOBILE']);
     if ((user.tenantId ?? null) !== (tenant?.id ?? null)) {
       throw new ForbiddenException('This code belongs to a different broker');
     }
@@ -123,7 +123,7 @@ export class IdentityService {
     return { accessToken: signToken(authUser), user: authUser };
   }
 
-  private senderName(tenant: Tenant | undefined): string {
+  senderName(tenant: Tenant | undefined): string {
     const branding = tenant?.branding as { displayName?: { en?: string } } | undefined;
     return branding?.displayName?.en ?? 'Agyal';
   }

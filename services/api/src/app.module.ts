@@ -17,6 +17,7 @@ import { BillingModule } from './modules/billing/billing.module';
 import { AuditModule } from './modules/audit/audit.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
 import { FixInboxModule } from './modules/fix-inbox/fix-inbox.module';
+import { CashModule } from './modules/cash/cash.module';
 
 @Module({
   imports: [
@@ -36,6 +37,7 @@ import { FixInboxModule } from './modules/fix-inbox/fix-inbox.module';
     AuditModule,
     NotificationsModule,
     FixInboxModule,
+    CashModule,
   ],
   controllers: [HealthController],
 })

@@ -8,5 +8,6 @@ import { LogSmsProvider, SMS_PROVIDER } from './sms.provider';
 @Module({
   controllers: [IdentityController],
   providers: [IdentityService, OtpService, { provide: SMS_PROVIDER, useClass: LogSmsProvider }],
+  exports: [OtpService, IdentityService],
 })
 export class IdentityModule {}

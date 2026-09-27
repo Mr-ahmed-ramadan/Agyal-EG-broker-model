@@ -5,6 +5,8 @@ import { ComplianceScreen } from './screens/ComplianceScreen';
 import { DepositsScreen } from './screens/DepositsScreen';
 import { LedgerScreen } from './screens/LedgerScreen';
 import { OrdersScreen } from './screens/OrdersScreen';
+import { SettlementsScreen } from './screens/SettlementsScreen';
+import { WithdrawalsScreen } from './screens/WithdrawalsScreen';
 import { UnifiedCodesScreen } from './screens/UnifiedCodesScreen';
 
 const SCREENS = {
@@ -13,6 +15,8 @@ const SCREENS = {
   deposits: { label: 'Deposits', roles: ['BROKER_OPS', 'BROKER_FINANCE', 'BROKER_ADMIN'], el: DepositsScreen },
   clients: { label: 'Clients', roles: ['BROKER_COMPLIANCE', 'BROKER_OPS', 'BROKER_ADMIN'], el: ClientsScreen },
   orders: { label: 'Orders', roles: ['BROKER_DEALER', 'BROKER_OPS', 'BROKER_ADMIN', 'BROKER_COMPLIANCE'], el: OrdersScreen },
+  settlements: { label: 'Settlements', roles: ['BROKER_OPS', 'BROKER_ADMIN'], el: SettlementsScreen },
+  withdrawals: { label: 'Withdrawals', roles: ['BROKER_FINANCE', 'BROKER_OPS', 'BROKER_ADMIN'], el: WithdrawalsScreen },
   ledger: { label: 'Ledger', roles: ['BROKER_FINANCE', 'BROKER_OPS', 'BROKER_ADMIN'], el: LedgerScreen },
 } as const;
 type ScreenKey = keyof typeof SCREENS;
@@ -54,7 +58,7 @@ export function App() {
           Sign out
         </button>
       </aside>
-      <main>{Screen ? <Screen /> : <p>No screens for your role.</p>}</main>
+      <main>{Screen ? <Screen roles={roles} /> : <p>No screens for your role.</p>}</main>
     </div>
   );
 }

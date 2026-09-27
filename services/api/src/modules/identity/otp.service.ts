@@ -1,5 +1,5 @@
 import { HttpException, HttpStatus, Inject, Injectable, UnauthorizedException } from '@nestjs/common';
-import type { User } from '@prisma/client';
+import type { Prisma, User } from '@prisma/client';
 import { DbService } from '../../common/db.service';
 import {
   canIssue,
@@ -40,13 +40,27 @@ export class OtpService {
     @Inject(SMS_PROVIDER) private readonly sms: SmsProvider,
   ) {}
 
-  async issue(user: User, purpose: OtpPurpose, senderName: string): Promise<IssuedChallenge> {
+  /**
+   * Sends a code. For STEP_UP, `payload` describes the action the code will
+   * authorise; it is stored with the challenge and returned on verification.
+   */
+  async issue(
+    user: User,
+    purpose: OtpPurpose,
+    senderName: string,
+    payload?: Prisma.InputJsonValue,
+  ): Promise<IssuedChallenge> {
     if (!user.mobile) throw new UnauthorizedException('No mobile number on this account');
     const recent = await this.db.otpChallenge.findMany({
       where: { userId: user.id, createdAt: { gt: new Date(Date.now() - 3_600_000) } },
-      select: { createdAt: true },
+      select: { createdAt: true, purpose: true, payload: true },
     });
-    const allowed = canIssue(recent.map((r) => r.createdAt));
+    const kind = JSON.stringify(payload ?? null);
+    const sameKind = recent.filter((r) => r.purpose === purpose && JSON.stringify(r.payload ?? null) === kind);
+    const allowed = canIssue(
+      recent.map((r) => r.createdAt),
+      sameKind.map((r) => r.createdAt),
+    );
     if (!allowed.ok) {
       throw new HttpException(
         { message: 'Please wait before requesting another code', retryAfterSeconds: Math.ceil(allowed.retryAfterMs / 1000) },
@@ -62,7 +76,13 @@ export class OtpService {
         data: { consumedAt: new Date() },
       });
       const created = await tx.otpChallenge.create({
-        data: { userId: user.id, purpose, codeHash: 'pending', expiresAt: new Date(Date.now() + OTP_TTL_MS) },
+        data: {
+          userId: user.id,
+          purpose,
+          payload,
+          codeHash: 'pending',
+          expiresAt: new Date(Date.now() + OTP_TTL_MS),
+        },
       });
       return tx.otpChallenge.update({
         where: { id: created.id },
@@ -80,17 +100,29 @@ export class OtpService {
     };
   }
 
-  /** Verifies a code; returns the user on success. Every attempt is counted. */
-  async verify(challengeId: string, code: string): Promise<{ user: User; purpose: OtpPurpose }> {
+  /**
+   * Verifies a code for one of the allowed purposes; returns the user (and a
+   * step-up payload) on success. Every attempt is counted.
+   */
+  async verify(
+    challengeId: string,
+    code: string,
+    allowed: OtpPurpose[],
+  ): Promise<{ user: User; purpose: OtpPurpose; payload: Prisma.JsonValue | null }> {
     const challenge = await this.db.otpChallenge.findUnique({ where: { id: challengeId }, include: { user: true } });
-    if (!challenge) throw new UnauthorizedException('Invalid or expired code');
+    // A code for one purpose (e.g. a withdrawal) can never be used for another (e.g. sign-in).
+    if (!challenge || !allowed.includes(challenge.purpose as OtpPurpose)) {
+      throw new UnauthorizedException('Invalid or expired code');
+    }
     const result = checkCode(otpSecret(), challenge, code);
     if (result === 'OK') {
       const claimed = await this.db.otpChallenge.updateMany({
         where: { id: challenge.id, consumedAt: null },
         data: { consumedAt: new Date(), attempts: { increment: 1 } },
       });
-      if (claimed.count === 1) return { user: challenge.user, purpose: challenge.purpose as OtpPurpose };
+      if (claimed.count === 1) {
+        return { user: challenge.user, purpose: challenge.purpose as OtpPurpose, payload: challenge.payload };
+      }
     } else if (result === 'INVALID') {
       await this.db.otpChallenge.update({ where: { id: challenge.id }, data: { attempts: { increment: 1 } } });
     }
@@ -100,10 +132,15 @@ export class OtpService {
     throw new UnauthorizedException('Invalid or expired code');
   }
 
-  /** A new code for the same user and purpose as an earlier challenge. */
+  /** A new code for the same user, purpose and pending action as an earlier challenge. */
   async resend(challengeId: string, senderName: (user: User) => Promise<string>) {
     const challenge = await this.db.otpChallenge.findUnique({ where: { id: challengeId }, include: { user: true } });
     if (!challenge) throw new UnauthorizedException('Unknown challenge');
-    return this.issue(challenge.user, challenge.purpose as OtpPurpose, await senderName(challenge.user));
+    return this.issue(
+      challenge.user,
+      challenge.purpose as OtpPurpose,
+      await senderName(challenge.user),
+      (challenge.payload ?? undefined) as Prisma.InputJsonValue | undefined,
+    );
   }
 }

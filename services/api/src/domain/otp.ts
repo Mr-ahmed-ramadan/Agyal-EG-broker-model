@@ -7,12 +7,12 @@ import { createHmac, randomInt, timingSafeEqual } from 'node:crypto';
 
 export const OTP_TTL_MS = 5 * 60_000;
 export const OTP_MAX_ATTEMPTS = 5;
-/** Minimum gap between two codes for the same user and purpose */
+/** Minimum gap before re-sending a code for the same purpose and action */
 export const OTP_RESEND_COOLDOWN_MS = 30_000;
-/** Maximum codes per user per rolling hour */
-export const OTP_MAX_PER_HOUR = 6;
+/** Maximum codes per user per rolling hour, all purposes together */
+export const OTP_MAX_PER_HOUR = 10;
 
-export type OtpPurpose = 'LOGIN' | 'VERIFY_MOBILE';
+export type OtpPurpose = 'LOGIN' | 'VERIFY_MOBILE' | 'STEP_UP';
 
 export function generateCode(): string {
   return randomInt(0, 1_000_000).toString().padStart(6, '0');
@@ -43,10 +43,19 @@ export function checkCode(secret: string, c: ChallengeState, code: string, now =
   return expected.length === actual.length && timingSafeEqual(expected, actual) ? 'OK' : 'INVALID';
 }
 
-/** Rate limit for issuing codes, from the creation times of the user's recent codes. */
-export function canIssue(recent: Date[], now = new Date()): { ok: true } | { ok: false; retryAfterMs: number } {
+/**
+ * Rate limit for issuing codes. `recent` are the user's codes of the last hour
+ * (any purpose); `sameKind` are those for the same purpose and action, which
+ * are subject to the resend cooldown. Distinct actions (e.g. add a bank
+ * account, then withdraw) are only limited by the hourly cap.
+ */
+export function canIssue(
+  recent: Date[],
+  sameKind: Date[],
+  now = new Date(),
+): { ok: true } | { ok: false; retryAfterMs: number } {
   const lastHour = recent.filter((d) => now.getTime() - d.getTime() < 3_600_000);
-  const latest = Math.max(0, ...lastHour.map((d) => d.getTime()));
+  const latest = Math.max(0, ...sameKind.map((d) => d.getTime()));
   if (latest && now.getTime() - latest < OTP_RESEND_COOLDOWN_MS) {
     return { ok: false, retryAfterMs: OTP_RESEND_COOLDOWN_MS - (now.getTime() - latest) };
   }

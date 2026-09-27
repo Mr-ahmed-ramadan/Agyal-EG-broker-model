@@ -50,8 +50,16 @@ The first end-to-end slice runs locally and in CI:
    gets bank bids, the client sees net proceeds (bid yield plus markup, less
    commission), the securities are reserved while the order is open, and the
    fill credits cash and books a receivable from the bank.
-8. Broker console shows buy and sell orders, clients and a trial balance
-   that nets to zero per currency and per ISIN.
+8. Broker ops confirm settlement of each trade against the bank statement,
+   clearing what the broker owes or is owed by the bank. Sale proceeds can be
+   reinvested at once but only withdrawn after settlement.
+9. The client withdraws to their own bank account (IBAN in their own name).
+   Adding the account and requesting the withdrawal each need an SMS code.
+   Finance approves and a different person records the payment
+   (maker-checker). Finance sweeps earned markup and commission out of the
+   segregated account, which then holds exactly the clients' money.
+10. Broker console shows buy and sell orders, clients, settlements,
+    withdrawals and a trial balance that nets to zero per currency and per ISIN.
 
 Screenshots from an automated browser run are in
 [`docs/screenshots/`](docs/screenshots/).
@@ -110,7 +118,8 @@ Seeded demo users (password `Demo-Pass-2026!`, local only):
 | --- | --- |
 | `admin@agyal.local` | Agyal platform admin (API `/admin/*`) |
 | `compliance@demo-broker.example` | Broker console: compliance queue |
-| `ops@demo-broker.example` | Broker console: unified codes, deposits, ledger |
+| `ops@demo-broker.example` | Broker console: unified codes, deposits, settlements, withdrawal payouts |
+| `finance@demo-broker.example` | Broker console: withdrawal approval, revenue sweep, ledger |
 | `dealer@demo-broker.example` | Broker console: orders |
 
 Sign-in asks for an SMS code. There is no SMS gateway yet: the API logs each
@@ -131,7 +140,7 @@ npm test                                      # API unit tests (pricing, fixed i
 ## Not built yet
 
 eKYC/AML/MCDR vendor integrations (mocks and a manual adapter stand in), a
-real SMS gateway, OTP step-up for withdrawals, settlement confirmation and
-automated reconciliation imports, PORTAL/FILE bank adapters, the admin and
+real SMS gateway, bank-statement imports for automated settlement and
+reconciliation, coupon and maturity payments, PORTAL/FILE bank adapters, the admin and
 bank-portal UIs, billing, notifications, and production hosting. See the
 ADRs and open questions.

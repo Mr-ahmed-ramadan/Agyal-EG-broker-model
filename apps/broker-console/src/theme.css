@@ -50,3 +50,9 @@ table { width: 100%; border-collapse: collapse; background: var(--surface); bord
 th, td { text-align: start; padding: 8px 10px; border-bottom: 1px solid var(--border); vertical-align: top; }
 th { color: var(--muted); font-weight: 600; }
 .num { text-align: end; font-variant-numeric: tabular-nums; }
+.inline { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.actions input { min-width: 220px; }
+.badge { font-size: 0.75rem; padding: 2px 8px; border-radius: 999px; border: 1px solid var(--border); }
+.badge.PAID { color: var(--ok); border-color: var(--ok); }
+.badge.REJECTED { color: var(--error); border-color: var(--error); }
+.badge.APPROVED { color: var(--warn); border-color: var(--warn); }

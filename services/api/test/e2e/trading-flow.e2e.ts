@@ -126,6 +126,7 @@ async function main() {
 
   const compliance = await login(T, 'compliance@demo-broker.example');
   const ops = await login(T, 'ops@demo-broker.example');
+  const finance = await login(T, 'finance@demo-broker.example');
 
   // 1. Onboarding with auto-approval
   const c = await onboardClient(T, 'Nour Hassan', '29001011234567');
@@ -213,7 +214,92 @@ async function main() {
   assert.ok(revenue > 0, 'broker earned markup + commission');
   console.log(`✓ trial balance nets to zero; broker revenue EGP ${revenue.toFixed(2)}`);
 
-  // 8. Manual compliance path: a PEP goes to the queue and is approved by compliance
+  // 8. Cash loop: unsettled proceeds can't leave; settlement; withdrawal with step-up + maker-checker; sweep
+  const money = (v: string | number) => Number(v).toFixed(2);
+  let cash = await call('GET', '/cash', { tenant: T, token: c.token });
+  assert.equal(money(cash.unsettledSaleProceeds), money(proceeds));
+  assert.equal(money(cash.withdrawable), money(Number(cash.available) - proceeds));
+
+  // Bank account in the client's own name, added with an SMS step-up code
+  const IBAN = 'EG380019000500000000263180002';
+  await call('POST', '/bank-accounts', { tenant: T, token: c.token, body: { iban: IBAN, bankName: 'Demo Bank', holderName: 'Someone Else' }, expect: 400 });
+  await call('POST', '/bank-accounts', { tenant: T, token: c.token, body: { iban: 'EG380019000500000000263180003', bankName: 'Demo Bank', holderName: 'Nour Hassan' }, expect: 400 });
+  const addAcc = await call('POST', '/bank-accounts', { tenant: T, token: c.token, body: { iban: IBAN, bankName: 'Demo Bank', holderName: 'nour hassan' } });
+  assert.equal(addAcc.purpose, 'STEP_UP');
+  // A step-up code cannot be used to sign in
+  await call('POST', '/auth/verify-otp', { tenant: T, body: { challengeId: addAcc.challengeId, code: addAcc.devCode }, expect: 401 });
+  const added = await call('POST', '/step-up/confirm', { tenant: T, token: c.token, body: { challengeId: addAcc.challengeId, code: addAcc.devCode } });
+  const [acc] = await call('GET', '/bank-accounts', { tenant: T, token: c.token });
+  assert.equal(acc.id, added.bankAccountId);
+  assert.equal(acc.iban, 'EG38 •••• •••• 0002');
+
+  // Cannot withdraw more than settled cash
+  const tooMuch = money(Number(cash.withdrawable) + 1);
+  await call('POST', '/withdrawals', { tenant: T, token: c.token, body: { amount: tooMuch, bankAccountId: acc.id }, expect: 400 });
+
+  // Ops confirm settlement of all three orders with the banks; a repeat is a no-op
+  const pending = await call('GET', '/broker/settlements', { tenant: T, token: ops });
+  assert.equal(pending.length, 3);
+  for (const p of pending) {
+    const r = await call('POST', `/broker/settlements/${p.orderId}`, { tenant: T, token: ops, body: { reference: `STMT-${p.clOrdId}` } });
+    assert.equal(r.amount, p.amount);
+  }
+  const again = await call('POST', `/broker/settlements/${pending[0].orderId}`, { tenant: T, token: ops, body: { reference: 'dup' } });
+  assert.equal(again.alreadySettled, true);
+  assert.equal((await call('GET', '/broker/settlements', { tenant: T, token: ops })).length, 0);
+  cash = await call('GET', '/cash', { tenant: T, token: c.token });
+  assert.equal(cash.unsettledSaleProceeds, '0.00');
+  assert.equal(cash.withdrawable, cash.available);
+  console.log('✓ settlements confirmed; sale proceeds now withdrawable');
+
+  // Withdrawal requested with a step-up code
+  const wStart = await call('POST', '/withdrawals', { tenant: T, token: c.token, body: { amount: '10000.00', bankAccountId: acc.id } });
+  const w = await call('POST', '/step-up/confirm', { tenant: T, token: c.token, body: { challengeId: wStart.challengeId, code: wStart.devCode } });
+  assert.equal(w.status, 'REQUESTED');
+  const cashAfterRequest = await call('GET', '/cash', { tenant: T, token: c.token });
+  assert.equal(money(cashAfterRequest.available), money(Number(cash.available) - 10000));
+  assert.equal(cashAfterRequest.pendingWithdrawal, '10000.00');
+  // The same code cannot be used twice
+  await call('POST', '/step-up/confirm', { tenant: T, token: c.token, body: { challengeId: wStart.challengeId, code: wStart.devCode }, expect: 401 });
+
+  // Maker-checker: finance approves, but must not also record the payment
+  await call('POST', `/broker/withdrawals/${w.withdrawalId}/paid`, { tenant: T, token: ops, body: { bankReference: 'PAY-1' }, expect: 409 }); // not approved yet
+  await call('POST', `/broker/withdrawals/${w.withdrawalId}/approve`, { tenant: T, token: ops, expect: 403 }); // ops cannot approve
+  await call('POST', `/broker/withdrawals/${w.withdrawalId}/approve`, { tenant: T, token: finance });
+  await call('POST', `/broker/withdrawals/${w.withdrawalId}/paid`, { tenant: T, token: finance, body: { bankReference: 'PAY-1' }, expect: 403 });
+  await call('POST', `/broker/withdrawals/${w.withdrawalId}/paid`, { tenant: T, token: ops, body: { bankReference: 'PAY-1' } });
+  const [paidW] = await call('GET', '/withdrawals', { tenant: T, token: c.token });
+  assert.equal(paidW.status, 'PAID');
+  console.log('✓ withdrawal: SMS step-up, finance approved, ops paid (same person refused)');
+
+  // A rejected withdrawal returns the cash
+  const w2Start = await call('POST', '/withdrawals', { tenant: T, token: c.token, body: { amount: '500.00', bankAccountId: acc.id } });
+  const w2 = await call('POST', '/step-up/confirm', { tenant: T, token: c.token, body: { challengeId: w2Start.challengeId, code: w2Start.devCode } });
+  await call('POST', `/broker/withdrawals/${w2.withdrawalId}/reject`, { tenant: T, token: finance, body: { reason: 'Client asked to cancel' } });
+  const cashAfterReject = await call('GET', '/cash', { tenant: T, token: c.token });
+  assert.equal(cashAfterReject.available, cashAfterRequest.available);
+  assert.equal(cashAfterReject.pendingWithdrawal, '0.00');
+
+  // Finance sweeps all earned revenue out of the client-money account
+  const rev = await call('GET', '/broker/revenue', { tenant: T, token: finance });
+  assert.equal(money(rev.unswept), money(revenue));
+  await call('POST', '/broker/revenue/sweep', { tenant: T, token: finance, body: { amount: money(Number(rev.unswept) + 1), bankReference: 'SWEEP-X' }, expect: 400 });
+  await call('POST', '/broker/revenue/sweep', { tenant: T, token: finance, body: { amount: rev.unswept, bankReference: 'SWEEP-1' } });
+
+  // The segregated account now holds exactly the clients' money; nothing owed to/by banks
+  const tb2 = await call('GET', '/broker/ledger/trial-balance', { tenant: T, token: finance });
+  const sum = (type: string) => tb2.filter((r: Json) => r.type === type).reduce((s: number, r: Json) => s + Number(r.rawSum), 0);
+  assert.ok(Math.abs(sum('SETTLEMENT_PAYABLE')) < 0.005 && Math.abs(sum('SETTLEMENT_RECEIVABLE')) < 0.005);
+  assert.ok(Math.abs(sum('BROKER_REVENUE')) < 0.005);
+  const clientMoney = sum('CLIENT_MONEY_BANK');
+  const owedToClients = -(sum('CLIENT_CASH_AVAILABLE') + sum('CLIENT_CASH_RESERVED') + sum('CLIENT_CASH_PENDING_WITHDRAWAL'));
+  assert.equal(money(clientMoney), money(owedToClients));
+  // Independently: deposits - buys paid to banks + sales received from banks - withdrawals paid - revenue swept
+  const bankFlows = pending.reduce((s: number, p: Json) => s + (p.side === 'SELL' ? 1 : -1) * Number(p.amount), 0);
+  assert.equal(money(clientMoney), money(250000 + bankFlows - 10000 - Number(rev.unswept)));
+  console.log(`✓ revenue swept; client-money account EGP ${money(clientMoney)} = cash owed to clients`);
+
+  // 9. Manual compliance path: a PEP goes to the queue and is approved by compliance
   const pep = await onboardClient(T, 'Minister Example', '28505151234561', true);
   assert.equal(pep.submitted.status, 'PENDING_APPROVAL');
   const queue = await call('GET', '/broker/compliance/queue', { tenant: T, token: compliance });
@@ -227,7 +313,7 @@ async function main() {
   assert.equal(status.clientStatus, 'ACTIVE');
   console.log('✓ PEP routed to compliance queue and approved');
 
-  // 9. Tenant isolation: a second broker cannot see the first broker's data
+  // 10. Tenant isolation: a second broker cannot see the first broker's data
   const admin = await login(undefined, 'admin@agyal.local');
   const slug = `other-${run}`;
   await call('POST', '/admin/tenants', {

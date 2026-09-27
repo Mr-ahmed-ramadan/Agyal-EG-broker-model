@@ -16,6 +16,8 @@ export enum LedgerAccountType {
   CLIENT_CASH_AVAILABLE = 'CLIENT_CASH_AVAILABLE',
   /** Liability: client cash earmarked for open orders */
   CLIENT_CASH_RESERVED = 'CLIENT_CASH_RESERVED',
+  /** Liability: client cash committed to a withdrawal not yet paid out */
+  CLIENT_CASH_PENDING_WITHDRAWAL = 'CLIENT_CASH_PENDING_WITHDRAWAL',
   /** Liability: amount owed to a bank for executed buys until settlement */
   SETTLEMENT_PAYABLE = 'SETTLEMENT_PAYABLE',
   /** Asset: amount a bank owes for executed sells until settlement */
@@ -33,6 +35,7 @@ export enum LedgerAccountType {
 const CREDIT_NORMAL = new Set<LedgerAccountType>([
   LedgerAccountType.CLIENT_CASH_AVAILABLE,
   LedgerAccountType.CLIENT_CASH_RESERVED,
+  LedgerAccountType.CLIENT_CASH_PENDING_WITHDRAWAL,
   LedgerAccountType.SETTLEMENT_PAYABLE,
   LedgerAccountType.BROKER_REVENUE,
   LedgerAccountType.CLIENT_POSITION,
@@ -173,4 +176,78 @@ export function sellFillEntry(f: FillAmounts): PostingLine[] {
     { account: position(LedgerAccountType.CLIENT_POSITION_RESERVED, f.isin, f.clientId), amount: qty },
     { account: position(LedgerAccountType.CUSTODY_POSITION, f.isin), amount: qty.neg() },
   ]);
+}
+
+// --- Settlement, withdrawals and revenue (closing the cash loop) ------------------
+
+function positive(amount: Decimal.Value, what: string): Decimal {
+  const a = new Decimal(amount);
+  if (!a.gt(0)) throw new Error(`${what} must be positive`);
+  return a;
+}
+
+/** Buy settled: the broker paid the bank from the segregated client-money account. */
+export function buySettlementEntry(bankId: string, amount: Decimal.Value): PostingLine[] {
+  const a = positive(amount, 'Settlement amount');
+  return validateEntry([
+    { account: cash(LedgerAccountType.SETTLEMENT_PAYABLE, undefined, bankId), amount: a },
+    { account: cash(LedgerAccountType.CLIENT_MONEY_BANK), amount: a.neg() },
+  ]);
+}
+
+/** Sell settled: the bank paid the broker into the segregated client-money account. */
+export function sellSettlementEntry(bankId: string, amount: Decimal.Value): PostingLine[] {
+  const a = positive(amount, 'Settlement amount');
+  return validateEntry([
+    { account: cash(LedgerAccountType.CLIENT_MONEY_BANK), amount: a },
+    { account: cash(LedgerAccountType.SETTLEMENT_RECEIVABLE, undefined, bankId), amount: a.neg() },
+  ]);
+}
+
+/** Client asks to withdraw: cash leaves available and waits for payout. */
+export function withdrawalHoldEntry(clientId: string, amount: Decimal.Value): PostingLine[] {
+  const a = positive(amount, 'Withdrawal');
+  return validateEntry([
+    { account: cash(LedgerAccountType.CLIENT_CASH_AVAILABLE, clientId), amount: a },
+    { account: cash(LedgerAccountType.CLIENT_CASH_PENDING_WITHDRAWAL, clientId), amount: a.neg() },
+  ]);
+}
+
+/** Withdrawal rejected: cash returns to available. */
+export function withdrawalReleaseEntry(clientId: string, amount: Decimal.Value): PostingLine[] {
+  const a = positive(amount, 'Withdrawal');
+  return validateEntry([
+    { account: cash(LedgerAccountType.CLIENT_CASH_PENDING_WITHDRAWAL, clientId), amount: a },
+    { account: cash(LedgerAccountType.CLIENT_CASH_AVAILABLE, clientId), amount: a.neg() },
+  ]);
+}
+
+/** Withdrawal paid from the segregated account to the client's own bank account. */
+export function withdrawalPaidEntry(clientId: string, amount: Decimal.Value): PostingLine[] {
+  const a = positive(amount, 'Withdrawal');
+  return validateEntry([
+    { account: cash(LedgerAccountType.CLIENT_CASH_PENDING_WITHDRAWAL, clientId), amount: a },
+    { account: cash(LedgerAccountType.CLIENT_MONEY_BANK), amount: a.neg() },
+  ]);
+}
+
+/**
+ * Broker transfers earned markup and commission out of the segregated
+ * client-money account into its own account, so the segregated account only
+ * holds client money.
+ */
+export function revenueSweepEntry(amount: Decimal.Value): PostingLine[] {
+  const a = positive(amount, 'Sweep amount');
+  return validateEntry([
+    { account: cash(LedgerAccountType.BROKER_REVENUE), amount: a },
+    { account: cash(LedgerAccountType.CLIENT_MONEY_BANK), amount: a.neg() },
+  ]);
+}
+
+/**
+ * Cash a client may withdraw: available cash less sale proceeds whose bank
+ * payment has not settled yet (those can be reinvested but not paid out).
+ */
+export function withdrawableCash(available: Decimal.Value, unsettledSaleProceeds: Decimal.Value): Decimal {
+  return Decimal.max(0, new Decimal(available).minus(unsettledSaleProceeds));
 }

@@ -40,15 +40,24 @@ trade confirmations and custody statements.
 | Sell order accepted | move nominal CLIENT_POSITION → CLIENT_POSITION_RESERVED |
 | Sell fill | CLIENT_POSITION_RESERVED ↔ CUSTODY_POSITION (nominal); SETTLEMENT_RECEIVABLE (bank) ↔ CLIENT_CASH_AVAILABLE (net proceeds) and BROKER_REVENUE (markup + commission) |
 | Order finished | unused cash reserve or unsold nominal returned to available |
-| Settlement date: cash paid to bank / securities delivered to custody | SETTLEMENT_PAYABLE ↔ CLIENT_MONEY_BANK; position → settled |
+| Buy settled (ops confirm against bank statement) | SETTLEMENT_PAYABLE (bank) ↔ CLIENT_MONEY_BANK |
+| Sell settled | CLIENT_MONEY_BANK ↔ SETTLEMENT_RECEIVABLE (bank) |
 | Coupon / maturity received | CLIENT_MONEY_BANK ↔ CLIENT_CASH_AVAILABLE; position closed at maturity |
-| Broker fees/commission | CLIENT_CASH → BROKER_FEES_RECEIVABLE |
-| Withdrawal to client's own bank account | CLIENT_CASH_AVAILABLE ↔ CLIENT_MONEY_BANK |
+| Withdrawal requested | CLIENT_CASH_AVAILABLE → CLIENT_CASH_PENDING_WITHDRAWAL |
+| Withdrawal paid (or rejected) | CLIENT_CASH_PENDING_WITHDRAWAL ↔ CLIENT_MONEY_BANK (or back to available) |
+| Revenue sweep (markup + commission leave the segregated account) | BROKER_REVENUE ↔ CLIENT_MONEY_BANK |
 
 - Sale proceeds are credited to the client's available cash at fill, while
   the bank's payment is tracked as SETTLEMENT_RECEIVABLE until settlement.
-  This lets a client reinvest immediately; once withdrawals exist, a
-  withdrawal must be limited to cash that has actually settled.
+  A client can reinvest them immediately, but **withdrawable cash** is
+  available cash minus sale proceeds of orders not yet settled.
+- Settlement is confirmed per order by broker operations against the bank
+  statement (idempotent; the amount is the sum of the bank-side amounts of
+  the fills). Automatic confirmation from bank statement files or FIX
+  confirmations is a later step.
+- After settlements and a revenue sweep, CLIENT_MONEY_BANK equals exactly the
+  cash owed to clients (available + reserved + pending withdrawal); the
+  end-to-end test asserts this.
 - Settlement convention is configured per instrument type and bank
   (e.g. same-day or T+n); the platform tracks trade date and settlement date
   separately and projects positions on both bases.
@@ -62,9 +71,11 @@ trade confirmations and custody statements.
   client puts on their transfer (or a virtual IBAN if the broker's bank
   offers it). Broker ops confirm deposits from the bank statement
   (upload/import) in the console; the platform proposes matches.
-- Withdrawals are requested by the client, approved by broker ops/finance
-  (maker-checker), and executed by the broker in their bank; the platform
-  records them and reconciles against the statement.
+- Withdrawals go only to a bank account in the client's own name (Egyptian
+  IBAN, mod-97 checked, holder name must match). Adding the account and
+  requesting a withdrawal each require an SMS step-up code. Broker finance
+  approves; a **different** user transfers the money and records the bank
+  reference (maker-checker, enforced by the API). Every step is audited.
 - Direct payment-rail integrations (InstaPay, bank APIs, card acquiring) are
   deferred; they plug into the same events.
 

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { TradePanel } from '../components/TradePanel';
+import { WithdrawPanel } from '../components/WithdrawPanel';
 import { useApp } from '../context';
 import { api } from '../lib/api';
 import { date, money, nominal } from '../lib/format';
@@ -8,6 +9,22 @@ import type { Instrument } from './MarketsPage';
 interface Portfolio {
   cash: { available: string; reserved: string };
   positions: { isin: string; nominal: string; reservedForSale: string }[];
+}
+
+interface CashSummary {
+  available: string;
+  reserved: string;
+  pendingWithdrawal: string;
+  unsettledSaleProceeds: string;
+  withdrawable: string;
+}
+
+interface Withdrawal {
+  id: string;
+  amount: string;
+  status: 'REQUESTED' | 'APPROVED' | 'PAID' | 'REJECTED';
+  requestedAt: string;
+  iban: string;
 }
 
 interface Order {
@@ -27,12 +44,17 @@ export function PortfolioPage({ depositReference }: { depositReference: string }
   const [orders, setOrders] = useState<Order[]>([]);
   const [names, setNames] = useState<Record<string, Instrument>>({});
   const [selling, setSelling] = useState<string | null>(null);
+  const [withdrawing, setWithdrawing] = useState(false);
+  const [cash, setCash] = useState<CashSummary | null>(null);
+  const [withdrawals, setWithdrawals] = useState<Withdrawal[]>([]);
   const [reload, setReload] = useState(0);
 
   useEffect(() => {
     const load = () => {
       api<Portfolio>('GET', '/portfolio').then(setPf);
       api<Order[]>('GET', '/orders').then(setOrders);
+      api<CashSummary>('GET', '/cash').then(setCash);
+      api<Withdrawal[]>('GET', '/withdrawals').then(setWithdrawals);
     };
     load();
     api<Instrument[]>('GET', '/instruments').then((list) =>
@@ -56,7 +78,44 @@ export function PortfolioPage({ depositReference }: { depositReference: string }
           <dd className="total">{money(pf.cash.available, locale)}</dd>
           <dt>{t('reserved')}</dt>
           <dd>{money(pf.cash.reserved, locale)}</dd>
+          {cash && Number(cash.pendingWithdrawal) > 0 ? (
+            <>
+              <dt>{t('pendingWithdrawal')}</dt>
+              <dd>{money(cash.pendingWithdrawal, locale)}</dd>
+            </>
+          ) : null}
+          {cash ? (
+            <>
+              <dt>{t('withdrawable')}</dt>
+              <dd>{money(cash.withdrawable, locale)}</dd>
+            </>
+          ) : null}
         </dl>
+        {cash && Number(cash.unsettledSaleProceeds) > 0 ? <p className="muted">{t('unsettledHelp')}</p> : null}
+        {cash && Number(cash.withdrawable) > 0 ? (
+          <button className="secondary" onClick={() => setWithdrawing(true)}>
+            {t('withdraw')}
+          </button>
+        ) : null}
+        {withdrawals.length ? (
+          <>
+            <h3>{t('withdrawals')}</h3>
+            <ul className="list">
+              {withdrawals.map((w) => (
+                <li key={w.id} className="row static">
+                  <span className="meta muted">
+                    <span>{date(w.requestedAt, locale)}</span>
+                    <span dir="ltr">{w.iban}</span>
+                  </span>
+                  <span>
+                    <span className={`pill wd-${w.status}`}>{t(`wd_${w.status}`)}</span>
+                    <span>{money(w.amount, locale)}</span>
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </>
+        ) : null}
         <h3>{t('depositTitle')}</h3>
         <p className="muted">{t('depositHelp')}</p>
         <p className="reference" dir="ltr">{depositReference}</p>
@@ -113,6 +172,13 @@ export function PortfolioPage({ depositReference }: { depositReference: string }
           ))}
         </ul>
       </section>
+      {withdrawing && cash ? (
+        <WithdrawPanel
+          withdrawable={cash.withdrawable}
+          onClose={() => setWithdrawing(false)}
+          onDone={() => setReload((n) => n + 1)}
+        />
+      ) : null}
       {sellPosition && names[sellPosition.isin] ? (
         <TradePanel
           key={sellPosition.isin}

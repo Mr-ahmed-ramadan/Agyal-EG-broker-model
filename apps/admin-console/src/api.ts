@@ -1,6 +1,11 @@
 /** Agyal operators work across brokers, so no X-Tenant header is sent. */
 const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:3000';
 
+/** Network failure (API down, wrong VITE_API_URL, CORS): say where we tried, not just "Failed to fetch". */
+function unreachable(): never {
+  throw new Error(`Can't reach the server at ${API_URL}. Please try again shortly.`);
+}
+
 const TOKEN_KEY = 'agyal.admin.token';
 
 export class ApiError extends Error {
@@ -38,7 +43,7 @@ export async function api<T = any>(method: string, path: string, body?: unknown)
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
     },
     body: body === undefined ? undefined : JSON.stringify(body),
-  });
+  }).catch(unreachable);
   const text = await res.text();
   const data = text ? JSON.parse(text) : undefined;
   if (!res.ok) {

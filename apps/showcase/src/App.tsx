@@ -3,6 +3,11 @@ import { content, type Locale } from './content';
 
 const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:3000';
 
+/** Network failure (API down, wrong VITE_API_URL, CORS): say where we tried, not just "Failed to fetch". */
+function unreachable(): never {
+  throw new Error(`Can't reach the server at ${API_URL}. Please try again shortly.`);
+}
+
 function initialLocale(): Locale {
   const fromLink = new URLSearchParams(window.location.search).get('lang');
   if (fromLink === 'ar' || fromLink === 'en') return fromLink;
@@ -196,7 +201,7 @@ function ContactForm({ locale }: { locale: Locale }) {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ...f, role: f.role || undefined, message: f.message || undefined }),
-      });
+      }).catch(unreachable);
       if (!res.ok) {
         const body = await res.json().catch(() => ({}));
         throw new Error(body?.issues?.map((i: { message: string }) => i.message).join('; ') || body?.message || t.error);

@@ -54,7 +54,7 @@ export function BrokersScreen() {
 function AddBroker({ onDone }: { onDone: (slug: string) => void }) {
   const [f, setF] = useState({
     slug: '', legalNameEn: '', legalNameAr: '', fraLicenseNo: '', customDomain: '',
-    nameEn: '', nameAr: '', primary: '#0b4f6c', primaryContrast: '#ffffff', accent: '#c28f2c',
+    nameEn: '', nameAr: '', primary: '#2f5a45', primaryContrast: '#ffffff', accent: '#a8823a',
     supportEmail: '', termsUrl: '', riskDisclosureUrl: '', privacyUrl: '',
   });
   const [error, setError] = useState<string | null>(null);

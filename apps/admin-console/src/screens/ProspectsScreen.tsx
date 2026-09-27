@@ -59,7 +59,7 @@ function CopyLink({ label, url }: { label: string; url: string }) {
 
 export function ProspectsScreen() {
   const { data, error, reload } = useLoad<Prospect[]>('/admin/prospects');
-  const [f, setF] = useState({ nameEn: '', nameAr: '', primary: '#0b4f6c', accent: '#c28f2c', email: '', mobile: '' });
+  const [f, setF] = useState({ nameEn: '', nameAr: '', primary: '#2f5a45', accent: '#a8823a', email: '', mobile: '' });
   const [logo, setLogo] = useState<string | undefined>();
   const [created, setCreated] = useState<Prospect | null>(null);
   const [formError, setFormError] = useState<string | null>(null);

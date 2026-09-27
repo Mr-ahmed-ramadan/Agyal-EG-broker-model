@@ -76,7 +76,7 @@ async function main() {
         tenantSlug: 'demo-broker',
         displayName: { en: 'Demo Securities', ar: 'ديمو للأوراق المالية' },
         logoUrl: '',
-        colors: { primary: '#0b4f6c', primaryContrast: '#ffffff', accent: '#c28f2c' },
+        colors: { primary: '#2f5a45', primaryContrast: '#ffffff', accent: '#a8823a' },
         supportEmail: 'support@demo-broker.example',
         legalDocuments: { termsUrl: '#', riskDisclosureUrl: '#', privacyUrl: '#' },
       },
@@ -84,6 +84,14 @@ async function main() {
     },
     update: {},
   });
+  // Move the demo broker from the old default blue to Ivory & Forest (only if still on the old default).
+  const b = tenant.branding as { colors?: { primary?: string } };
+  if (b?.colors?.primary === '#0b4f6c') {
+    await prisma.tenant.update({
+      where: { id: tenant.id },
+      data: { branding: { ...(tenant.branding as object), colors: { primary: '#2f5a45', primaryContrast: '#ffffff', accent: '#a8823a' } } as Prisma.InputJsonValue },
+    });
+  }
 
   const staff = [
     { email: 'admin@demo-broker.example', mobile: '01000000001', roles: ['BROKER_ADMIN'] },

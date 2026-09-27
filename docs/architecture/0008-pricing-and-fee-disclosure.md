@@ -18,12 +18,19 @@ was shown and agreed to.
 
 ```
 bank quote (price % of par or yield)
-  → broker markup (bps of yield or price, per rule)
+  → broker markup (bps of yield)
   → client price / client yield
   + explicit fees (commission, custody, MCDR/other pass-through charges)
   = client all-in cost, shown before acceptance
 ```
 
+- **Markup is expressed in yield basis points.** For a buy, the client's yield
+  is the bank's yield minus the markup, and the client's clean price is
+  recomputed from that yield with the instrument's conventions (T-bills:
+  Actual/365 discount; bonds and sukuk: yield to maturity at the coupon
+  frequency). This keeps the markup comparable across tenors, where a
+  price-based markup would not be. Implemented in
+  `services/api/src/domain/pricing.ts`.
 - `PricingRule` per tenant: markup in bps and/or commission (flat or bps of
   nominal, with minimum), resolved most-specific-wins across dimensions
   (instrument type, tenor bucket, issuer, client segment, order size band).

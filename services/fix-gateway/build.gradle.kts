@@ -21,6 +21,8 @@ dependencies {
     implementation("org.quickfixj:quickfixj-core:$quickfixjVersion")
     implementation("org.quickfixj:quickfixj-messages-fix44:$quickfixjVersion")
     implementation("org.slf4j:slf4j-simple:2.0.16")
+    implementation("org.postgresql:postgresql:42.7.4")
+    implementation("com.fasterxml.jackson.core:jackson-databind:2.18.2")
 
     testImplementation(platform("org.junit:junit-bom:5.11.3"))
     testImplementation("org.junit.jupiter:junit-jupiter")

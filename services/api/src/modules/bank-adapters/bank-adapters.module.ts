@@ -1,8 +1,12 @@
 import { Module } from '@nestjs/common';
+import { FixOutboxService } from './fix-outbox.service';
 
 /**
- * PORTAL and FILE bank adapters that emit the same FIX-shaped messages as the FIX gateway.
- * See docs/architecture/0004-*.md.
+ * Bank connectivity on the API side (ADR 0004): the FIX outbox consumed by the
+ * FIX gateway. PORTAL and FILE adapters emitting the same messages come next.
  */
-@Module({})
+@Module({
+  providers: [FixOutboxService],
+  exports: [FixOutboxService],
+})
 export class BankAdaptersModule {}

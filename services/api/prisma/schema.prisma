@@ -1,9 +1,10 @@
-// Core data model sketch for the Agyal Broker Platform.
-// Every tenant-owned model carries `tenantId` and is protected by PostgreSQL
-// Row-Level Security in migrations (ADR 0002). Platform-level models (Bank,
-// Instrument) have no tenantId.
+// Agyal Broker Platform data model.
 //
-// This is a starting point for the first migration, not a final schema.
+// Every model with a non-null `tenantId` is protected by PostgreSQL Row-Level
+// Security (see the RLS section of the init migration and ADR 0002). The API
+// only touches those tables through `DbService.forTenant()`, which sets
+// `app.tenant_id` for the transaction. Platform-level models (Tenant, Bank,
+// Instrument, FIX outbox/inbox/message store) are not tenant-scoped.
 
 generator client {
   provider = "prisma-client-js"
@@ -19,19 +20,20 @@ datasource db {
 // ---------------------------------------------------------------------------
 
 model Tenant {
-  id           String   @id @default(uuid())
-  slug         String   @unique
+  id           String       @id @default(uuid())
+  slug         String       @unique
   legalNameEn  String
   legalNameAr  String
   fraLicenseNo String?
-  status       TenantStatus @default(ONBOARDING)
-  customDomain String?  @unique
-  branding     Json     // TenantBranding from @agyal/shared-types
-  config       Json     // auto-approval rules, limits, enabled instruments, cut-offs
-  createdAt    DateTime @default(now())
+  status       TenantStatus @default(ACTIVE)
+  customDomain String?      @unique
+  /// TenantBranding from @agyal/shared-types
+  branding     Json
+  /// TenantConfig: pricing, auto-approval rules, enabled instruments
+  config       Json
+  createdAt    DateTime     @default(now())
 
   users         User[]
-  clients       Client[]
   bankRelations BrokerBankRelationship[]
 }
 
@@ -48,19 +50,17 @@ enum TenantStatus {
 
 model User {
   id           String   @id @default(uuid())
-  tenantId     String?  // null for Agyal operators and bank users
-  bankId       String?  // set for PORTAL-mode bank users
-  email        String?
+  /// null for Agyal platform operators
+  tenantId     String?
+  email        String
   mobile       String?
   passwordHash String
   roles        String[]
-  mfaEnabled   Boolean  @default(false)
   createdAt    DateTime @default(now())
 
   tenant Tenant? @relation(fields: [tenantId], references: [id])
 
   @@unique([tenantId, email])
-  @@unique([tenantId, mobile])
 }
 
 // ---------------------------------------------------------------------------
@@ -71,34 +71,37 @@ model Client {
   id                  String       @id @default(uuid())
   tenantId            String
   userId              String       @unique
+  /// Reference the client quotes on transfers into the broker's client-money account
+  depositReference    String
   status              ClientStatus @default(ONBOARDING)
   fullNameEn          String?
   fullNameAr          String?
-  nationalIdEncrypted Bytes?       // per-tenant data key
+  nationalIdEncrypted String?
   nationalIdLast4     String?
+  dateOfBirth         DateTime?
   riskRating          RiskRating?
-  riskProfile         String?
+  riskProfile         RiskProfile?
   kycApprovedAt       DateTime?
   kycReviewDueAt      DateTime?
   createdAt           DateTime     @default(now())
 
-  tenant          Tenant                 @relation(fields: [tenantId], references: [id])
   onboarding      OnboardingApplication?
   investorCode    InvestorCode?
   custodyAccounts CustodyAccount[]
+  consents        Consent[]
   orders          Order[]
 
+  @@unique([tenantId, depositReference])
   @@index([tenantId, status])
 }
 
 enum ClientStatus {
   ONBOARDING
   PENDING_APPROVAL
-  ACTIVE
   NEEDS_INFO
+  ACTIVE
   REJECTED
   SUSPENDED
-  CLOSED
 }
 
 enum RiskRating {
@@ -107,19 +110,40 @@ enum RiskRating {
   HIGH
 }
 
+enum RiskProfile {
+  CONSERVATIVE
+  BALANCED
+  GROWTH
+}
+
 model OnboardingApplication {
-  id            String   @id @default(uuid())
-  tenantId      String
-  clientId      String   @unique
-  currentStep   String
-  status        String
-  ekycResult    Json?
-  amlResult     Json?
-  suitability   Json?
-  decidedById   String?  // broker user who approved/rejected
-  decisionRule  String?  // auto-approval rule version, if auto-approved
-  decidedAt     DateTime?
-  updatedAt     DateTime @updatedAt
+  id           String    @id @default(uuid())
+  tenantId     String
+  clientId     String    @unique
+  /// Steps completed so far, e.g. ["IDENTITY","PROFILE"]
+  completed    String[]
+  ekycResult   Json?
+  profile      Json?
+  amlResult    Json?
+  suitability  Json?
+  submittedAt  DateTime?
+  /// Auto-approval rule version, or the broker user who decided
+  decisionBy   String?
+  decisionNote String?
+  decidedAt    DateTime?
+  updatedAt    DateTime  @updatedAt
+
+  client Client @relation(fields: [clientId], references: [id])
+}
+
+model Consent {
+  id           String   @id @default(uuid())
+  tenantId     String
+  clientId     String
+  type         String
+  version      String
+  ip           String?
+  acceptedAt   DateTime @default(now())
 
   client Client @relation(fields: [clientId], references: [id])
 }
@@ -129,15 +153,14 @@ model OnboardingApplication {
 // ---------------------------------------------------------------------------
 
 model InvestorCode {
-  id            String             @id @default(uuid())
-  tenantId      String
-  clientId      String             @unique
-  code          String?
-  status        InvestorCodeStatus @default(NOT_REQUESTED)
-  source        String?            // EXISTING_DECLARED | NEW_REQUEST
-  submissionRef String?
-  verifiedAt    DateTime?
-  updatedAt     DateTime           @updatedAt
+  id        String             @id @default(uuid())
+  tenantId  String
+  clientId  String             @unique
+  code      String?
+  status    InvestorCodeStatus @default(NOT_REQUESTED)
+  /// EXISTING_DECLARED or NEW_REQUEST
+  source    String?
+  updatedAt DateTime           @updatedAt
 
   client Client @relation(fields: [clientId], references: [id])
 }
@@ -146,7 +169,6 @@ enum InvestorCodeStatus {
   NOT_REQUESTED
   EXISTING_DECLARED
   REQUESTED
-  ISSUED
   VERIFIED
   REJECTED
 }
@@ -158,12 +180,12 @@ model CustodyAccount {
   custodian     String
   accountNumber String
   depository    Depository
-  status        String
+  active        Boolean    @default(true)
   createdAt     DateTime   @default(now())
 
   client Client @relation(fields: [clientId], references: [id])
 
-  @@unique([tenantId, clientId, depository])
+  @@unique([clientId, depository])
 }
 
 enum Depository {
@@ -178,10 +200,13 @@ enum Depository {
 
 model Bank {
   id             String             @id @default(uuid())
+  code           String             @unique
   nameEn         String
   nameAr         String
   connectionMode BankConnectionMode
-  fixCompId      String?
+  /// Our SenderCompID and the bank's TargetCompID for FIX-mode banks
+  fixSenderCompId String?
+  fixTargetCompId String?
   active         Boolean            @default(true)
 
   relations BrokerBankRelationship[]
@@ -194,13 +219,11 @@ enum BankConnectionMode {
 }
 
 model BrokerBankRelationship {
-  id                 String  @id @default(uuid())
-  tenantId           String
-  bankId             String
+  id                  String  @id @default(uuid())
+  tenantId            String
+  bankId              String
   brokerAccountAtBank String
-  enabledInstruments String[]
-  fixSessionId       String?
-  active             Boolean @default(true)
+  active              Boolean @default(true)
 
   tenant Tenant @relation(fields: [tenantId], references: [id])
   bank   Bank   @relation(fields: [bankId], references: [id])
@@ -209,19 +232,23 @@ model BrokerBankRelationship {
 }
 
 model Instrument {
-  id             String         @id @default(uuid())
-  isin           String         @unique
-  type           InstrumentType
-  issuer         String
-  nameEn         String
-  nameAr         String
-  currency       String         @default("EGP")
-  couponRate     Decimal?       @db.Decimal(9, 6)
-  couponFreq     String?
-  dayCount       String?
-  issueDate      DateTime?
-  maturityDate   DateTime
-  depository     Depository
+  id           String         @id @default(uuid())
+  isin         String         @unique
+  type         InstrumentType
+  issuer       String
+  nameEn       String
+  nameAr       String
+  currency     String         @default("EGP")
+  /// Annual coupon rate as a fraction (0.25 = 25%); null for T-bills
+  couponRate   Decimal?       @db.Decimal(9, 6)
+  /// Coupons per year; null for T-bills
+  couponFreq   Int?
+  issueDate    DateTime?
+  maturityDate DateTime
+  depository   Depository
+  /// Minimum and increment of nominal (face value) per order
+  minQty       Decimal        @db.Decimal(20, 2)
+  qtyIncrement Decimal        @db.Decimal(20, 2)
 }
 
 enum InstrumentType {
@@ -236,14 +263,17 @@ enum InstrumentType {
 // ---------------------------------------------------------------------------
 
 model QuoteRequest {
-  id           String   @id @default(uuid())
-  tenantId     String
-  quoteReqId   String   @unique // QuoteReqID(131)
-  clientId     String
-  isin         String
-  side         String   // Side(54)
-  orderQty     Decimal  @db.Decimal(20, 2)
-  createdAt    DateTime @default(now())
+  id         String   @id @default(uuid())
+  tenantId   String
+  /// QuoteReqID(131)
+  quoteReqId String   @unique
+  clientId   String
+  isin       String
+  /// Side(54)
+  side       String
+  orderQty   Decimal  @db.Decimal(20, 2)
+  settlDate  DateTime
+  createdAt  DateTime @default(now())
 
   quotes Quote[]
 }
@@ -253,11 +283,15 @@ model Quote {
   tenantId       String
   quoteRequestId String
   bankId         String
-  quoteId        String   // QuoteID(117), from the bank
-  priceType      String   // PriceType(423)
-  price          Decimal? @db.Decimal(18, 8)
-  yield          Decimal? @db.Decimal(9, 6)
-  validUntil     DateTime // ValidUntilTime(62)
+  /// QuoteID(117), from the bank
+  quoteId        String
+  /// PriceType(423)
+  priceType      String
+  /// Clean price, % of par
+  offerPx        Decimal  @db.Decimal(18, 8)
+  offerYield     Decimal? @db.Decimal(9, 6)
+  /// ValidUntilTime(62)
+  validUntil     DateTime
   receivedAt     DateTime @default(now())
 
   quoteRequest QuoteRequest @relation(fields: [quoteRequestId], references: [id])
@@ -268,45 +302,55 @@ model Quote {
 model Order {
   id              String   @id @default(uuid())
   tenantId        String
-  clOrdId         String   @unique // ClOrdID(11)
-  orderId         String?  // OrderID(37), from the bank
+  /// ClOrdID(11)
+  clOrdId         String   @unique
+  /// OrderID(37), from the bank
+  orderId         String?
   clientId        String
   bankId          String
-  quoteId         String?
+  /// Quote (row id) this order accepts; one order per quote
+  quoteId         String   @unique
   isin            String
-  side            String   // Side(54)
-  ordType         String   // OrdType(40)
+  side            String
+  ordType         String
   orderQty        Decimal  @db.Decimal(20, 2)
-  ordStatus       String   // OrdStatus(39) - current-state projection
+  /// OrdStatus(39), current-state projection of the executions
+  ordStatus       String
   cumQty          Decimal  @default(0) @db.Decimal(20, 2)
-  priceSnapshotId String
-  releasedById    String?  // broker dealer, if manual release is enabled
+  /// Client cash reserved when the order was accepted
+  reservedAmount  Decimal  @db.Decimal(20, 2)
+  priceSnapshotId String   @unique
+  text            String?
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
-  client     Client      @relation(fields: [clientId], references: [id])
-  executions Execution[]
+  client        Client        @relation(fields: [clientId], references: [id])
+  priceSnapshot PriceSnapshot @relation(fields: [priceSnapshotId], references: [id])
+  executions    Execution[]
 
   @@index([tenantId, ordStatus])
 }
 
 /// Append-only history of ExecutionReports for an order.
 model Execution {
-  id                 String   @id @default(uuid())
+  id                 String    @id @default(uuid())
   tenantId           String
   orderId            String
-  execId             String   // ExecID(17), idempotency key per bank
   bankId             String
-  execType           String   // ExecType(150)
-  ordStatus          String   // OrdStatus(39)
-  lastQty            Decimal? @db.Decimal(20, 2)
-  lastPx             Decimal? @db.Decimal(18, 8)
-  accruedInterestAmt Decimal? @db.Decimal(20, 2)
-  netMoney           Decimal? @db.Decimal(20, 2)
+  /// ExecID(17), idempotency key per bank
+  execId             String
+  execType           String
+  ordStatus          String
+  lastQty            Decimal?  @db.Decimal(20, 2)
+  lastPx             Decimal?  @db.Decimal(18, 8)
+  accruedInterestAmt Decimal?  @db.Decimal(20, 2)
+  netMoney           Decimal?  @db.Decimal(20, 2)
+  /// What the client was charged for this fill (ledger BUY_FILL)
+  clientAmount       Decimal?  @db.Decimal(20, 2)
   settlDate          DateTime?
   transactTime       DateTime
-  rawMessageId       String?
-  createdAt          DateTime @default(now())
+  text               String?
+  createdAt          DateTime  @default(now())
 
   order Order @relation(fields: [orderId], references: [id])
 
@@ -315,32 +359,65 @@ model Execution {
 
 /// Immutable record of what the client saw and agreed to (ADR 0008).
 model PriceSnapshot {
-  id             String   @id @default(uuid())
-  tenantId       String
-  quoteId        String
-  pricingRuleVer String
-  bankPrice      Decimal? @db.Decimal(18, 8)
-  bankYield      Decimal? @db.Decimal(9, 6)
-  markupBps      Int
-  fees           Json
-  clientPrice    Decimal? @db.Decimal(18, 8)
-  clientYield    Decimal? @db.Decimal(9, 6)
-  totalCost      Decimal  @db.Decimal(20, 2)
-  disclosure     String
-  createdAt      DateTime @default(now())
+  id              String   @id @default(uuid())
+  tenantId        String
+  quoteId         String
+  pricingRule     Json
+  bankCleanPx     Decimal  @db.Decimal(18, 8)
+  bankYield       Decimal? @db.Decimal(9, 6)
+  markupBps       Int
+  clientCleanPx   Decimal  @db.Decimal(18, 8)
+  clientYield     Decimal? @db.Decimal(9, 6)
+  accruedInterest Decimal  @db.Decimal(20, 2)
+  principal       Decimal  @db.Decimal(20, 2)
+  commission      Decimal  @db.Decimal(20, 2)
+  totalCost       Decimal  @db.Decimal(20, 2)
+  settlDate       DateTime
+  disclosure      String
+  createdAt       DateTime @default(now())
+
+  order Order?
 }
 
-/// Raw FIX message store (in and out), shared with the audit trail.
+// ---------------------------------------------------------------------------
+// FIX gateway bridge (platform-level) (ADR 0004, ADR 0010)
+// ---------------------------------------------------------------------------
+
+/// Messages from the API to banks. The FIX gateway polls PENDING rows.
+model FixOutbox {
+  id            BigInt    @id @default(autoincrement())
+  bankId        String
+  senderCompId  String
+  targetCompId  String
+  msgType       String
+  /// FIX-shaped JSON (field names as in @agyal/shared-types)
+  payload       Json
+  status        String    @default("PENDING")
+  error         String?
+  createdAt     DateTime  @default(now())
+  sentAt        DateTime?
+}
+
+/// Messages from banks to the API, written by the FIX gateway.
+model FixInbox {
+  id           BigInt    @id @default(autoincrement())
+  senderCompId String
+  msgType      String
+  payload      Json
+  error        String?
+  receivedAt   DateTime  @default(now())
+  processedAt  DateTime?
+}
+
+/// Raw FIX message store (every application message, in and out).
 model FixMessage {
-  id         String   @id @default(uuid())
+  id         BigInt   @id @default(autoincrement())
   sessionId  String
-  direction  String   // IN | OUT
+  direction  String
   msgType    String
   seqNum     Int
   raw        String
-  receivedAt DateTime @default(now())
-
-  @@unique([sessionId, direction, seqNum])
+  createdAt  DateTime @default(now())
 }
 
 // ---------------------------------------------------------------------------
@@ -348,29 +425,33 @@ model FixMessage {
 // ---------------------------------------------------------------------------
 
 model LedgerAccount {
-  id         String  @id @default(uuid())
-  tenantId   String
-  clientId   String? // null for broker-level accounts
-  type       String  // CLIENT_CASH_AVAILABLE, CLIENT_POSITION, CLIENT_MONEY_BANK, ...
-  currency   String  @default("EGP")
-  isin       String? // set for position accounts
+  id       String  @id @default(uuid())
+  tenantId String
+  /// null for broker-level accounts
+  clientId String?
+  /// LedgerAccountType in the ledger module
+  type     String
+  /// Currency code, or the ISIN for position (nominal) accounts
+  unit     String
+  /// Bank id for per-bank accounts (settlement payable)
+  bankId   String?
+  /// Unique key: tenant|client|type|unit|bank (avoids NULLs in a unique index)
+  key      String  @unique
 
   postings Posting[]
-
-  @@unique([tenantId, clientId, type, currency, isin])
 }
 
 model JournalEntry {
-  id            String   @id @default(uuid())
-  tenantId      String
-  eventType     String
-  reference     String
-  effectiveDate DateTime
-  reversesId    String?
-  createdById   String?
-  createdAt     DateTime @default(now())
+  id          String   @id @default(uuid())
+  tenantId    String
+  eventType   String
+  reference   String
+  createdById String?
+  createdAt   DateTime @default(now())
 
   postings Posting[]
+
+  @@unique([tenantId, eventType, reference])
 }
 
 model Posting {
@@ -378,11 +459,13 @@ model Posting {
   tenantId       String
   journalEntryId String
   accountId      String
-  /// Signed amount in minor units / nominal; entries must sum to zero per currency.
+  /// Signed amount: debit positive, credit negative. Each entry sums to zero per unit.
   amount         Decimal @db.Decimal(24, 2)
 
   journalEntry JournalEntry  @relation(fields: [journalEntryId], references: [id])
   account      LedgerAccount @relation(fields: [accountId], references: [id])
+
+  @@index([accountId])
 }
 
 // ---------------------------------------------------------------------------
@@ -396,9 +479,7 @@ model AuditLog {
   action    String
   entity    String
   entityId  String
-  before    Json?
-  after     Json?
-  ip        String?
+  data      Json?
   createdAt DateTime @default(now())
 
   @@index([tenantId, entity, entityId])

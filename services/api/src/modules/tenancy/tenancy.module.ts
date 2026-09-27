@@ -1,8 +1,9 @@
 import { Module } from '@nestjs/common';
+import { AdminController } from './admin.controller';
+import { TenancyController } from './tenancy.controller';
 
-/**
- * Tenants, branding, custom domains, per-tenant config and RLS context.
- * See docs/architecture/0002-*.md.
- */
-@Module({})
+/** Tenants, branding, per-tenant config, bank relationships (ADR 0002). */
+@Module({
+  controllers: [TenancyController, AdminController],
+})
 export class TenancyModule {}

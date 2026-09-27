@@ -70,6 +70,15 @@ linkCustodyAccount(code, custodian, account) -> status
 - Holdings reported by custodians/MCDR statements are reconciled per client
   against the platform ledger (ADR 0007); breaks go to the broker ops queue.
 
+### Phase 1 implementation
+
+- `ManualMcdrAdapter` is live: onboarding records a declared or requested
+  code, and the broker console's *Unified codes & custody* screen lets broker
+  operations record the verified code and the client's custody accounts.
+- Pending the answer to M1, demo T-bills are held at `CBE` (via a bank
+  custodian) and bonds/sukuk at `MCDR`; the order pre-trade check requires an
+  active custody account for the instrument's depository.
+
 ## Consequences
 
 - Onboarding completes (client approved) before the code exists; trading is

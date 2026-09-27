@@ -12,9 +12,9 @@ import quickfix.SocketInitiator;
 /**
  * Entry point for the FIX gateway (ADR 0004).
  *
- * <p>Starts one QuickFIX/J initiator with a session per partner bank, as
- * configured in the session settings file. The gateway owns FIX sessions only;
- * business logic stays in the API.
+ * <p>Starts one QuickFIX/J initiator with a session per partner bank and the
+ * outbox poller. The gateway owns FIX sessions only; business logic stays in
+ * the API, which it talks to through the outbox and inbox tables.
  */
 public final class GatewayApplication {
 
@@ -24,11 +24,17 @@ public final class GatewayApplication {
         String configPath = args.length > 0 ? args[0] : "initiator.cfg";
         SessionSettings settings = loadSettings(configPath);
 
-        Initiator initiator = createInitiator(settings, new BankSessionApplication());
+        Database db = Database.fromEnv();
+        BankSessionApplication app = new BankSessionApplication(db);
+        Initiator initiator = createInitiator(settings, app);
+        OutboxPoller poller = new OutboxPoller(db, app);
+
         initiator.start();
+        poller.start(Long.parseLong(System.getenv().getOrDefault("GATEWAY_OUTBOX_POLL_MS", "200")));
 
         CountDownLatch shutdown = new CountDownLatch(1);
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            poller.close();
             initiator.stop();
             shutdown.countDown();
         }));

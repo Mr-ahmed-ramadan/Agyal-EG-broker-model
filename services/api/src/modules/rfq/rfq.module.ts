@@ -1,8 +1,15 @@
 import { Module } from '@nestjs/common';
+import { BankAdaptersModule } from '../bank-adapters/bank-adapters.module';
+import { InstrumentsModule } from '../instruments/instruments.module';
+import { PricingModule } from '../pricing/pricing.module';
+import { RfqController } from './rfq.controller';
+import { RfqService } from './rfq.service';
 
-/**
- * QuoteRequest / Quote lifecycle across partner banks.
- * See docs/architecture/0003-*.md.
- */
-@Module({})
+/** QuoteRequest / Quote lifecycle across partner banks (ADR 0003). */
+@Module({
+  imports: [InstrumentsModule, PricingModule, BankAdaptersModule],
+  controllers: [RfqController],
+  providers: [RfqService],
+  exports: [RfqService],
+})
 export class RfqModule {}

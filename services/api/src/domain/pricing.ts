@@ -1,0 +1,138 @@
+import Decimal from 'decimal.js';
+import {
+  accruedInterest,
+  bondCleanPrice,
+  bondYieldFromCleanPrice,
+  tbillPriceFromYield,
+  tbillYieldFromPrice,
+  type CouponBond,
+} from './fixed-income';
+
+/**
+ * Client pricing from a bank quote (ADR 0008).
+ *
+ * The broker's markup is expressed in yield basis points: for a buy, the
+ * client's yield is the bank's yield minus the markup, and the client's price
+ * is recomputed from that yield. Commission is a separate, disclosed fee.
+ */
+
+export type InstrumentType = 'TREASURY_BOND' | 'TREASURY_BILL' | 'CORPORATE_BOND' | 'SUKUK';
+
+export interface PricingRule {
+  markupBps: number;
+  commissionBps: number;
+  commissionMin: string;
+}
+
+/** Per-tenant pricing config, stored in Tenant.config.pricing. */
+export interface PricingConfig {
+  default: PricingRule;
+  /** Overrides by instrument type (most specific wins). */
+  byInstrumentType?: Partial<Record<InstrumentType, Partial<PricingRule>>>;
+  /** Guardrail: the platform refuses rules above this markup. */
+  maxMarkupBps: number;
+}
+
+export function resolvePricingRule(config: PricingConfig, type: InstrumentType): PricingRule {
+  const rule = { ...config.default, ...(config.byInstrumentType?.[type] ?? {}) };
+  if (rule.markupBps < 0 || rule.markupBps > config.maxMarkupBps) {
+    throw new Error(`Markup ${rule.markupBps}bps outside allowed range 0-${config.maxMarkupBps}`);
+  }
+  return rule;
+}
+
+export interface PricingInstrument {
+  type: InstrumentType;
+  couponRate: number | null;
+  couponFreq: number | null;
+  maturityDate: Date;
+}
+
+export interface ClientPriceInput {
+  instrument: PricingInstrument;
+  /** Bank's offer, clean price per 100 */
+  bankCleanPx: number;
+  /** Nominal (face value) */
+  quantity: string;
+  settlDate: Date;
+  rule: PricingRule;
+}
+
+export interface ClientPrice {
+  bankCleanPx: string;
+  bankYield: string;
+  markupBps: number;
+  clientCleanPx: string;
+  clientYield: string;
+  /** Accrued interest amount for the quantity (0 for T-bills) */
+  accruedInterest: string;
+  /** quantity x clientCleanPx / 100 */
+  principal: string;
+  commission: string;
+  totalCost: string;
+}
+
+const PX_DP = 6;
+const YIELD_DP = 6;
+const MONEY_DP = 2;
+
+function asBond(i: PricingInstrument): CouponBond {
+  if (i.couponRate == null || i.couponFreq == null) {
+    throw new Error('Coupon instrument requires couponRate and couponFreq');
+  }
+  return { couponRate: i.couponRate, couponFreq: i.couponFreq, maturity: i.maturityDate };
+}
+
+/** Prices a client buy from the bank's offer. */
+export function priceClientBuy(input: ClientPriceInput): ClientPrice {
+  const { instrument, bankCleanPx, settlDate, rule } = input;
+  const qty = new Decimal(input.quantity);
+  if (!qty.gt(0)) throw new Error('Quantity must be positive');
+  const markup = rule.markupBps / 10_000;
+
+  let bankYield: number;
+  let clientCleanPx: number;
+  let accruedPer100: number;
+
+  if (instrument.type === 'TREASURY_BILL') {
+    bankYield = tbillYieldFromPrice(bankCleanPx, settlDate, instrument.maturityDate);
+    clientCleanPx = tbillPriceFromYield(bankYield - markup, settlDate, instrument.maturityDate);
+    accruedPer100 = 0;
+  } else {
+    const bond = asBond(instrument);
+    bankYield = bondYieldFromCleanPrice(bond, bankCleanPx, settlDate);
+    clientCleanPx = bondCleanPrice(bond, bankYield - markup, settlDate);
+    accruedPer100 = accruedInterest(bond, settlDate);
+  }
+
+  const clientYield = bankYield - markup;
+  if (clientYield <= 0) throw new Error('Markup leaves a non-positive client yield');
+
+  const px = new Decimal(clientCleanPx).toDecimalPlaces(PX_DP);
+  const principal = qty.mul(px).div(100).toDecimalPlaces(MONEY_DP);
+  const accrued = qty.mul(accruedPer100).div(100).toDecimalPlaces(MONEY_DP);
+  const commission = Decimal.max(
+    new Decimal(rule.commissionMin),
+    qty.mul(rule.commissionBps).div(10_000),
+  ).toDecimalPlaces(MONEY_DP);
+
+  return {
+    bankCleanPx: new Decimal(bankCleanPx).toDecimalPlaces(PX_DP).toFixed(PX_DP),
+    bankYield: new Decimal(bankYield).toDecimalPlaces(YIELD_DP).toFixed(YIELD_DP),
+    markupBps: rule.markupBps,
+    clientCleanPx: px.toFixed(PX_DP),
+    clientYield: new Decimal(clientYield).toDecimalPlaces(YIELD_DP).toFixed(YIELD_DP),
+    accruedInterest: accrued.toFixed(MONEY_DP),
+    principal: principal.toFixed(MONEY_DP),
+    commission: commission.toFixed(MONEY_DP),
+    totalCost: principal.plus(accrued).plus(commission).toFixed(MONEY_DP),
+  };
+}
+
+export function disclosureText(p: ClientPrice): string {
+  return (
+    `Clean price ${p.clientCleanPx} per 100 (yield ${(Number(p.clientYield) * 100).toFixed(3)}%), ` +
+    `principal EGP ${p.principal}, accrued interest EGP ${p.accruedInterest}, ` +
+    `commission EGP ${p.commission}, total EGP ${p.totalCost}.`
+  );
+}

@@ -21,8 +21,16 @@ stack per broker would be too expensive to operate.
   table. The API sets `app.tenant_id` on the database session at the start of
   each request/transaction; RLS policies filter on it. Application-level
   filtering is still done, but RLS is the safety net if a query forgets.
+- Implementation: `DbService.forTenant(tenantId, tx => ...)` runs work in a
+  transaction with `app.tenant_id` set; policies are `FORCE`d so they apply to
+  the table owner too. `DbService.asSystem()` sets `app.bypass_rls` and is used
+  only to route inbound FIX messages to their tenant and for platform-admin
+  endpoints. The end-to-end test asserts that a query without tenant context
+  sees no tenant rows.
 - Platform-level tables (banks, instrument master data, reference rates,
-  Agyal operators) have no `tenant_id` and are read-only to tenant sessions.
+  Agyal operators) have no `tenant_id`; tenant-facing endpoints only read
+  them (enforced in the API today; a separate read-only database role for
+  tenant sessions is a hardening step).
 - Encryption keys for sensitive personal data (national ID, documents) are
   **per tenant** (envelope encryption: a data key per tenant, wrapped by a
   KMS master key), so one tenant's data can be crypto-shredded on exit.

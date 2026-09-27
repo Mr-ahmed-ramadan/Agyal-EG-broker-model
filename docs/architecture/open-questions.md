@@ -12,6 +12,7 @@ the ADR it affects. Move answered questions into the relevant ADR.
 | L3 | Which FRA decrees govern digital onboarding / e-KYC and e-signature for brokerage clients, and what evidence must be retained (liveness video, images, timestamps)? | Broker compliance / FRA | 0005 |
 | L4 | Must the broker's markup be disclosed to the client, or only commission and fees? | Counsel / FRA | 0008 |
 | L5 | Data residency: must personal data and books and records be hosted in Egypt, and which cloud providers are acceptable? | Counsel / FRA / brokers | 0010 |
+| L6 | What tax is withheld on coupons and T-bill returns for each client type (individual/corporate, resident/non-resident), and who withholds it (issuer, bank, broker)? The platform supports a per-broker coupon withholding rate, default 0. | Tax adviser | 0007 |
 
 ## Market infrastructure
 
@@ -40,3 +41,4 @@ the ADR it affects. Move answered questions into the relevant ADR.
 | P1 | Preferred eKYC and AML screening vendors (brokers may have existing contracts). | Brokers | 0005 |
 | P2 | Growth-tier fee level, monthly minimum and ramp-up length. | Agyal | 0009 |
 | P3 | Do brokers need to see all bank quotes to the client, or only the best? | Brokers | 0008 |
+| P4 | Which Egyptian SMS gateway (codes go by email in the hosted demo)? | Agyal / brokers | 0010 |

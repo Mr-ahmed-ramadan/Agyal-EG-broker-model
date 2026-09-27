@@ -43,10 +43,10 @@ when volume requires.
   after the code is verified. Registration verifies the client's mobile the
   same way. Codes are 6 digits, stored as an HMAC bound to the challenge,
   valid 5 minutes and 5 attempts, with a 30-second resend cooldown and at
-  most 10 codes per user per hour. SMS goes through an `SmsProvider`
-  interface under the broker's sender name; in development the code is
-  logged, and returned in the response only if `OTP_DEV_ECHO=true` outside
-  production.
+  most 10 codes per user per hour. Codes go through an `OtpDelivery`
+  interface under the broker's name: an Egyptian SMS gateway later; for the
+  hosted demo, email via Resend. In development the code is logged, and
+  returned in the response only if `OTP_DEV_ECHO=true` outside production.
 - Step-up: sensitive client actions (adding a withdrawal bank account,
   requesting a withdrawal) return a `STEP_UP` challenge that carries the
   pending action; the action only runs when the code is confirmed. Codes are
@@ -71,6 +71,15 @@ when volume requires.
 - Environments: `local` (docker-compose), `staging` (with the bank
   simulator), `production`. Infrastructure as code once the provider is
   chosen.
+- **Hosted demo (now)**: Vercel for the three web apps, Render (Frankfurt,
+  nearest region to Egypt) for PostgreSQL, the API and a worker running the
+  FIX gateway with the bank simulator (`render.yaml`, `docs/DEPLOYMENT.md`).
+  This is for demos only; production hosting still depends on the FRA
+  outsourcing and data-residency answers.
+- The API refuses to start in production with a missing or weak secret, dev
+  code echo on, or no code delivery configured (`src/common/config-check.ts`).
+- Web apps send the page's hostname as `X-Tenant-Host`, so each broker's
+  custom domain selects its tenant even though API calls go to one API domain.
 
 ### Localisation
 

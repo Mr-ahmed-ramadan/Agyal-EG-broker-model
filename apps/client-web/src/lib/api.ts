@@ -34,7 +34,8 @@ export async function api<T = any>(method: string, path: string, body?: unknown)
     method,
     headers: {
       'Content-Type': 'application/json',
-      ...(TENANT ? { 'X-Tenant': TENANT } : {}),
+      // A fixed broker for single-broker demos; otherwise the broker is found from this app's domain.
+      ...(TENANT ? { 'X-Tenant': TENANT } : { 'X-Tenant-Host': window.location.hostname }),
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
     },
     body: body === undefined ? undefined : JSON.stringify(body),

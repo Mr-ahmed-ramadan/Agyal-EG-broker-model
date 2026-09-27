@@ -7,8 +7,10 @@ const PLATFORM_DOMAIN = process.env.PLATFORM_DOMAIN ?? 'agyal.app';
 
 /**
  * Resolves the broker (tenant) for a request (ADR 0002): the `X-Tenant`
- * header (slug; used by local dev and the SPA dev servers), a custom domain,
- * or a `<slug>.<platform domain>` subdomain.
+ * header (slug; local dev and single-broker demos), otherwise the host the
+ * broker's app is served on — sent by the apps as `X-Tenant-Host` because
+ * API calls go to the API's own domain — matched against the broker's
+ * custom domain or a `<slug>.<platform domain>` subdomain.
  */
 @Injectable()
 export class TenantMiddleware implements NestMiddleware {
@@ -16,7 +18,10 @@ export class TenantMiddleware implements NestMiddleware {
 
   async use(req: AppRequest, _res: Response, next: NextFunction) {
     const header = req.headers['x-tenant'];
-    const host = (req.headers['x-forwarded-host'] ?? req.headers.host ?? '').toString().split(':')[0];
+    const host = (req.headers['x-tenant-host'] ?? req.headers['x-forwarded-host'] ?? req.headers.host ?? '')
+      .toString()
+      .split(':')[0]
+      .toLowerCase();
     try {
       if (typeof header === 'string' && header) {
         req.tenant = (await this.db.tenant.findUnique({ where: { slug: header } })) ?? undefined;

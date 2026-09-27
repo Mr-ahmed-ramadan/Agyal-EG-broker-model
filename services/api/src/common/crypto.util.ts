@@ -1,4 +1,4 @@
-import { createCipheriv, createDecipheriv, hkdfSync, randomBytes, scryptSync, timingSafeEqual } from 'node:crypto';
+import { createCipheriv, createDecipheriv, createHash, hkdfSync, randomBytes, scryptSync, timingSafeEqual } from 'node:crypto';
 
 // --- Passwords (scrypt) ----------------------------------------------------------
 
@@ -26,7 +26,11 @@ const DEV_MASTER_KEY = Buffer.alloc(32, 7);
 
 function masterKey(): Buffer {
   const configured = process.env.KMS_MASTER_KEY_LOCAL;
-  if (configured) return Buffer.from(configured, 'base64');
+  if (configured) {
+    // A base64 32-byte key is used as is; any other secret string is hashed to 32 bytes.
+    const decoded = Buffer.from(configured, 'base64');
+    return decoded.length === 32 ? decoded : createHash('sha256').update(configured).digest();
+  }
   if (process.env.NODE_ENV === 'production') {
     throw new Error('KMS_MASTER_KEY_LOCAL must be set in production');
   }

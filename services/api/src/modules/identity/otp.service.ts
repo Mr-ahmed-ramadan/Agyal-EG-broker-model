@@ -1,4 +1,12 @@
-import { HttpException, HttpStatus, Inject, Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  HttpException,
+  HttpStatus,
+  Inject,
+  Injectable,
+  Logger,
+  ServiceUnavailableException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import type { Prisma, User } from '@prisma/client';
 import { DbService } from '../../common/db.service';
 import {
@@ -6,11 +14,10 @@ import {
   checkCode,
   generateCode,
   hashCode,
-  maskMobile,
   OTP_TTL_MS,
   type OtpPurpose,
 } from '../../domain/otp';
-import { SMS_PROVIDER, type SmsProvider } from './sms.provider';
+import { OTP_DELIVERY, type OtpDelivery } from './otp-delivery';
 
 function otpSecret(): string {
   const s = process.env.OTP_SECRET;
@@ -35,9 +42,11 @@ export interface IssuedChallenge {
 
 @Injectable()
 export class OtpService {
+  private readonly log = new Logger(OtpService.name);
+
   constructor(
     private readonly db: DbService,
-    @Inject(SMS_PROVIDER) private readonly sms: SmsProvider,
+    @Inject(OTP_DELIVERY) private readonly delivery: OtpDelivery,
   ) {}
 
   /**
@@ -90,12 +99,18 @@ export class OtpService {
       });
     });
 
-    await this.sms.send(user.mobile, `${code} is your ${senderName} verification code. Do not share it.`, senderName);
+    let sentTo: string;
+    try {
+      sentTo = await this.delivery.deliver({ mobile: user.mobile, email: user.email }, code, senderName, purpose);
+    } catch (err) {
+      this.log.error(`Could not deliver ${purpose} code to user ${user.id}: ${(err as Error).message}`);
+      throw new ServiceUnavailableException('We could not send your code right now. Please try again in a minute.');
+    }
     return {
       challengeId: challenge.id,
       purpose,
       expiresAt: challenge.expiresAt,
-      sentTo: maskMobile(user.mobile),
+      sentTo,
       ...(devEcho() ? { devCode: code } : {}),
     };
   }

@@ -145,7 +145,8 @@ async function main() {
     },
   ];
   for (const i of instruments) {
-    await prisma.instrument.upsert({ where: { isin: i.isin }, create: i, update: { maturityDate: i.maturityDate } });
+    // Create only: never move an existing instrument's maturity (clients may hold it).
+    await prisma.instrument.upsert({ where: { isin: i.isin }, create: i, update: {} });
   }
 
   console.log(`Seeded tenant ${tenant.slug}, ${banks.length} banks, ${instruments.length} instruments.`);

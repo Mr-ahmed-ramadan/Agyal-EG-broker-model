@@ -1,0 +1,76 @@
+# Render blueprint for the hosted demo (see docs/DEPLOYMENT.md).
+# Creates: PostgreSQL, the API (web service) and the FIX gateway + bank
+# simulator (background worker). The three web apps are hosted on Vercel.
+#
+# Values marked `sync: false` are asked for when you create the blueprint.
+
+databases:
+  - name: agyal-db
+    databaseName: agyal_broker
+    user: agyal
+    region: frankfurt
+    # Paid plan: Render's free PostgreSQL is deleted after 30 days.
+    plan: basic-256mb
+
+services:
+  - type: web
+    name: agyal-api
+    runtime: node
+    region: frankfurt
+    # Always-on: the API also processes inbound FIX messages in the background.
+    plan: starter
+    buildCommand: npm ci --include=dev && npm run build -w packages/shared-types -w services/api
+    startCommand: npm run start:prod -w services/api
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_VERSION
+        value: "20"
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        fromDatabase:
+          name: agyal-db
+          property: connectionString
+      - key: JWT_SECRET
+        generateValue: true
+      - key: OTP_SECRET
+        generateValue: true
+      - key: KMS_MASTER_KEY_LOCAL
+        generateValue: true
+      # Sign-in and confirmation codes are emailed through Resend until an SMS gateway is chosen.
+      - key: OTP_DELIVERY
+        value: resend
+      - key: RESEND_API_KEY
+        sync: false
+      # A sender on your Resend-verified domain, e.g. codes@yourdomain.com
+      - key: EMAIL_FROM
+        sync: false
+      # Comma-separated app URLs, e.g. https://invest.yourdomain.com,https://broker.yourdomain.com,https://admin.yourdomain.com
+      - key: CORS_ORIGINS
+        sync: false
+      # Demo only: lets ops confirm coupons/redemptions before their payment date.
+      - key: DEMO_MODE
+        value: "true"
+      # First platform admin (created once by the seed).
+      - key: ADMIN_EMAIL
+        sync: false
+      - key: ADMIN_MOBILE
+        sync: false
+      - key: ADMIN_PASSWORD
+        sync: false
+      # Don't create the *@demo-broker.example staff; add real staff in the admin console.
+      - key: SEED_DEMO_STAFF
+        value: "false"
+
+  - type: worker
+    name: agyal-fix
+    runtime: docker
+    region: frankfurt
+    plan: starter
+    dockerfilePath: ./services/fix-gateway/Dockerfile
+    dockerContext: ./services/fix-gateway
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: agyal-db
+          property: connectionString

@@ -58,11 +58,23 @@ The first end-to-end slice runs locally and in CI:
    Finance approves and a different person records the payment
    (maker-checker). Finance sweeps earned markup and commission out of the
    segregated account, which then holds exactly the clients' money.
-10. Broker console shows buy and sell orders, clients, settlements,
-    withdrawals and a trial balance that nets to zero per currency and per ISIN.
+10. Coupons and maturities: ops confirm payments from the custodian/CBE;
+    clients are credited (net of the broker's withholding rate, default 0)
+    and matured holdings close.
+11. Broker console shows buy and sell orders, clients, settlements,
+    withdrawals, coupons and a trial balance that nets to zero per currency
+    and per ISIN. The admin console manages brokers, staff, bank links and
+    instruments and monitors the FIX bridge.
 
 Screenshots from an automated browser run are in
 [`docs/screenshots/`](docs/screenshots/).
+
+## Try it online
+
+[`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md) puts a demo online with your own
+domain: Vercel for the three apps, Render for the API, database and FIX
+gateway (`render.yaml` blueprint), and Resend to email sign-in codes. It
+includes a tester's checklist.
 
 ## Start here
 
@@ -77,7 +89,7 @@ Screenshots from an automated browser run are in
 apps/
   client-web/        # White-label client app (EN/AR, RTL, mobile-first)
   broker-console/    # Compliance queue, unified codes & custody, deposits, orders, ledger
-  admin-console/     # Agyal operators (placeholder; admin API exists)
+  admin-console/     # Agyal operators: brokers, staff, bank links, instruments, FIX monitor
   bank-portal/       # For banks without FIX (placeholder)
 services/
   api/               # NestJS modular monolith, Prisma, PostgreSQL
@@ -110,6 +122,7 @@ cd services/fix-gateway && ./gradlew run
 OTP_DEV_ECHO=true npm run dev:api             # http://localhost:3000/health
 npm run dev:client-web                        # http://localhost:5173
 npm run dev:broker-console                    # http://localhost:5174
+npm run dev:admin-console                     # http://localhost:5175
 ```
 
 Seeded demo users (password `Demo-Pass-2026!`, local only):
@@ -140,7 +153,7 @@ npm test                                      # API unit tests (pricing, fixed i
 ## Not built yet
 
 eKYC/AML/MCDR vendor integrations (mocks and a manual adapter stand in), a
-real SMS gateway, bank-statement imports for automated settlement and
-reconciliation, coupon and maturity payments, PORTAL/FILE bank adapters, the admin and
-bank-portal UIs, billing, notifications, and production hosting. See the
+real SMS gateway (codes go by email in the hosted demo), bank-statement
+imports for automated settlement and reconciliation, withholding-tax rules
+per instrument (pending tax advice), PORTAL/FILE bank adapters, the bank-portal UI, billing and notifications. See the
 ADRs and open questions.

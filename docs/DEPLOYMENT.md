@@ -181,6 +181,18 @@ can post its own news from the broker console.
 **After the call**: send them the client link to play with; follow up from
 the **Leads** list.
 
+**Send documents** (admin console → **Documents**): pick a document, type the
+recipient ("Mona Adel — CEO, Delta Securities") and **Create link**. Send that
+link; each recipient gets their own. The page shows total opens, opens per
+recipient (first and last opened) and every open with language, device and IP.
+**Revoke** stops a link immediately. **Preview** opens the document without
+counting an open. Documents marked *Internal* (speaker notes, operations SOP,
+capability audit) are for the Agyal team only. Links look like
+`https://api.egypt.agyal.net/d/<token>` (`PUBLIC_DOCS_URL`). Nothing is
+reachable without a token. The deck's QR codes and economics figures are filled
+in live from your settings. Each document has a **Print / Save as PDF** button
+(the deck prints one landscape page per slide).
+
 ## Tester's checklist
 
 | Where | Do | Expect |
@@ -190,6 +202,9 @@ the **Leads** list.
 | Client app | National ID ending `9999` | Identity check fails (demo rule) |
 | Client app | Name containing "Minister Example" or tick PEP | Goes to the broker's compliance queue |
 | Broker console | Compliance, Unified codes, Deposits, Settlements, Coupons, Withdrawals, Ledger | As in the walkthrough; the person who approves a withdrawal can't also record its payment |
+| Admin console | KYC / AML → Review a PEP client → send a flag | Flag appears in the broker's Compliance screen; broker resolves it |
+| Admin console | Audit log; Data console → search a client | Your actions listed with IP; 360° view with timeline |
+| Admin console | Documents → create a link, open it on your phone | Opens counted with device and language |
 | Admin console | FIX monitor | Outbox pending stays at 0 ("stuck" means the `agyal-fix` worker is down) |
 
 ## Troubleshooting

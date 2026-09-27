@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="robots" content="noindex, nofollow" />
+<title>Agyal · Presenter speaking notes</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>{{STYLE}}
+.slide-card { background: var(--white); border: 1px solid var(--border); border-radius: 14px; padding: 18px 20px; margin: 18px 0; }
+.slide-card header { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; border-bottom: 1px solid var(--border); padding-bottom: 8px; margin-bottom: 10px; }
+.slide-card .time { font-size: 0.8rem; color: var(--bronze-text); font-weight: 700; }
+.on-screen { background: var(--ivory-alt); border-radius: 8px; padding: 8px 12px; font-size: 0.9rem; margin-bottom: 10px; }
+.say { font-size: 1.02rem; }
+dl.qa dt { font-weight: 700; color: var(--forest-deep); margin-top: 12px; }
+dl.qa dd { margin: 4px 0 0; }
+</style>
+</head>
+<body>
+<button class="print-btn" onclick="window.print()">Print / Save as PDF</button>
+<div class="wrap">
+  <div class="doc-head">
+    <div class="brand"><span class="mark">A</span> Agyal <em>Egypt</em></div>
+    <div class="meta"><span class="tag internal">Internal — do not share</span><br />Presenter notes for the partnership deck · {{TODAY}}</div>
+  </div>
+  <h1>Presenter speaking notes</h1>
+  <p class="muted">A 20-minute meeting: about 12 minutes on the six slides, 5 minutes of live demo, 3 minutes agreeing next steps. Keep this open on a second screen.</p>
+
+  <div class="callout"><strong>Before the meeting.</strong> Create a branded prospect demo (admin → Prospect demos) with their logo and colours, and send the deck as a tracked link from admin → Documents so you can see when they open it. Have a phone ready to show the client app.</div>
+
+  <section class="slide-card">
+    <header><h3 style="margin:0">Slide 1 · Opener</h3><span class="time">1 min</span></header>
+    <div class="on-screen">“Offer treasury bills, bonds and sukuk to your clients — under your own brand, in weeks.”</div>
+    <p class="say">“You already have the licence and the clients. What most firms don't have is the technology to offer fixed income online — onboarding, pricing from the banks, the ledger, settlement. That is exactly what we provide. You stay the licensed party; we are the technology behind you.”</p>
+    <p class="muted">Ask early: “Do your clients ask about T-bills today? Where do they buy them?” — let them describe the pain.</p>
+  </section>
+
+  <section class="slide-card">
+    <header><h3 style="margin:0">Slide 2 · Your questions, answered</h3><span class="time">3 min</span></header>
+    <div class="on-screen">Six questions: technology team · whose clients · where the papers come from · where the money is · cost · time to live.</div>
+    <p class="say">“These are the six questions every broker asks us. Let me take the two that matter most to you.” Pick the two they reacted to on slide 1; don't read all six.</p>
+    <ul>
+      <li><strong>Papers:</strong> banks are primary dealers; they buy at CBE auctions or hold corporate issues. We ask all your partner banks at once; the client gets the best price.</li>
+      <li><strong>Money and custody:</strong> cash never touches Agyal. It sits in your segregated client account; papers are registered to the client's unified code at the CBE (government) or MCDR (corporate).</li>
+    </ul>
+  </section>
+
+  <section class="slide-card">
+    <header><h3 style="margin:0">Slide 3 · How it works</h3><span class="time">2 min</span></header>
+    <div class="on-screen">Onboard → Price &amp; trade → Run the book.</div>
+    <p class="say">“Three steps. Onboarding is fully online, and your own approval rules decide who is approved automatically. Pricing goes to all your banks over FIX — the same protocol their dealing rooms already use. And your team runs everything from a web console: compliance, deposits, settlement, coupons, withdrawals, the ledger.”</p>
+    <p class="muted">If they have compliance in the room: mention every decision is recorded against a named user, and PEPs always go to manual review.</p>
+  </section>
+
+  <section class="slide-card">
+    <header><h3 style="margin:0">Slide 4 · Economics</h3><span class="time">3 min</span></header>
+    <div class="on-screen">Waterfall: {{MARKET_YIELD}} market → −{{CUSTODY}} custody → −{{BROKER_MARGIN}} broker → −{{AGYAL_MARGIN}} Agyal → {{CLIENT_YIELD}} before tax → {{NET_YIELD}} net vs {{DEPOSIT_RATE}} deposit.</div>
+    <p class="say">“Everything is inside the yield — no setup fee, no subscription in the pilot, no commission by default. On a one-year bond the client still ends up about {{VS_DEPOSIT}} ahead of a bank deposit, after tax. And the client sees exactly this breakdown, so there are no surprises.”</p>
+    <p class="muted">If they push on Agyal's share being larger: our margin covers the platform, bank connectivity, hosting, security and support; theirs is pure margin on their existing licence. Margins are agreed per broker — don't negotiate numbers in the first meeting.</p>
+  </section>
+
+  <section class="slide-card">
+    <header><h3 style="margin:0">Slide 5 · Live demo</h3><span class="time">5 min</span></header>
+    <div class="on-screen">Two QR codes: client app and broker console.</div>
+    <ol>
+      <li>Open the client link on your phone — their brand, switch to Arabic.</li>
+      <li>Show <em>Rates</em>: tap a T-bill — “What is this?”, the payment schedule, net profit, and the deposit comparison.</li>
+      <li>In the broker console: the compliance queue, then <em>Economics</em> to show their margin per trade.</li>
+      <li>Back on the phone: <em>Get live price</em> — two bank quotes arrive in seconds.</li>
+    </ol>
+    <p class="muted">Simulated banks, no real money — say so.</p>
+  </section>
+
+  <section class="slide-card">
+    <header><h3 style="margin:0">Slide 6 · Next steps</h3><span class="time">3 min</span></header>
+    <div class="on-screen">Branded demo &amp; MOU (2 weeks) → Pilot (8–12 weeks) → Launch.</div>
+    <p class="say">“If this is interesting, the next step is small: we brand the demo for you, walk your compliance and operations leads through it, and share a draft MOU. Who would be the right people on your side?”</p>
+    <p class="muted">Close with a date for the walkthrough and the names of their compliance and operations contacts. Send the MOU and technical annex as tracked links the same day.</p>
+  </section>
+
+  <h2>Questions and answers</h2>
+  <dl class="qa">
+    <dt>Is this licensed by the FRA?</dt>
+    <dd>The broker holds the licence and is the regulated party for every client and trade. Agyal is a technology provider under a services agreement; we support the broker's regulatory reporting and inspections.</dd>
+    <dt>What if a bank doesn't support FIX?</dt>
+    <dd>FIX is our standard path. For banks without FIX we can route requests through a bank portal (on the roadmap); we recommend starting the pilot with FIX-capable banks.</dd>
+    <dt>Who does eKYC and AML screening?</dt>
+    <dd>A licensed provider chosen with the broker (we integrate it); results flow into the broker's own approval rules and compliance queue. The demo uses a simulated provider.</dd>
+    <dt>Where is data hosted, and who owns it?</dt>
+    <dd>Client data belongs to the broker. It is stored encrypted, separated per broker at the database level, with a full audit trail. Hosting location is agreed in the MOU to meet data-protection requirements (Law 151/2020).</dd>
+    <dt>Can clients sell before maturity?</dt>
+    <dd>Yes — banks bid for the holding and the client sees net proceeds before confirming.</dd>
+    <dt>How do clients add and withdraw cash?</dt>
+    <dd>Bank transfer to the broker's client account with a personal reference; withdrawals only to an IBAN in the client's own name, confirmed by SMS code and approved by two different people (maker-checker).</dd>
+    <dt>What happens at a coupon or maturity?</dt>
+    <dd>Your operations confirm receipt from the custodian; clients are credited automatically, net of tax, and matured holdings close.</dd>
+    <dt>What does Agyal need from us to start?</dt>
+    <dd>A sponsor, compliance and operations contacts, introductions to your partner banks, your client-money and custody account details, and approval of client-facing terms.</dd>
+  </dl>
+
+  <p class="footer-note">Internal document. Figures are illustrative and come from the current platform defaults set in the admin console.</p>
+</div>
+</body>
+</html>

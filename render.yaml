@@ -53,6 +53,9 @@ services:
         value: https://invest.egypt.agyal.net
       - key: PUBLIC_BROKER_URL
         value: https://broker.egypt.agyal.net
+      # Base address of tracked document links (admin → Documents): <this>/d/<token>.
+      - key: PUBLIC_DOCS_URL
+        value: https://api.egypt.agyal.net
       # Where landing-page contact requests are emailed (comma-separated for several people).
       - key: CONTACT_TO
         sync: false

@@ -710,3 +710,37 @@ model ComplianceFlag {
   @@index([tenantId, status])
   @@index([clientId])
 }
+
+/// A per-recipient tracked link to a document (Agyal admin → Documents).
+/// recipient null = the document's general link ("Unattributed" opens).
+model DocumentLink {
+  id          String    @id @default(uuid())
+  docKey      String
+  recipient   String?
+  token       String    @unique
+  createdById String?
+  createdAt   DateTime  @default(now())
+  revokedAt   DateTime?
+
+  opens DocumentOpen[]
+
+  @@index([docKey])
+}
+
+/// One open of a tracked document link.
+model DocumentOpen {
+  id        BigInt   @id @default(autoincrement())
+  linkId    String
+  docKey    String
+  recipient String?
+  openedAt  DateTime @default(now())
+  ip        String?
+  userAgent String?
+  lang      String?
+  referrer  String?
+
+  link DocumentLink @relation(fields: [linkId], references: [id])
+
+  @@index([docKey, openedAt])
+  @@index([linkId])
+}

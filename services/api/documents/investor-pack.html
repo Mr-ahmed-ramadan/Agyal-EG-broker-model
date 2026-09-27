@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="robots" content="noindex, nofollow" />
+<title>Agyal · Investor pack</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>{{STYLE}}
+.kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; margin: 14px 0; }
+.kpis div { background: var(--white); border: 1px solid var(--border); border-radius: 12px; padding: 12px 14px; }
+.kpis strong { display: block; font-family: var(--display); font-size: 1.9rem; color: var(--forest-deep); line-height: 1.1; }
+.kpis span { font-size: 0.85rem; color: var(--muted); }
+.hero { background: var(--forest-deep); color: #eef4ef; border-radius: 18px; padding: 28px 26px; margin-bottom: 20px; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+.hero h1 { color: #fff; }
+.hero .eyebrow { color: var(--gold-soft); }
+.hero p { color: #d5e0d8; font-size: 1.08rem; max-width: 720px; }
+</style>
+</head>
+<body>
+<button class="print-btn" onclick="window.print()">Print / Save as PDF</button>
+<div class="wrap">
+  <div class="doc-head">
+    <div class="brand"><span class="mark">A</span> Agyal <em>Egypt</em></div>
+    <div class="meta"><span class="tag">Investor pack · confidential</span><br />{{TODAY}}</div>
+  </div>
+
+  <div class="hero">
+    <div class="eyebrow">Fixed income for every Egyptian investor</div>
+    <h1>The technology that lets any licensed broker sell T-bills and bonds online.</h1>
+    <p>Agyal is a white-label, multi-tenant platform. Brokers bring the licence and the clients; banks bring the papers over FIX; Agyal runs everything in between and earns a share of the yield on every trade.</p>
+  </div>
+
+  <h2>1. The problem</h2>
+  <ul>
+    <li><strong>Retail investors are locked out.</strong> Egyptian treasury bills and bonds pay some of the highest yields in the region, yet individuals mostly reach them through bank branches, paper forms and minimums that suit institutions, not people.</li>
+    <li><strong>Brokers can't build it themselves.</strong> Offering fixed income online needs digital onboarding (eKYC/AML), bank connectivity for pricing, a client-money ledger, custody reconciliation and coupon processing. Few brokerage firms have the engineering team or the time.</li>
+    <li><strong>Deposits are the default.</strong> Without an easy alternative, savers stay in bank deposits that typically pay less after tax than the government paper those same banks hold.</li>
+  </ul>
+
+  <h2>2. The product</h2>
+  <div class="grid3">
+    <div class="card"><h3 style="margin-top:0">Client app</h3><p>Broker-branded, Arabic and English, phone first. Online account opening, today's rates, what a paper earns after tax, live bank quotes, holdings, income, statements.</p></div>
+    <div class="card"><h3 style="margin-top:0">Broker console</h3><p>Compliance queue with the broker's own approval rules, unified codes and custody, deposits, orders, settlement, coupons, withdrawals with maker-checker, ledger, economics.</p></div>
+    <div class="card"><h3 style="margin-top:0">Agyal platform</h3><p>FIX 4.4 connectivity to every partner bank, best-price routing, double-entry ledger, KYC/AML monitoring across brokers, full audit trail, per-broker economics.</p></div>
+  </div>
+
+  <h2>3. Business model</h2>
+  <p>Agyal earns a margin built into the yield the client receives — no setup fee, no subscription during a broker's pilot, no commission. Illustrative one-year bond, using the platform defaults:</p>
+  <table>
+    <tbody>
+      <tr><td>Market yield</td><td class="num">{{MARKET_YIELD}}</td></tr>
+      <tr><td>Custody &amp; operations</td><td class="num">−{{CUSTODY}}</td></tr>
+      <tr><td>Broker margin</td><td class="num">−{{BROKER_MARGIN}}</td></tr>
+      <tr><td><strong>Agyal margin</strong></td><td class="num"><strong>−{{AGYAL_MARGIN}}</strong></td></tr>
+      <tr class="sub"><td>Client yield before tax</td><td class="num">{{CLIENT_YIELD}}</td></tr>
+      <tr><td>Tax ({{TAX_RATE}})</td><td class="num">−{{TAX}}</td></tr>
+      <tr class="sub"><td>Client net yield</td><td class="num">{{NET_YIELD}}</td></tr>
+      <tr class="good"><td>Ahead of a same-term bank deposit ({{DEPOSIT_RATE}})</td><td class="num">{{VS_DEPOSIT}}</td></tr>
+    </tbody>
+  </table>
+  <div class="callout"><strong>Unit economics, simply.</strong> Agyal revenue ≈ money invested × Agyal margin × time held.
+    At a {{AGYAL_MARGIN}} margin, every EGP 1 million held for a year earns Agyal about 1% of it — roughly EGP 10,000 — and the client still beats the deposit.
+    Revenue compounds as clients roll maturing papers into new ones. Margins are agreed per broker.</div>
+
+  <h3>Illustrative scale</h3>
+  <table>
+    <thead><tr><th>Scenario</th><th class="num">Brokers</th><th class="num">Active clients</th><th class="num">Avg. holding (EGP)</th><th class="num">Assets on platform (EGP)</th><th class="num">Agyal revenue / year (EGP)</th></tr></thead>
+    <tbody>
+      <tr><td>Pilot</td><td class="num">1</td><td class="num">500</td><td class="num">100,000</td><td class="num">50m</td><td class="num">≈ 0.5m</td></tr>
+      <tr><td>Early</td><td class="num">5</td><td class="num">5,000</td><td class="num">150,000</td><td class="num">750m</td><td class="num">≈ 7.5m</td></tr>
+      <tr><td>Scale</td><td class="num">15</td><td class="num">40,000</td><td class="num">200,000</td><td class="num">8bn</td><td class="num">≈ 80m</td></tr>
+    </tbody>
+  </table>
+  <p class="muted" style="font-size:0.85rem">Illustrative only, not a forecast. Assumes a 1.00% Agyal margin applied over a full year of holding; actual revenue depends on margins agreed per broker, holding periods and market yields.</p>
+
+  <h2>4. Go-to-market: through brokers</h2>
+  <ol class="steps">
+    <li><strong>Win brokers, not clients.</strong> Each brokerage firm brings an existing, already-licensed client base and its own brand. We never spend on retail acquisition.</li>
+    <li><strong>Branded demo in a day.</strong> The admin console creates a prospect demo with the broker's logo and colours; the partnership deck is sent as a tracked link.</li>
+    <li><strong>Pilot in 8–12 weeks.</strong> One or two partner banks over FIX, the broker's client-money and custody accounts, an invited first group of clients.</li>
+    <li><strong>Expand.</strong> More banks and instruments per broker, then more brokers on the same platform — each added broker is configuration, not a new build.</li>
+  </ol>
+
+  <h2>5. What is built today</h2>
+  <div class="kpis">
+    <div><strong>4</strong><span>web apps: client, broker, admin, landing</span></div>
+    <div><strong>FIX 4.4</strong><span>gateway with transactional outbox/inbox</span></div>
+    <div><strong>100+</strong><span>automated unit tests, plus a full end-to-end trading test</span></div>
+    <div><strong>Live</strong><span>hosted demo with simulated banks</span></div>
+  </div>
+  <ul class="check">
+    <li>Online onboarding with eKYC, AML screening, suitability and broker-defined approval rules.</li>
+    <li>Multi-bank quotes, orders and executions over FIX; double-entry ledger; settlement, coupons and maturities.</li>
+    <li>Deposits, withdrawals with SMS-confirmed step-up and maker-checker; statements.</li>
+    <li>Per-broker economics, platform-wide KYC/AML monitoring, data console and database-level audit trail.</li>
+  </ul>
+  <p class="muted">Bank connections, eKYC/AML provider and custody interfaces are simulated in the demo; production integrations are agreed with each pilot broker.</p>
+
+  <h2>6. Roadmap</h2>
+  <table>
+    <thead><tr><th>Phase</th><th>Focus</th></tr></thead>
+    <tbody>
+      <tr><td>Now</td><td>Pilot-ready platform, hosted demo, broker partnership materials.</td></tr>
+      <tr><td>Pilot</td><td>First broker live: real FIX certification with partner banks, production eKYC/AML and SMS, custodian reconciliation, market holiday calendar, security review.</td></tr>
+      <tr><td>Next</td><td>Secondary sales and quotes from bank portals, recurring investment plans, mobile apps, regulatory reporting packs, additional brokers.</td></tr>
+      <tr><td>Later</td><td>Mutual funds and sukuk funds, corporate issuance distribution, other markets in the region.</td></tr>
+    </tbody>
+  </table>
+
+  <h2>7. The ask</h2>
+  <div class="callout green">
+    <p style="margin:0">We are raising a seed round to take the first brokers from pilot to launch: bank certification, production integrations and hosting, a security audit, and a small operations and partnerships team. Amount, use of funds and terms are discussed in person.</p>
+  </div>
+
+  <p class="footer-note">Confidential. All figures are illustrative and derived from current platform defaults; they are not a forecast or an offer of securities. Tax treatment to be confirmed by advisers.</p>
+</div>
+</body>
+</html>

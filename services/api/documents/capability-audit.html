@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="robots" content="noindex, nofollow" />
+<title>Agyal · Capability audit &amp; phase map</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>{{STYLE}}
+td:nth-child(2) { white-space: nowrap; }
+.legend { display: flex; gap: 10px; flex-wrap: wrap; font-size: 0.85rem; margin: 6px 0 12px; }
+</style>
+</head>
+<body>
+<button class="print-btn" onclick="window.print()">Print / Save as PDF</button>
+<div class="wrap">
+  <div class="doc-head">
+    <div class="brand"><span class="mark">A</span> Agyal <em>Egypt</em></div>
+    <div class="meta"><span class="tag internal">Internal — do not share</span><br />Build state as of {{TODAY}}</div>
+  </div>
+  <h1>Capability audit &amp; phase map</h1>
+  <p class="muted">An honest view of what the platform does today, what is simulated in the demo, and what must be done before a broker handles real client money.</p>
+  <div class="legend"><span class="pill real">Real</span> built and tested end to end <span class="pill sim">Simulated</span> works in the demo against a stand-in <span class="pill gap">Gap</span> not built yet</div>
+
+  <h2>1. Capabilities by surface</h2>
+  <h3>Client app</h3>
+  <table>
+    <thead><tr><th>Capability</th><th>State</th><th>Notes</th></tr></thead>
+    <tbody>
+      <tr><td>Broker branding, Arabic/English, phone-first</td><td><span class="pill real">Real</span></td><td>Per-broker name, logo, colours.</td></tr>
+      <tr><td>Sign-up and sign-in with one-time codes</td><td><span class="pill real">Real</span></td><td>Codes hashed, expiring, rate-limited. Delivered by email in the demo (SMS stand-in).</td></tr>
+      <tr><td>Onboarding: ID, selfie, suitability, consents</td><td><span class="pill real">Real</span></td><td>eKYC and AML results come from a mock provider.</td></tr>
+      <tr><td>Rates, paper explainer, payment schedule, after-tax return, deposit comparison</td><td><span class="pill real">Real</span></td><td>Indicative yields set by Agyal; economics from admin settings.</td></tr>
+      <tr><td>Live quotes, buy and sell</td><td><span class="pill real">Real</span></td><td>Over FIX 4.4 to simulated banks.</td></tr>
+      <tr><td>Holdings, income, statements, deposits, withdrawals</td><td><span class="pill real">Real</span></td><td>Deposits confirmed manually by operations.</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Broker console</h3>
+  <table>
+    <thead><tr><th>Capability</th><th>State</th><th>Notes</th></tr></thead>
+    <tbody>
+      <tr><td>Compliance queue, auto-approval rules, Agyal flags</td><td><span class="pill real">Real</span></td><td>Decisions recorded against named users.</td></tr>
+      <tr><td>Unified codes and custody accounts</td><td><span class="pill sim">Simulated</span></td><td>Manual entry; no MCDR/CBE interface.</td></tr>
+      <tr><td>Deposits, orders, settlements, income, withdrawals (maker-checker)</td><td><span class="pill real">Real</span></td><td>Settlement confirmed by hand against the custodian.</td></tr>
+      <tr><td>Ledger, economics, news</td><td><span class="pill real">Real</span></td><td>Double-entry; reconciles per currency and ISIN.</td></tr>
+    </tbody>
+  </table>
+
+  <h3>Admin console (Agyal)</h3>
+  <table>
+    <thead><tr><th>Capability</th><th>State</th><th>Notes</th></tr></thead>
+    <tbody>
+      <tr><td>Brokers, staff, instruments, indicative rates, news</td><td><span class="pill real">Real</span></td><td></td></tr>
+      <tr><td>Prospect demos and leads</td><td><span class="pill real">Real</span></td><td>Branded demo broker in minutes.</td></tr>
+      <tr><td>Economics defaults and per-broker overrides</td><td><span class="pill real">Real</span></td><td>Warnings when the client falls behind the deposit rate.</td></tr>
+      <tr><td>KYC / AML monitoring and flags</td><td><span class="pill real">Real</span></td><td>Monitor and flag only; the broker decides.</td></tr>
+      <tr><td>Audit log, data changes, data console 360°</td><td><span class="pill real">Real</span></td><td>Request-level log plus database triggers with before/after values.</td></tr>
+      <tr><td>FIX monitor</td><td><span class="pill real">Real</span></td><td>Sessions and message log.</td></tr>
+      <tr><td>Tracked documents</td><td><span class="pill real">Real</span></td><td>Per-recipient links with open log.</td></tr>
+    </tbody>
+  </table>
+
+  <h2>2. Real vs simulated</h2>
+  <table>
+    <thead><tr><th>Component</th><th>Demo today</th><th>Production path</th></tr></thead>
+    <tbody>
+      <tr><td>Partner banks</td><td><span class="pill sim">Simulated</span> FIX bank simulator in the gateway</td><td>FIX certification with each bank; per-bank rules of engagement.</td></tr>
+      <tr><td>eKYC</td><td><span class="pill sim">Simulated</span> mock face match and ID check</td><td>Licensed Egyptian eKYC provider chosen with the broker.</td></tr>
+      <tr><td>AML screening</td><td><span class="pill sim">Simulated</span> mock PEP/sanctions/adverse media</td><td>Screening provider with ongoing monitoring.</td></tr>
+      <tr><td>MCDR / CBE custody</td><td><span class="pill sim">Simulated</span> manual codes and confirmations</td><td>Custodian files or APIs for registration and reconciliation.</td></tr>
+      <tr><td>SMS codes</td><td><span class="pill sim">Simulated</span> sent by email</td><td>SMS gateway with the broker's sender name.</td></tr>
+      <tr><td>Deposits</td><td><span class="pill sim">Simulated</span> confirmed by hand</td><td>Bank-statement import (MT940/CSV) with auto-matching.</td></tr>
+      <tr><td>Email</td><td><span class="pill real">Real</span> transactional email via Resend</td><td>Per-broker sender domain.</td></tr>
+      <tr><td>Hosting</td><td><span class="pill real">Real</span> managed cloud, single region</td><td>Region and data residency agreed per broker; backups tested.</td></tr>
+    </tbody>
+  </table>
+
+  <h2>3. Hardening before real money</h2>
+  <table>
+    <thead><tr><th>Item</th><th>State</th><th>Why it matters</th></tr></thead>
+    <tbody>
+      <tr><td>Egyptian public-holiday calendar</td><td><span class="pill gap">Gap</span></td><td>Settlement and maturity dates skip weekends only.</td></tr>
+      <tr><td>Tax treatment per instrument</td><td><span class="pill gap">Gap</span></td><td>A flat 20% on yield is applied; needs tax adviser sign-off (T-bills vs bonds, corporate vs sovereign).</td></tr>
+      <tr><td>Independent security review and penetration test</td><td><span class="pill gap">Gap</span></td><td>Required by brokers and good practice before go-live.</td></tr>
+      <tr><td>Multi-region / disaster recovery</td><td><span class="pill gap">Gap</span></td><td>Single region today; restore drills not yet run.</td></tr>
+      <tr><td>Secrets and key management</td><td><span class="pill gap">Gap</span></td><td>Move field-encryption keys to a managed KMS with rotation.</td></tr>
+      <tr><td>Monitoring and alerting</td><td><span class="pill gap">Gap</span></td><td>Health checks exist; add alerting on FIX session loss, stuck outbox, reconciliation breaks.</td></tr>
+      <tr><td>Regulatory reporting packs</td><td><span class="pill gap">Gap</span></td><td>FRA and AML reporting formats agreed with the pilot broker.</td></tr>
+      <tr><td>Client-facing legal documents</td><td><span class="pill gap">Gap</span></td><td>Terms, risk disclosure, privacy notice — the broker's, reviewed by counsel.</td></tr>
+      <tr><td>Row-level security, audit trail, maker-checker, step-up codes</td><td><span class="pill real">Real</span></td><td>In place and covered by tests.</td></tr>
+    </tbody>
+  </table>
+
+  <h2>4. Test coverage</h2>
+  <ul class="check">
+    <li>About 96 API unit tests (ledger rules, pricing, economics, order state, income, cash, onboarding rules, OTP, compliance flags, audit, documents) and 7 FIX gateway tests.</li>
+    <li>One end-to-end test that runs the whole flow against a fresh database: onboarding, compliance, deposit, quote, order, fill, settlement, coupon, withdrawal, flags, audit log and tracked documents.</li>
+    <li>Browser checks of the four apps on phone and desktop widths.</li>
+  </ul>
+
+  <h2>5. Phase map</h2>
+  <ol class="steps">
+    <li><strong>Phase 1 — Demo &amp; sell (done).</strong> Hosted demo, branded prospect demos, economics, client experience, monitoring and audit, partnership documents.</li>
+    <li><strong>Phase 2 — Pilot readiness.</strong> Holiday calendar, tax sign-off, real SMS, deposit statement import, KMS, alerting, security review, broker legal documents.</li>
+    <li><strong>Phase 3 — First live broker.</strong> FIX certification with 1–2 banks, production eKYC/AML, custodian reconciliation, invited clients, daily operations per the SOP.</li>
+    <li><strong>Phase 4 — Scale.</strong> More banks and brokers, regulatory reporting packs, recurring plans, mobile apps, disaster recovery.</li>
+  </ol>
+
+  <p class="footer-note">Internal document. Reflects the codebase at the date above; update with each release.</p>
+</div>
+</body>
+</html>

@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="robots" content="noindex, nofollow" />
+<title>Agyal · Operations SOP</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>{{STYLE}}
+.who { display: inline-block; font-size: 0.72rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; padding: 2px 8px; border-radius: 999px; background: #e3f1ea; color: var(--forest-deep); margin-inline-end: 4px; }
+.who.agyal { background: #f5ecd9; color: var(--bronze-text); }
+.who.client { background: var(--ivory-alt); color: var(--muted); }
+.stage { background: var(--white); border: 1px solid var(--border); border-radius: 14px; padding: 16px 20px; margin: 16px 0; break-inside: avoid; }
+.stage h3 { margin-top: 0; }
+.stage .ctl { font-size: 0.88rem; border-top: 1px dashed var(--border); padding-top: 8px; margin-top: 8px; color: var(--muted); }
+.stage .ctl strong { color: var(--danger); }
+</style>
+</head>
+<body>
+<button class="print-btn" onclick="window.print()">Print / Save as PDF</button>
+<div class="wrap">
+  <div class="doc-head">
+    <div class="brand"><span class="mark">A</span> Agyal <em>Egypt</em></div>
+    <div class="meta"><span class="tag internal">Internal — do not share</span><br />Operations SOP · version 1 · {{TODAY}}</div>
+  </div>
+  <h1>Operations SOP</h1>
+  <p class="muted">The client lifecycle end to end: who does what, in which screen, and the checks at each step. Applies to every broker on the platform. Broker staff act in the broker console; Agyal staff in the admin console.</p>
+
+  <h2>Roles</h2>
+  <table>
+    <thead><tr><th>Role</th><th>Owns</th><th>Must never</th></tr></thead>
+    <tbody>
+      <tr><td><span class="who">Compliance</span></td><td>Onboarding decisions, PEP/sanctions escalation, periodic reviews, answering Agyal flags.</td><td>Approve their own relative or a client they introduced.</td></tr>
+      <tr><td><span class="who">Operations</span></td><td>Unified codes and custody accounts, deposit matching, settlement confirmation, coupons and maturities.</td><td>Confirm a deposit without a matching bank-statement line.</td></tr>
+      <tr><td><span class="who">Dealer</span></td><td>Monitoring quotes and orders, bank rejections, trading hours.</td><td>Place orders on a client's behalf.</td></tr>
+      <tr><td><span class="who">Finance</span></td><td>Withdrawal approval and payment, ledger review, payouts of margins and custody fees.</td><td>Approve and pay the same withdrawal (maker-checker is enforced).</td></tr>
+      <tr><td><span class="who agyal">Agyal ops</span></td><td>Platform health, FIX sessions, cross-broker KYC/AML monitoring and flags, economics settings, audit review.</td><td>Approve or reject a client, or move client money.</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Daily checklist</h2>
+  <ul class="check">
+    <li><strong>08:30</strong> Agyal ops: admin → FIX — every bank session logged on; no stuck outbox messages.</li>
+    <li><strong>09:00</strong> Operations: download the client-money account statement; match deposits (Deposits screen).</li>
+    <li><strong>09:30</strong> Compliance: clear the compliance queue — Agyal flags first, then oldest applications.</li>
+    <li><strong>During market hours</strong> Dealer: watch Orders for rejections or quotes not answered.</li>
+    <li><strong>14:00</strong> Operations: confirm today's settlements against the custodian; confirm coupons and maturities due.</li>
+    <li><strong>15:00</strong> Finance: approve and pay withdrawals (payment by a second person).</li>
+    <li><strong>End of day</strong> Finance: Ledger screen — client money and securities reconcile to zero per currency and per ISIN.</li>
+  </ul>
+
+  <h2>Client lifecycle</h2>
+
+  <div class="stage">
+    <h3>1 · Onboarding</h3>
+    <p><span class="who client">Client</span> signs up with phone and email (SMS code), uploads national ID and selfie, answers suitability, accepts terms. <span class="who">System</span> runs eKYC and AML screening and applies the broker's auto-approval rules.</p>
+    <p><span class="who">Compliance</span> opens each queued application (Compliance screen): check face match and ID result, AML hits, risk rating, suitability. Decide <em>approve</em>, <em>request info</em> or <em>reject</em> with a note.</p>
+    <div class="ctl"><strong>Controls:</strong> every PEP goes to manual review; high risk needs a note; decisions are recorded against the named user. Target: decision within 1 business day. Agyal ops sees queue age in admin → KYC / AML and raises a <em>Review overdue</em> flag after 3 days.</div>
+  </div>
+
+  <div class="stage">
+    <h3>2 · Unified code and custody</h3>
+    <p><span class="who">Operations</span> (Unified codes screen) verifies the client's MCDR unified code, records the CBE (government papers) and MCDR (corporate) custody accounts. The client cannot trade until this is complete.</p>
+    <div class="ctl"><strong>Controls:</strong> the name on the unified code must match the verified ID; mismatches go back to compliance.</div>
+  </div>
+
+  <div class="stage">
+    <h3>3 · Deposits</h3>
+    <p><span class="who client">Client</span> transfers to the broker's segregated client account quoting their personal reference. <span class="who">Operations</span> matches the bank-statement line to the pending deposit and confirms; the client's cash balance updates immediately.</p>
+    <div class="ctl"><strong>Controls:</strong> amount and reference must match; transfers from a third party are returned, not credited; unmatched lines are investigated same day.</div>
+  </div>
+
+  <div class="stage">
+    <h3>4 · Trading</h3>
+    <p><span class="who client">Client</span> requests a live price; a FIX QuoteRequest goes to every partner bank. The best quote is shown with the full cost breakdown; the client confirms. Cash (buy) or holdings (sell) are reserved before the order is sent.</p>
+    <p><span class="who">Dealer</span> monitors Orders: bank rejections, expired quotes, partial fills. Escalate repeated rejections from one bank to Agyal ops.</p>
+    <div class="ctl"><strong>Controls:</strong> suitability limits the papers a client can buy; minimum rating A- for corporate paper; each fill posts to the ledger with broker margin, Agyal margin and custody fee booked separately.</div>
+  </div>
+
+  <div class="stage">
+    <h3>5 · Settlement</h3>
+    <p><span class="who">Operations</span> (Settlements screen) confirms each filled order once the custodian shows the paper registered to the client's code (buys) or delivered (sells). Sale proceeds become withdrawable only after settlement.</p>
+    <div class="ctl"><strong>Controls:</strong> any trade unsettled at T+2 is escalated to the bank and to Agyal ops.</div>
+  </div>
+
+  <div class="stage">
+    <h3>6 · Coupons and maturities</h3>
+    <p><span class="who">Operations</span> (Income screen) confirms each coupon or redemption after the custodian credits the broker. Clients are credited automatically, net of withholding tax; matured holdings close.</p>
+    <div class="ctl"><strong>Controls:</strong> total credited to clients plus tax withheld must equal the amount received from the custodian.</div>
+  </div>
+
+  <div class="stage">
+    <h3>7 · Withdrawals</h3>
+    <p><span class="who client">Client</span> requests a withdrawal to an IBAN in their own name, confirmed with an SMS code. <span class="who">Finance</span> approves; a <em>different</em> finance user marks it paid after the bank transfer.</p>
+    <div class="ctl"><strong>Controls:</strong> only settled cash is withdrawable; new or changed IBANs need a step-up code; the platform refuses approve and pay by the same user.</div>
+  </div>
+
+  <div class="stage">
+    <h3>8 · Margins and fees payout (monthly)</h3>
+    <p><span class="who">Finance</span> reviews the Economics screen: broker revenue, Agyal platform fee payable and custody fee payable. Pays Agyal and the custodian from the broker's own account — never from the client-money account.</p>
+    <div class="ctl"><strong>Controls:</strong> payable balances in the ledger must match the invoices.</div>
+  </div>
+
+  <div class="stage">
+    <h3>9 · Ongoing monitoring</h3>
+    <p><span class="who">Compliance</span> completes periodic reviews by the due date (set from the risk rating). <span class="who agyal">Agyal ops</span> reviews admin → KYC / AML and Audit log weekly and raises flags; the broker answers and resolves each flag in its Compliance screen.</p>
+    <div class="ctl"><strong>Controls:</strong> open flags older than 5 business days are escalated to the broker's compliance head.</div>
+  </div>
+
+  <h2>Incidents</h2>
+  <table>
+    <thead><tr><th>Situation</th><th>First response</th><th>Owner</th></tr></thead>
+    <tbody>
+      <tr><td>FIX session down</td><td>Check admin → FIX; contact the bank's FIX desk; clients see that live prices are temporarily unavailable.</td><td><span class="who agyal">Agyal ops</span></td></tr>
+      <tr><td>Ledger does not reconcile</td><td>Stop withdrawals for the broker; trace with the Data console 360° view and Audit log.</td><td><span class="who">Finance</span> + <span class="who agyal">Agyal ops</span></td></tr>
+      <tr><td>Suspected fraud or account takeover</td><td>Hold the client's pending withdrawals; review sign-ins and step-up codes in the 360° timeline; notify compliance.</td><td><span class="who">Compliance</span></td></tr>
+      <tr><td>Data protection incident</td><td>Contain, record in the incident log, notify the broker's DPO; regulator notification per Law 151/2020.</td><td><span class="who agyal">Agyal ops</span> + broker DPO</td></tr>
+    </tbody>
+  </table>
+
+  <p class="footer-note">Internal document. Timings are targets agreed per broker during the pilot. Screens named are those in the broker console and admin console.</p>
+</div>
+</body>
+</html>

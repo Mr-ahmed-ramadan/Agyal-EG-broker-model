@@ -26,6 +26,7 @@ import { ShowcaseModule } from './modules/showcase/showcase.module';
 import { ExperienceModule } from './modules/experience/experience.module';
 import { MonitoringModule } from './modules/monitoring/monitoring.module';
 import { PlatformDataModule } from './modules/platform-data/platform-data.module';
+import { DocumentsModule } from './modules/documents/documents.module';
 
 @Module({
   imports: [
@@ -51,6 +52,7 @@ import { PlatformDataModule } from './modules/platform-data/platform-data.module
     ExperienceModule,
     MonitoringModule,
     PlatformDataModule,
+    DocumentsModule,
   ],
   controllers: [HealthController],
   providers: [{ provide: APP_INTERCEPTOR, useClass: AuditInterceptor }],

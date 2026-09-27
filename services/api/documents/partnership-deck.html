@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="robots" content="noindex, nofollow" />
+<title>Agyal · Partnership proposal for brokerage firms</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=IBM+Plex+Sans+Arabic:wght@400;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>{{STYLE}}</style>
+</head>
+<body>
+<button class="print-btn" onclick="window.print()">Print / Save as PDF</button>
+<main class="deck">
+
+  <!-- 1 · Opener -->
+  <section class="slide dark">
+    <div class="brand" style="color:#fff"><span class="mark">A</span> Agyal <em style="color:var(--gold-soft)">Egypt</em></div>
+    <div class="body">
+      <div class="eyebrow">Partnership proposal · for licensed brokerage firms</div>
+      <h1>Offer treasury bills, bonds and sukuk to your clients — under your own brand, in weeks.</h1>
+      <p class="muted" style="font-size:1.15rem;max-width:760px">
+        You already hold the licence and the client relationships. Agyal gives you the technology: a branded app,
+        fully online onboarding, live prices from several banks, and the back office to run it. You stay the licensed party.
+      </p>
+    </div>
+    <span class="num">1 / 6</span>
+  </section>
+
+  <!-- 2 · Your questions, answered -->
+  <section class="slide">
+    <div class="eyebrow">Your questions, answered</div>
+    <h2>What brokers ask us first</h2>
+    <div class="body">
+      <div class="qa">
+        <div><strong>Do we need a technology team?</strong>No. We set up and run the platform. Your team works in a web console: compliance, operations, finance.</div>
+        <div><strong>Whose clients are they?</strong>Yours. Your brand, your licence, your client agreements. Agyal is a technology provider and never contracts with your clients.</div>
+        <div><strong>Where do the papers come from?</strong>From your partner banks. Every price request goes to all of them at once over FIX; the client gets the best price.</div>
+        <div><strong>Where is the client's money and paper?</strong>Cash in your segregated client account; papers registered to the client's own unified code at the CBE or MCDR.</div>
+        <div><strong>What does it cost us?</strong>No setup fee. The economics sit inside the yield (slide 4) — you earn on every trade from day one.</div>
+        <div><strong>How long to go live?</strong>A branded demo today; a pilot in about 8–12 weeks, mostly driven by bank connectivity and your approvals.</div>
+      </div>
+    </div>
+    <span class="num">2 / 6</span>
+  </section>
+
+  <!-- 3 · How it works -->
+  <section class="slide">
+    <div class="eyebrow">How it works</div>
+    <h2>From sign-up to settled trade, fully online</h2>
+    <div class="body">
+      <div class="cols">
+        <div class="card"><h3 style="margin-top:0">1 · Onboard</h3>
+          <p>National ID and selfie (eKYC), AML and PEP screening, suitability, MCDR unified code, e-signed agreements. Clean applications are approved by your rules; the rest go to your compliance queue.</p></div>
+        <div class="card"><h3 style="margin-top:0">2 · Price &amp; trade</h3>
+          <p>The client asks for a price; a FIX QuoteRequest goes to every partner bank. The best quote is shown with its full cost and what it earns to maturity. One tap sends the order.</p></div>
+        <div class="card"><h3 style="margin-top:0">3 · Run the book</h3>
+          <p>Double-entry ledger, settlement confirmation, coupons and maturities, withdrawals with maker-checker, statements and a complete audit trail — in your broker console.</p></div>
+      </div>
+      <p class="muted">T-bills, treasury bonds and sovereign sukuk, plus corporate bonds, bills and sukuk rated A- or better. Arabic and English, phone first.</p>
+    </div>
+    <span class="num">3 / 6</span>
+  </section>
+
+  <!-- 4 · Economics -->
+  <section class="slide">
+    <div class="eyebrow">Economics</div>
+    <h2>How your client's return is built — one-year bond, illustrative</h2>
+    <div class="body" style="grid-template-columns: minmax(0,1.1fr) minmax(0,1fr); align-items:center">
+      <table>
+        <tbody>
+          <tr><td>Market yield (auction or current valuation)</td><td class="num">{{MARKET_YIELD}}</td></tr>
+          <tr><td>Custody &amp; operations</td><td class="num">−{{CUSTODY}}</td></tr>
+          <tr><td><strong>Your margin (broker)</strong></td><td class="num"><strong>−{{BROKER_MARGIN}}</strong></td></tr>
+          <tr><td>Agyal margin (technology)</td><td class="num">−{{AGYAL_MARGIN}}</td></tr>
+          <tr class="sub"><td>Client yield before tax</td><td class="num">{{CLIENT_YIELD}}</td></tr>
+          <tr><td>Tax on the yield ({{TAX_RATE}})</td><td class="num">−{{TAX}}</td></tr>
+          <tr class="sub"><td>Client net yield</td><td class="num">{{NET_YIELD}}</td></tr>
+          <tr><td>Bank deposit, same term</td><td class="num">{{DEPOSIT_RATE}}</td></tr>
+          <tr class="good"><td>Your client is ahead by</td><td class="num">{{VS_DEPOSIT}}</td></tr>
+        </tbody>
+      </table>
+      <div>
+        <ul class="check">
+          <li>No setup fee, no monthly subscription during the pilot.</li>
+          <li>All margins are taken inside the yield and shown to the client — no hidden fees, no commission by default.</li>
+          <li>Each trade books your margin, Agyal's margin and custody separately in your ledger.</li>
+          <li>The client's net return is compared, like for like, with a bank deposit of the same term.</li>
+        </ul>
+        <p class="muted" style="font-size:0.85rem">Illustrative figures. Margins are agreed per broker; tax treatment to be confirmed by your tax adviser.</p>
+      </div>
+    </div>
+    <span class="num">4 / 6</span>
+  </section>
+
+  <!-- 5 · Live demo -->
+  <section class="slide dark">
+    <div class="eyebrow">See it live</div>
+    <h2>Scan to try it now</h2>
+    <div class="body">
+      <div class="cols">
+        <div class="demo-card">
+          <div class="qr">{{QR_CLIENT}}</div>
+          <h3>Client app</h3>
+          <p class="muted">Open an account, browse today's rates, see what a paper earns after tax.</p>
+          <a href="{{CLIENT_APP_URL}}">{{CLIENT_APP_URL}}</a>
+        </div>
+        <div class="demo-card">
+          <div class="qr">{{QR_BROKER}}</div>
+          <h3>Broker console</h3>
+          <p class="muted">Compliance queue, unified codes and custody, deposits, orders, settlements, ledger.</p>
+          <a href="{{BROKER_CONSOLE_URL}}">{{BROKER_CONSOLE_URL}}</a>
+        </div>
+      </div>
+      <p class="muted" style="text-align:center">Demo environment with simulated banks — no real money. We can brand it with your name, logo and colours before our next call.</p>
+    </div>
+    <span class="num">5 / 6</span>
+  </section>
+
+  <!-- 6 · Pilot path -->
+  <section class="slide">
+    <div class="eyebrow">Next steps</div>
+    <h2>A three-step path to your first live trade</h2>
+    <div class="body">
+      <ol class="steps">
+        <li><strong>Branded demo &amp; MOU — 2 weeks.</strong> Your brand on the demo, walkthrough with your compliance and operations leads, sign the memorandum of understanding.</li>
+        <li><strong>Pilot — 8 to 12 weeks.</strong> Connect one or two partner banks over FIX, your client-money and custody accounts, your eKYC/AML provider and SMS sender; invite a first group of clients.</li>
+        <li><strong>Launch.</strong> Open to all your clients, add banks and instruments, and review economics together after the first quarter.</li>
+      </ol>
+      <div class="callout green"><strong>What we need from you:</strong> a sponsor, a compliance and an operations contact, your bank relationships, and your approval of client-facing terms.</div>
+    </div>
+    <span class="num">6 / 6</span>
+  </section>
+
+</main>
+</body>
+</html>

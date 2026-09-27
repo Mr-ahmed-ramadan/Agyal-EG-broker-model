@@ -589,6 +589,42 @@ async function main() {
   await call('POST', '/public/contact', { body: lead, expect: 429 });
   console.log('✓ contact form: lead stored, bot ignored, invalid refused, rate limited');
 
+  // 13. Documents: per-recipient tracked links; every open is logged; nothing reachable without a token
+  const docList = await call('GET', '/admin/documents', { token: admin });
+  assert.equal(docList.length, 7);
+  await call('GET', '/admin/documents', { tenant: T, token: compliance, expect: 403 });
+  const recipientName = `Mona Adel ${run}`;
+  const dl = await call('POST', '/admin/documents/partnership-deck/links', { token: admin, body: { recipient: recipientName } });
+  const token = dl.url.split('/d/')[1];
+  const openDoc = async (tok: string, expect: number) => {
+    const res = await fetch(`${API}/d/${tok}`, { headers: { 'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X)', 'Accept-Language': 'ar-EG,ar;q=0.9' } });
+    const html = await res.text();
+    assert.equal(res.status, expect, `GET /d/${tok}`);
+    return html;
+  };
+  const deck = await openDoc(token, 200);
+  assert.ok(deck.includes('<svg') && !deck.includes('{{'), 'deck rendered with QR codes and every placeholder filled');
+  await openDoc(token, 200);
+  const docSummary = await call('GET', '/admin/documents/partnership-deck', { token: admin });
+  const mine = docSummary.recipients.find((r: Json) => r.recipient === recipientName);
+  assert.equal(mine.opens, 2, 'two opens counted for the recipient');
+  assert.ok(docSummary.recent.some((o: Json) => o.recipient === recipientName && o.lang === 'AR' && /iOS/.test(o.device)));
+  assert.ok(docSummary.recipients.some((r: Json) => r.recipient === null), 'general (unattributed) link exists');
+  await call('POST', `/admin/documents/links/${mine.linkId}/revoke`, { token: admin });
+  await openDoc(token, 404);
+  await openDoc('not-a-real-token-000000000000', 404);
+  for (const path of ['/documents/partnership-deck.html', '/partnership-deck.html', '/d/', '/documents/_style.css']) {
+    const res = await fetch(`${API}${path}`);
+    assert.ok(res.status === 404, `${path} is not reachable without a token (got ${res.status})`);
+  }
+  for (const d of docList) {
+    const res = await fetch(`${API}/admin/documents/${d.key}/preview`, { headers: { Authorization: `Bearer ${admin}` } });
+    const html = await res.text();
+    assert.equal(res.status, 200);
+    assert.ok(!html.includes('{{'), `${d.key}: every placeholder filled`);
+  }
+  console.log('✓ documents: tracked link opened twice (2 opens, lang and device logged), revoked and unknown links refused, no direct access');
+
   console.log('\nAll end-to-end checks passed.');
 }
 

@@ -3,6 +3,7 @@ import { api, getToken, setToken } from './api';
 import { AuditLogScreen } from './screens/AuditLogScreen';
 import { BrokersScreen } from './screens/BrokersScreen';
 import { DataConsoleScreen } from './screens/DataConsoleScreen';
+import { DocumentsScreen } from './screens/DocumentsScreen';
 import { EconomicsScreen } from './screens/EconomicsScreen';
 import { FixScreen } from './screens/FixScreen';
 import { InstrumentsScreen } from './screens/InstrumentsScreen';
@@ -19,6 +20,7 @@ const SCREENS = {
   kyc: { label: 'KYC / AML', el: KycAmlScreen },
   data: { label: 'Data console', el: DataConsoleScreen },
   audit: { label: 'Audit log', el: AuditLogScreen },
+  documents: { label: 'Documents', el: DocumentsScreen },
   instruments: { label: 'Instruments & rates', el: InstrumentsScreen },
   news: { label: 'News', el: NewsScreen },
   fix: { label: 'FIX monitor', el: FixScreen },

@@ -67,3 +67,20 @@ export async function download(path: string) {
   a.click();
   URL.revokeObjectURL(url);
 }
+
+/** Opens an authenticated HTML page (e.g. a document preview) in a new tab. */
+export async function openHtml(path: string) {
+  const tab = window.open('', '_blank');
+  const token = getToken();
+  try {
+    const res = await fetch(`${API_URL}${path}`, { headers: token ? { Authorization: `Bearer ${token}` } : {} }).catch(unreachable);
+    if (!res.ok) throw new ApiError(`Preview failed (${res.status})`, res.status);
+    const url = URL.createObjectURL(new Blob([await res.text()], { type: 'text/html' }));
+    if (tab) tab.location.href = url;
+    else window.location.href = url;
+    setTimeout(() => URL.revokeObjectURL(url), 60_000);
+  } catch (e) {
+    tab?.close();
+    throw e;
+  }
+}

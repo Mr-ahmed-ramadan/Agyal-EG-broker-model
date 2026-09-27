@@ -197,3 +197,10 @@ li.tl-ACTION, li.tl-SIGN_IN { border-color: var(--forest-tint); } li.tl-DATA { b
 .table-list { list-style: none; padding: 0; margin: 0; display: grid; gap: 2px; max-height: 75vh; overflow-y: auto; }
 .table-list button { width: 100%; text-align: start; border: 0; background: transparent; display: flex; justify-content: space-between; }
 .table-list button.on { background: var(--surface); box-shadow: var(--shadow-sm); font-weight: 600; }
+
+/* Documents */
+.doc-picker { display: grid; gap: 8px; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); margin: 12px 0; }
+.doc-picker .doc { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; text-align: start; padding: 10px 12px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-md, 10px); }
+.doc-picker .doc.on { border-color: var(--forest, var(--brand)); box-shadow: inset 3px 0 0 var(--forest, var(--brand)); }
+.doc-picker .doc strong { font-weight: 600; }
+.docs .scroll { overflow-x: auto; }

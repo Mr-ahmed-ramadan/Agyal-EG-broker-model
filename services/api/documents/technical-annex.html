@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="robots" content="noindex, nofollow" />
+<title>Agyal · Technical annex</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>{{STYLE}}
+.flow { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; align-items: stretch; margin: 12px 0 18px; }
+.flow div { background: var(--white); border: 1px solid var(--border); border-radius: 10px; padding: 10px; font-size: 0.85rem; text-align: center; }
+.flow div strong { display: block; font-family: var(--display); font-size: 1.1rem; color: var(--forest-deep); }
+@media (max-width: 760px) { .flow { grid-template-columns: 1fr; } }
+code { background: var(--ivory-alt); padding: 1px 5px; border-radius: 4px; font-size: 0.88em; }
+</style>
+</head>
+<body>
+<button class="print-btn" onclick="window.print()">Print / Save as PDF</button>
+<div class="wrap">
+  <div class="doc-head">
+    <div class="brand"><span class="mark">A</span> Agyal <em>Egypt</em></div>
+    <div class="meta"><span class="tag">Technical annex · shareable</span><br />Version 1 · {{TODAY}}</div>
+  </div>
+  <h1>Technical annex</h1>
+  <p class="muted">For the broker's IT, compliance and operations teams. Describes the platform, integrations, controls and what the broker provides. Contains no credentials.</p>
+
+  <h2>1. Architecture</h2>
+  <div class="flow">
+    <div><strong>Client app</strong>Broker-branded web app, Arabic/English, phone first</div>
+    <div><strong>Broker console</strong>Compliance, operations, finance, dealer roles</div>
+    <div><strong>Platform API</strong>Onboarding, pricing, orders, ledger, income, cash</div>
+    <div><strong>FIX gateway</strong>One FIX 4.4 session per partner bank</div>
+    <div><strong>Partner banks</strong>Quotes and executions over FIX</div>
+  </div>
+  <ul>
+    <li><strong>Multi-tenant by design:</strong> each broker's data is separated in the database itself (PostgreSQL row-level security), not only in application code.</li>
+    <li><strong>Reliable messaging:</strong> the API and the FIX gateway exchange messages through transactional outbox/inbox tables, so no order or execution is lost or processed twice.</li>
+    <li><strong>Double-entry ledger:</strong> every money and position movement is a balanced journal entry; client money and securities reconcile to zero per currency and per ISIN.</li>
+  </ul>
+
+  <h2>2. Trading over FIX 4.4</h2>
+  <table>
+    <thead><tr><th>Step</th><th>Message</th><th>What happens</th></tr></thead>
+    <tbody>
+      <tr><td>Price request</td><td><code>QuoteRequest (R)</code></td><td>Sent to every partner bank at once, with ISIN, side, nominal, settlement date, and the broker/client party IDs (NoPartyIDs).</td></tr>
+      <tr><td>Quotes</td><td><code>Quote (S)</code></td><td>Firm prices (percent of par) with validity; the platform applies the broker's economics and shows the client the best one.</td></tr>
+      <tr><td>Order</td><td><code>NewOrderSingle (D)</code>, OrdType D</td><td>Previously-quoted order against the chosen quote; cash or securities are reserved first.</td></tr>
+      <tr><td>Execution</td><td><code>ExecutionReport (8)</code></td><td>Drives the order state machine; each fill posts to the ledger. Duplicates are ignored by ExecID.</td></tr>
+      <tr><td>Rejections</td><td><code>QuoteRequestReject (AG)</code>, reject reports</td><td>Shown to operations; reservations are released.</td></tr>
+    </tbody>
+  </table>
+  <p>Per-bank rules of engagement (session IDs, party roles, trading hours, settlement conventions) are agreed with each bank and recorded before go-live. Certification with each bank's FIX team is part of the pilot.</p>
+
+  <h2>3. Onboarding and compliance</h2>
+  <ul>
+    <li><strong>Identity (eKYC):</strong> national ID and liveness check through a licensed provider agreed with the broker; results stored with the application.</li>
+    <li><strong>AML screening:</strong> PEP, sanctions and adverse-media screening; risk rating LOW/MEDIUM/HIGH.</li>
+    <li><strong>Suitability:</strong> investment horizon, loss tolerance and experience determine which paper types a client may buy.</li>
+    <li><strong>Unified code:</strong> the client's MCDR unified code is verified by the broker's operations, and CBE/MCDR custody accounts are recorded before the first trade.</li>
+    <li><strong>Decisions:</strong> the broker's auto-approval rules clear low-risk applications; all others (including every PEP) go to the broker's compliance queue. Every decision is recorded against a named user. Agyal monitors across brokers and can raise flags; it cannot approve or reject.</li>
+    <li><strong>Periodic review:</strong> review dates are set by risk rating and tracked.</li>
+  </ul>
+
+  <h2>4. Client money and settlement</h2>
+  <ul>
+    <li>Client cash sits only in the broker's segregated client account. Deposits are matched by a personal reference and confirmed by operations.</li>
+    <li>Buys reserve cash before the order; sale proceeds can be reinvested immediately but withdrawn only after the bank settles.</li>
+    <li>Withdrawals go only to an IBAN in the client's own name, are confirmed by an SMS code, approved by finance and paid by a different person (maker-checker).</li>
+    <li>Coupons and redemptions are confirmed by operations against the custodian; clients are credited net of withholding tax.</li>
+    <li>Custody, broker margin and Agyal margin are booked to separate accounts on each fill and paid out separately, so the client-money account always equals what clients own.</li>
+  </ul>
+
+  <h2>5. Security controls</h2>
+  <table>
+    <thead><tr><th>Area</th><th>Control</th></tr></thead>
+    <tbody>
+      <tr><td>Authentication</td><td>Password plus one-time SMS code on every sign-in; step-up codes for sensitive actions (bank account, withdrawals). Codes are hashed, expire in 5 minutes and are rate-limited.</td></tr>
+      <tr><td>Authorisation</td><td>Role-based access for broker staff (admin, compliance, operations, dealer, finance); tokens are bound to one broker.</td></tr>
+      <tr><td>Data separation</td><td>PostgreSQL row-level security per broker; platform-level access only for Agyal administrators.</td></tr>
+      <tr><td>Encryption</td><td>TLS in transit; national ID numbers encrypted at field level; only the last four digits are displayed.</td></tr>
+      <tr><td>Audit</td><td>Every state-changing request, sign-in attempt and administrator view of personal data is logged with user, IP and device; every data change is recorded by the database with before/after values. Secrets are never logged.</td></tr>
+      <tr><td>Change control</td><td>Code changes go through automated unit, integration and end-to-end tests before deployment.</td></tr>
+    </tbody>
+  </table>
+
+  <h2>6. Hosting and operations</h2>
+  <ul>
+    <li>Managed cloud hosting with automated deployments, daily database backups and health monitoring. Production hosting region and data-residency requirements are agreed with the broker in the definitive agreement.</li>
+    <li>Service levels (availability during Egyptian market hours, support response times, incident notification) are set out in the definitive agreement.</li>
+  </ul>
+
+  <h2>7. What the broker provides</h2>
+  <ul class="check">
+    <li>Named sponsor and compliance, operations and finance contacts.</li>
+    <li>Introductions to partner banks' FIX / e-trading desks and agreement of rules of engagement.</li>
+    <li>Segregated client-money account and custody account details (CBE, MCDR).</li>
+    <li>Choice of eKYC/AML provider and SMS sender name (or use of Agyal's contracted providers).</li>
+    <li>Client-facing documents: terms, risk disclosure, privacy notice, e-sign agreement.</li>
+    <li>Branding: name in Arabic and English, logo, colours, domain for the client app.</li>
+  </ul>
+
+  <p class="footer-note">Shareable technical summary. Detailed runbooks, credentials and environment settings are exchanged separately under the definitive agreement.</p>
+</div>
+</body>
+</html>

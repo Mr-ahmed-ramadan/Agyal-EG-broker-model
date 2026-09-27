@@ -78,6 +78,24 @@ The first end-to-end slice runs locally and in CI:
     withdrawals, coupons and a trial balance that nets to zero per currency
     and per ISIN. The admin console manages brokers, staff, bank links and
     instruments and monitors the FIX bridge.
+15. Agyal oversight in the admin console:
+    - **KYC / AML**: every broker's clients in one view (eKYC and AML results,
+      risk, queue age, overdue reviews). Agyal can raise a flag; it appears at
+      the top of that broker's compliance queue, and the broker responds and
+      resolves it. Agyal never approves or rejects.
+    - **Audit log**: every sign-in attempt, every change request and every
+      admin view of personal data (who, IP, device, outcome), plus every data
+      change recorded by the database itself with before/after values.
+      Filters and CSV export.
+    - **Data console** (read-only): browse any table with secrets masked, or
+      search a client, broker, order or ISIN for a 360° view with one merged
+      timeline of actions, data changes, ledger entries, FIX messages and
+      sign-ins.
+    - **Documents**: seven documents (partnership deck, speaker notes, draft
+      MOU, technical annex, investor pack, operations SOP, capability audit)
+      sent as per-recipient tracked links. The page shows who opened what and
+      when (language, device, IP). Links can be revoked. Every document
+      prints to PDF.
 
 Screenshots from an automated browser run are in
 [`docs/screenshots/`](docs/screenshots/).

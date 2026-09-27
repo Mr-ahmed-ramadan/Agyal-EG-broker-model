@@ -228,9 +228,19 @@ async function main() {
   const perUnit = new Map<string, number>();
   for (const r of tb) perUnit.set(r.unit, (perUnit.get(r.unit) ?? 0) + Number(r.rawSum));
   for (const [unit, total] of perUnit) assert.ok(Math.abs(total) < 0.005, `${unit} nets to zero`);
-  const revenue = -tb.filter((r: Json) => r.type === 'BROKER_REVENUE').reduce((s: number, r: Json) => s + Number(r.rawSum), 0);
-  assert.ok(revenue > 0, 'broker earned markup + commission');
-  console.log(`✓ trial balance nets to zero; broker revenue EGP ${revenue.toFixed(2)}`);
+  const owed = (type: string) => -tb.filter((r: Json) => r.type === type).reduce((s: number, r: Json) => s + Number(r.rawSum), 0);
+  const revenue = owed('BROKER_REVENUE');
+  const platformFee = owed('PLATFORM_FEE_PAYABLE');
+  const custodyFee = owed('CUSTODY_FEE_PAYABLE');
+  assert.ok(revenue > 0 && platformFee > 0 && custodyFee > 0, 'each fill splits the margin');
+  // Default economics: custody 5 bps, broker 50 bps, Agyal 100 bps of yield, no commission
+  const margin = revenue + platformFee + custodyFee;
+  assert.ok(Math.abs(platformFee / margin - 100 / 155) < 0.01, 'Agyal gets 100/155 of the margin');
+  assert.ok(Math.abs(custodyFee / margin - 5 / 155) < 0.01, 'custody gets 5/155 of the margin');
+  assert.equal(t1.best.commission, '0.00', 'no commission by default');
+  assert.equal(t1.best.returnBreakdown.detailed, true);
+  assert.equal(t1.best.returnBreakdown.platformMargin, 0.01);
+  console.log(`✓ trial balance nets to zero; margin split: broker EGP ${revenue.toFixed(2)}, Agyal EGP ${platformFee.toFixed(2)}, custody EGP ${custodyFee.toFixed(2)}`);
 
   // 8. Cash loop: unsettled proceeds can't leave; settlement; withdrawal with step-up + maker-checker; sweep
   const money = (v: string | number) => Number(v).toFixed(2);
@@ -303,19 +313,23 @@ async function main() {
   assert.equal(money(rev.unswept), money(revenue));
   await call('POST', '/broker/revenue/sweep', { tenant: T, token: finance, body: { amount: money(Number(rev.unswept) + 1), bankReference: 'SWEEP-X' }, expect: 400 });
   await call('POST', '/broker/revenue/sweep', { tenant: T, token: finance, body: { amount: rev.unswept, bankReference: 'SWEEP-1' } });
+  assert.equal(money(rev.platformFee), money(platformFee));
+  assert.equal(money(rev.custodyFee), money(custodyFee));
+  await call('POST', '/broker/revenue/sweep', { tenant: T, token: finance, body: { amount: rev.platformFee, bankReference: 'AGYAL-1', account: 'PLATFORM_FEE' } });
+  await call('POST', '/broker/revenue/sweep', { tenant: T, token: finance, body: { amount: rev.custodyFee, bankReference: 'CUST-1', account: 'CUSTODY_FEE' } });
 
   // The segregated account now holds exactly the clients' money; nothing owed to/by banks
   const tb2 = await call('GET', '/broker/ledger/trial-balance', { tenant: T, token: finance });
   const sum = (type: string) => tb2.filter((r: Json) => r.type === type).reduce((s: number, r: Json) => s + Number(r.rawSum), 0);
   assert.ok(Math.abs(sum('SETTLEMENT_PAYABLE')) < 0.005 && Math.abs(sum('SETTLEMENT_RECEIVABLE')) < 0.005);
-  assert.ok(Math.abs(sum('BROKER_REVENUE')) < 0.005);
+  for (const acc of ['BROKER_REVENUE', 'PLATFORM_FEE_PAYABLE', 'CUSTODY_FEE_PAYABLE']) assert.ok(Math.abs(sum(acc)) < 0.005, `${acc} paid out`);
   const clientMoney = sum('CLIENT_MONEY_BANK');
   const owedToClients = -(sum('CLIENT_CASH_AVAILABLE') + sum('CLIENT_CASH_RESERVED') + sum('CLIENT_CASH_PENDING_WITHDRAWAL'));
   assert.equal(money(clientMoney), money(owedToClients));
   // Independently: deposits - buys paid to banks + sales received from banks - withdrawals paid - revenue swept
   const bankFlows = pending.reduce((s: number, p: Json) => s + (p.side === 'SELL' ? 1 : -1) * Number(p.amount), 0);
-  assert.equal(money(clientMoney), money(250000 + bankFlows - 10000 - Number(rev.unswept)));
-  console.log(`✓ revenue swept; client-money account EGP ${money(clientMoney)} = cash owed to clients`);
+  assert.equal(money(clientMoney), money(250000 + bankFlows - 10000 - Number(rev.unswept) - Number(rev.platformFee) - Number(rev.custodyFee)));
+  console.log(`✓ broker revenue, Agyal fee and custody paid out; client-money account EGP ${money(clientMoney)} = cash owed to clients`);
 
 
   // 9. Coupons and maturity: admin adds a short-dated bond; client buys; ops confirm coupon then redemption
@@ -372,10 +386,11 @@ async function main() {
   });
   const bill = await trade('BUY', T, c.token, billIsin, '100000');
   const discount = 100000 - Number(bill.filled.price.principal);
-  const billTax = (Math.round(discount * 20) / 100).toFixed(2);
+  const near = (a: string, b: number, what: string) => assert.ok(Math.abs(Number(a) - b) <= 0.011, `${what}: ${a} vs ${b.toFixed(2)}`);
   const homeBefore = await call('GET', '/home', { tenant: T, token: c.token });
   const billPayment = homeBefore.upcoming.find((u: Json) => u.isin === billIsin);
-  assert.equal(billPayment.expectedTax, billTax, 'home shows the tax on the T-bill discount');
+  near(billPayment.expectedTax, discount * 0.2, 'home shows the tax on the T-bill discount');
+  const billTax = billPayment.expectedTax;
   const billDue = (await call('GET', '/broker/income', { tenant: T, token: ops })).find((e: Json) => e.isin === billIsin);
   assert.equal(billDue.totalTax, billTax);
   await call('POST', '/broker/income/confirm', {
@@ -384,6 +399,31 @@ async function main() {
   const billIncome = (await call('GET', '/income', { tenant: T, token: c.token })).received.find((r: Json) => r.isin === billIsin);
   assert.deepEqual([billIncome.gross, billIncome.tax, billIncome.net], ['100000.00', billTax, (100000 - Number(billTax)).toFixed(2)]);
   console.log(`✓ T-bill matured: EGP ${billTax} tax (20% of the EGP ${discount.toFixed(2)} discount) withheld`);
+
+  // Economics: admin raises this broker's margin; the next quote reflects it; deposit warning; reset
+  const econ = await call('GET', '/admin/economics', { token: admin });
+  assert.equal(econ.example.waterfall.clientYield, 0.2395);
+  assert.equal(econ.example.waterfall.netYield, 0.1916);
+  const before = await call('GET', '/instruments', { tenant: T });
+  const tb182 = (list: Json[]) => list.find((i: Json) => i.nameEn.startsWith('182-day'));
+  await call('PUT', `/admin/tenants/${T}/economics`, { token: admin, body: { brokerMarginBps: 400 }, expect: 400 }); // above the 3% limit
+  await call('PUT', `/admin/tenants/${T}/economics`, { token: admin, body: { brokerMarginBps: 80, depositRates: { UP_TO_6M: 0.3 } } });
+  const after = await call('GET', '/instruments', { tenant: T });
+  assert.equal(
+    (Number(tb182(before).indicativeYield) - Number(tb182(after).indicativeYield)).toFixed(4),
+    '0.0030',
+    'client yield drops by the extra 0.30% broker margin',
+  );
+  assert.equal(tb182(after).returnBreakdown.belowDeposit, true, 'net below a 30% deposit is flagged');
+  const brokerView = await call('GET', '/broker/economics', { tenant: T, token: finance });
+  assert.equal(brokerView.effective.brokerMarginBps, 80);
+  assert.ok(brokerView.papers.some((p: Json) => p.belowDeposit));
+  assert.ok(brokerView.months.length >= 1 && Number(brokerView.months[0].platformFee) > 0);
+  await call('DELETE', `/admin/tenants/${T}/economics`, { token: admin });
+  assert.equal((await call('GET', '/instruments', { tenant: T })).find((i: Json) => i.isin === tb182(before).isin).indicativeYield, tb182(before).indicativeYield);
+  const agyal = await call('GET', '/admin/revenue', { token: admin });
+  assert.ok(agyal.some((r: Json) => r.slug === T && Number(r.platformFee) > 0));
+  console.log('✓ economics: admin override changes client yields, deposit warning shown, reset restores defaults');
 
   // Statement and home page reflect the ledger
   const stmt = await call('GET', '/statement?from=2000-01-01', { tenant: T, token: c.token });
@@ -398,7 +438,7 @@ async function main() {
   assert.ok(couponLine, 'coupon on the statement');
   assert.deepEqual([couponLine.gross, couponLine.tax, couponLine.amount], ['200.00', '40.00', '160.00']);
   assert.equal(stmt.totals.deposits, '250000.00');
-  assert.ok(Number(stmt.totals.commissions) > 0);
+  assert.equal(stmt.totals.commissions, '0.00', 'no commission under the default economics');
   assert.ok(stmt.lines.every((l: Json) => l.kind !== 'OTHER'), 'no unexplained lines');
   const home = await call('GET', '/home', { tenant: T, token: c.token });
   pf = await call('GET', '/portfolio', { tenant: T, token: c.token });

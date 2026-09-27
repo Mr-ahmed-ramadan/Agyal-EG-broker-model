@@ -650,3 +650,13 @@ model Announcement {
 
   @@index([tenantId, publishedAt])
 }
+
+/// Platform-wide settings set by Agyal admins (e.g. key "economics": default
+/// custody, margins, commission, tax and deposit rates). Brokers override
+/// fields in Tenant.config.economics.
+model PlatformSetting {
+  key       String   @id
+  value     Json
+  updatedAt DateTime @updatedAt
+  updatedBy String?
+}

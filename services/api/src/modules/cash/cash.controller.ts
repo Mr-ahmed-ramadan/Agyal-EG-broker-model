@@ -12,7 +12,12 @@ const ConfirmSchema = z.object({ challengeId: z.string().uuid(), code: z.string(
 const RejectSchema = z.object({ reason: z.string().min(3) });
 const PaidSchema = z.object({ bankReference: z.string().min(3) });
 const SettleSchema = z.object({ reference: z.string().min(3) });
-const SweepSchema = z.object({ amount, bankReference: z.string().min(3) });
+const SweepSchema = z.object({
+  amount,
+  bankReference: z.string().min(3),
+  /** Which payable is paid out; default the broker's own revenue */
+  account: z.enum(['BROKER_REVENUE', 'PLATFORM_FEE', 'CUSTODY_FEE']).optional(),
+});
 
 /** Client cash: summary, bank account and withdrawals. Changes need an SMS step-up code. */
 @Controller()

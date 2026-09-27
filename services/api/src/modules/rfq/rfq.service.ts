@@ -17,10 +17,12 @@ import {
 } from '@agyal/shared-types';
 import { newId } from '../../common/crypto.util';
 import { DbService, type Tx } from '../../common/db.service';
-import { taxRateFor, tenantConfig } from '../../common/tenant-config';
+import { EconomicsService } from '../../common/economics.service';
+import { clientWaterfall } from '../../domain/economics';
 import { LedgerAccountType } from '../../domain/ledger-rules';
 import { isInstrumentSuitable } from '../../domain/onboarding-rules';
 import type { TradeSide } from '../../domain/pricing';
+import { daysBetween } from '../../domain/fixed-income';
 import { projectHolding } from '../../domain/projection';
 import { FixOutboxService } from '../bank-adapters/fix-outbox.service';
 import { InstrumentsService, pricingInstrument, yieldFromCleanPrice } from '../instruments/instruments.service';
@@ -58,6 +60,7 @@ export class RfqService {
     private readonly pricing: PricingService,
     private readonly outbox: FixOutboxService,
     private readonly ledger: LedgerService,
+    private readonly economics: EconomicsService,
   ) {}
 
   async create(tenant: Tenant, clientId: string, input: { side: TradeSide; isin: string; quantity: string }) {
@@ -143,19 +146,27 @@ export class RfqService {
       });
       const used = new Set(orders.map((o) => o.quoteId));
       const side = tradeSide(request.side);
-      const quotes = request.quotes
-        .filter((q) => q.validUntil > now && !used.has(q.id))
-        .flatMap((q) => {
-          const bankPx = bankPriceFor(q, side);
-          if (!bankPx) return [];
-          let p;
-          try {
-            p = this.pricing.price(tenant, side, instrument, bankPx, request.orderQty.toString(), request.settlDate);
-          } catch (err) {
-            this.log.warn(`Skipping unpriceable quote ${q.quoteId}: ${(err as Error).message}`);
-            return [];
-          }
-          // Clients only see their own price, never the bank price or markup (ADR 0008).
+      const economics = await this.economics.forTenant(tenant);
+      const rule = await this.pricing.rule(tenant);
+      const termDays = daysBetween(request.settlDate, instrument.maturityDate);
+      const priced = await Promise.all(
+        request.quotes
+          .filter((q) => q.validUntil > now && !used.has(q.id))
+          .map(async (q) => {
+            const bankPx = bankPriceFor(q, side);
+            if (!bankPx) return null;
+            try {
+              return { q, p: await this.pricing.price(tenant, side, instrument, bankPx, request.orderQty.toString(), request.settlDate, rule) };
+            } catch (err) {
+              this.log.warn(`Skipping unpriceable quote ${q.quoteId}: ${(err as Error).message}`);
+              return null;
+            }
+          }),
+      );
+      const quotes = priced
+        .filter((x): x is NonNullable<typeof x> => x !== null)
+        .flatMap(({ q, p }) => {
+          // Clients see their own price and, if the broker allows, how their yield is built (ADR 0008).
           // Buying: what this exact quote earns if held to maturity, after tax.
           const holdToMaturity =
             side === 'BUY'
@@ -166,9 +177,11 @@ export class RfqService {
                   clientCleanPx: Number(p.clientCleanPx),
                   nominal: request.orderQty.toString(),
                   rule: p.rule,
-                  taxRate: taxRateFor(tenantConfig(tenant.config), instrument.type),
+                  taxRate: economics.taxRates[instrument.type],
                 })
               : null;
+          const returnBreakdown =
+            side === 'BUY' ? clientWaterfall(economics, instrument.type, Number(p.bankYield), termDays) : null;
           return [{
             quoteId: q.id,
             validUntil: q.validUntil,
@@ -179,6 +192,7 @@ export class RfqService {
             commission: p.commission,
             netAmount: p.netAmount,
             holdToMaturity,
+            returnBreakdown,
           }];
         })
         .sort((a, b) =>

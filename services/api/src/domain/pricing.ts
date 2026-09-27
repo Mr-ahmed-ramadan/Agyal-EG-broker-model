@@ -24,9 +24,18 @@ export type TradeSide = 'BUY' | 'SELL';
 export type InstrumentType = 'TREASURY_BOND' | 'TREASURY_BILL' | 'CORPORATE_BOND' | 'SUKUK';
 
 export interface PricingRule {
+  /** Total yield deduction against the client (custody + broker + platform) */
   markupBps: number;
   commissionBps: number;
   commissionMin: string;
+  /** How the deduction splits (ADR 0008); absent on legacy rules = all broker */
+  split?: MarkupSplit;
+}
+
+export interface MarkupSplit {
+  custodyBps: number;
+  brokerMarginBps: number;
+  platformMarginBps: number;
 }
 
 /** Per-tenant pricing config, stored in Tenant.config.pricing. */

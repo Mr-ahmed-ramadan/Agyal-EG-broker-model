@@ -3,7 +3,8 @@ import Decimal from 'decimal.js';
 import { Side } from '@agyal/shared-types';
 import type { Tenant } from '@prisma/client';
 import { DbService, type Tx } from '../../common/db.service';
-import { taxRateFor, tenantConfig } from '../../common/tenant-config';
+import { EconomicsService } from '../../common/economics.service';
+import type { InstrumentType } from '../../domain/pricing';
 import { daysBetween, toUtcDate } from '../../domain/fixed-income';
 import { entitlementAmount, incomeSchedule, withholding } from '../../domain/income';
 import { billRedemptionTax } from '../../domain/projection';
@@ -41,6 +42,7 @@ export class ExperienceService {
     private readonly ledger: LedgerService,
     private readonly cash: CashService,
     private readonly income: IncomeService,
+    private readonly economics: EconomicsService,
   ) {}
 
   // --- Home -----------------------------------------------------------------------------------
@@ -60,7 +62,7 @@ export class ExperienceService {
         (s, r) => ({ net: s.net.plus(r.type === 'COUPON' ? r.net : 0), tax: s.tax.plus(r.tax) }),
         { net: new Decimal(0), tax: new Decimal(0) },
       );
-      const upcoming = this.upcomingPayments(tenant, holdings, today);
+      const upcoming = await this.upcomingPayments(tenant, holdings, today);
       const maturing = holdings.filter((h) => h.daysToMaturity <= 90).sort((a, b) => a.daysToMaturity - b.daysToMaturity);
 
       // Highlights: structured so the app can word them in the client's language.
@@ -82,7 +84,7 @@ export class ExperienceService {
           incomeReceivedNet: received.net.toFixed(2),
           taxWithheld: received.tax.toFixed(2),
         },
-        holdings: holdings.map((h) => ({ ...h, nominal: h.nominal.toFixed(2), cost: h.cost.toFixed(2) })),
+        holdings: holdings.map(({ avgPriceExact: _exact, ...h }) => ({ ...h, nominal: h.nominal.toFixed(2), cost: h.cost.toFixed(2) })),
         allocation: [...allocation].map(([type, cost]) => ({
           type,
           cost: cost.toFixed(2),
@@ -97,8 +99,8 @@ export class ExperienceService {
   }
 
   /** Expected payments on current holdings over the next 12 months, after tax. */
-  private upcomingPayments(tenant: Tenant, holdings: Awaited<ReturnType<ExperienceService['holdings']>>, today: Date) {
-    const config = tenantConfig(tenant.config);
+  private async upcomingPayments(tenant: Tenant, holdings: Awaited<ReturnType<ExperienceService['holdings']>>, today: Date) {
+    const config = await this.economics.forTenant(tenant);
     const until = new Date(today.getTime() + 366 * DAY);
     return holdings
       .flatMap((h) =>
@@ -108,9 +110,9 @@ export class ExperienceService {
           until,
         ).map((p) => {
           const gross = entitlementAmount(h.nominal, p.per100);
-          const rate = taxRateFor(config, h.type);
+          const rate = (config.taxRates[h.type as InstrumentType] ?? 0.2);
           const tax =
-            p.type === 'COUPON' ? withholding(gross, rate) : h.type === 'TREASURY_BILL' ? billRedemptionTax(h.nominal, h.avgPrice, rate) : new Decimal(0);
+            p.type === 'COUPON' ? withholding(gross, rate) : h.type === 'TREASURY_BILL' ? billRedemptionTax(h.nominal, h.avgPriceExact, rate) : new Decimal(0);
           return {
             isin: h.isin,
             type: p.type,
@@ -156,6 +158,8 @@ export class ExperienceService {
         daysToMaturity: Math.max(0, daysBetween(today, i.maturityDate)),
         nominal,
         avgPrice: avgPx.toDecimalPlaces(4).toString(),
+        /** Unrounded, so estimated tax matches what is withheld at maturity */
+        avgPriceExact: avgPx,
         cost: nominal.mul(avgPx).div(100).toDecimalPlaces(2),
       }];
     });

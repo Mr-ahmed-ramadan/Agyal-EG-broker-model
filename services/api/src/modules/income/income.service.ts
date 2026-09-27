@@ -4,7 +4,8 @@ import { Side } from '@agyal/shared-types';
 import type { Instrument, Tenant } from '@prisma/client';
 import { AuditService } from '../../common/audit.service';
 import { DbService, type Tx } from '../../common/db.service';
-import { taxRateFor, tenantConfig } from '../../common/tenant-config';
+import { EconomicsService } from '../../common/economics.service';
+import type { InstrumentType } from '../../domain/pricing';
 import { toUtcDate } from '../../domain/fixed-income';
 import {
   entitlementAmount,
@@ -52,17 +53,18 @@ export class IncomeService {
     private readonly db: DbService,
     private readonly ledger: LedgerService,
     private readonly audit: AuditService,
+    private readonly economics: EconomicsService,
   ) {}
 
   /** Broker ops: payments not yet confirmed, due or upcoming. */
   async pending(tenant: Tenant) {
-    const config = tenantConfig(tenant.config);
+    const config = await this.economics.forTenant(tenant);
     return this.db.forTenant(tenant.id, async (tx) => {
       const events = await this.projected(tx);
       const today = toUtcDate(new Date());
       const out = [];
       for (const e of events) {
-        const rate = taxRateFor(config, e.instrument.type);
+        const rate = (config.taxRates[e.instrument.type as InstrumentType] ?? 0.2);
         let gross = new Decimal(0);
         let tax = new Decimal(0);
         for (const h of e.holdings) {
@@ -92,7 +94,7 @@ export class IncomeService {
   /** Broker ops: confirm the issuer's payment was received; credits clients. Idempotent. */
   async confirm(tenant: Tenant, actorId: string, input: { isin: string; type: IncomeType; paymentDate: string; reference: string }) {
     const paymentDate = new Date(`${input.paymentDate}T00:00:00Z`);
-    const config = tenantConfig(tenant.config);
+    const config = await this.economics.forTenant(tenant);
     return this.db.forTenant(tenant.id, async (tx) => {
       const existing = await tx.incomeEvent.findUnique({
         where: { tenantId_isin_type_paymentDate: { tenantId: tenant.id, isin: input.isin, type: input.type, paymentDate } },
@@ -113,7 +115,7 @@ export class IncomeService {
         if (finalCoupon) throw new ConflictException('Confirm the final coupon before the redemption');
       }
 
-      const rate = taxRateFor(config, event.instrument.type);
+      const rate = (config.taxRates[event.instrument.type as InstrumentType] ?? 0.2);
       const lines = [];
       for (const h of event.holdings) {
         const gross = entitlementAmount(h.nominal, event.per100);
@@ -175,7 +177,7 @@ export class IncomeService {
 
   /** Client: upcoming payments on their holdings and income received. */
   async forClient(tenant: Tenant, clientId: string) {
-    const config = tenantConfig(tenant.config);
+    const config = await this.economics.forTenant(tenant);
     return this.db.forTenant(tenant.id, async (tx) => {
       const events = await this.projected(tx);
       const upcoming = [];
@@ -183,7 +185,7 @@ export class IncomeService {
         const h = e.holdings.find((x) => x.clientId === clientId);
         if (!h) continue;
         const gross = entitlementAmount(h.nominal, e.per100);
-        const tax = await this.taxOn(tx, e, h, gross, taxRateFor(config, e.instrument.type));
+        const tax = await this.taxOn(tx, e, h, gross, (config.taxRates[e.instrument.type as InstrumentType] ?? 0.2));
         upcoming.push({
           isin: e.instrument.isin,
           type: e.type,

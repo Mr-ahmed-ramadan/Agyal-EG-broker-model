@@ -98,3 +98,31 @@ describe('ledger rules', () => {
     for (const total of perUnit.values()) expect(total.isZero()).toBe(true);
   });
 });
+
+describe('margin split between custody, broker and platform', () => {
+  const split = { custodyBps: 5, brokerMarginBps: 50, platformMarginBps: 100 };
+  const sum = (lines: ReturnType<typeof buyFillEntry>, type: T) =>
+    lines.filter((l) => l.account.type === type).reduce((s, l) => s.plus(l.amount), new Decimal(0)).neg().toFixed(2);
+
+  it('splits a buy margin in proportion and leaves rounding with the broker', () => {
+    const lines = buyFillEntry({ clientId: 'c1', bankId: 'b1', isin: 'EGX', quantity: '100000', clientTotal: '95155.00', bankTotal: '95000.00', split });
+    expect(sum(lines, T.CUSTODY_FEE_PAYABLE)).toBe('5.00');
+    expect(sum(lines, T.PLATFORM_FEE_PAYABLE)).toBe('100.00');
+    expect(sum(lines, T.BROKER_REVENUE)).toBe('50.00');
+    const odd = buyFillEntry({ clientId: 'c1', bankId: 'b1', isin: 'EGX', quantity: '1000', clientTotal: '951.01', bankTotal: '950.00', split });
+    expect([sum(odd, T.CUSTODY_FEE_PAYABLE), sum(odd, T.PLATFORM_FEE_PAYABLE), sum(odd, T.BROKER_REVENUE)]).toEqual(['0.03', '0.65', '0.33']);
+  });
+
+  it('gives commission to the broker and splits a sell margin', () => {
+    const lines = sellFillEntry({ clientId: 'c1', bankId: 'b1', isin: 'EGX', quantity: '50000', clientTotal: '47400.00', bankTotal: '47580.00', commission: '25.00', split });
+    expect(sum(lines, T.CUSTODY_FEE_PAYABLE)).toBe('5.00');
+    expect(sum(lines, T.PLATFORM_FEE_PAYABLE)).toBe('100.00');
+    expect(sum(lines, T.BROKER_REVENUE)).toBe('75.00'); // 50 margin + 25 commission
+  });
+
+  it('books everything to the broker for legacy snapshots without a split', () => {
+    const lines = buyFillEntry({ clientId: 'c1', bankId: 'b1', isin: 'EGX', quantity: '1000', clientTotal: '960.00', bankTotal: '950.00' });
+    expect(sum(lines, T.BROKER_REVENUE)).toBe('10.00');
+    expect(lines.some((l) => l.account.type === T.PLATFORM_FEE_PAYABLE)).toBe(false);
+  });
+});

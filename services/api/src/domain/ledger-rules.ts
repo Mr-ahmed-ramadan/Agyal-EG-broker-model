@@ -22,8 +22,12 @@ export enum LedgerAccountType {
   SETTLEMENT_PAYABLE = 'SETTLEMENT_PAYABLE',
   /** Asset: amount a bank owes for executed sells until settlement */
   SETTLEMENT_RECEIVABLE = 'SETTLEMENT_RECEIVABLE',
-  /** Liability/equity: broker markup and commission earned */
+  /** Liability/equity: broker margin and commission earned */
   BROKER_REVENUE = 'BROKER_REVENUE',
+  /** Liability: platform (Agyal) margin owed to Agyal */
+  PLATFORM_FEE_PAYABLE = 'PLATFORM_FEE_PAYABLE',
+  /** Liability: custody and operational costs owed to the custodian */
+  CUSTODY_FEE_PAYABLE = 'CUSTODY_FEE_PAYABLE',
   /** Liability: tax withheld from client income, owed to the tax authority */
   TAX_WITHHELD_PAYABLE = 'TAX_WITHHELD_PAYABLE',
   /** Liability (nominal): securities held for a client, free to sell */
@@ -40,6 +44,8 @@ const CREDIT_NORMAL = new Set<LedgerAccountType>([
   LedgerAccountType.CLIENT_CASH_PENDING_WITHDRAWAL,
   LedgerAccountType.SETTLEMENT_PAYABLE,
   LedgerAccountType.BROKER_REVENUE,
+  LedgerAccountType.PLATFORM_FEE_PAYABLE,
+  LedgerAccountType.CUSTODY_FEE_PAYABLE,
   LedgerAccountType.TAX_WITHHELD_PAYABLE,
   LedgerAccountType.CLIENT_POSITION,
   LedgerAccountType.CLIENT_POSITION_RESERVED,
@@ -125,6 +131,34 @@ export interface FillAmounts {
   clientTotal: Decimal.Value;
   /** Buy: owed to the bank. Sell: owed by the bank (principal at bank price + accrued). */
   bankTotal: Decimal.Value;
+  /** Commission included in the difference (all to the broker) */
+  commission?: Decimal.Value;
+  /** How the yield margin splits; without it the whole difference is broker revenue */
+  split?: { custodyBps: number; brokerMarginBps: number; platformMarginBps: number };
+}
+
+/**
+ * Splits what the client pays over the bank (buy) or the bank pays over the
+ * client (sell) into custody, platform and broker parts. Commission goes to
+ * the broker; the margin splits in proportion to its basis points, rounded to
+ * piastres, with any rounding left with the broker.
+ */
+export function marginSplit(f: FillAmounts, side: 'BUY' | 'SELL'): PostingLine[] {
+  const client = new Decimal(f.clientTotal);
+  const bank = new Decimal(f.bankTotal);
+  const total = side === 'BUY' ? client.minus(bank) : bank.minus(client);
+  const commission = new Decimal(f.commission ?? 0);
+  const margin = total.minus(commission);
+  const s = f.split;
+  const bps = s ? s.custodyBps + s.brokerMarginBps + s.platformMarginBps : 0;
+  const part = (b: number) => (bps > 0 && margin.gt(0) ? margin.mul(b).div(bps).toDecimalPlaces(2, Decimal.ROUND_DOWN) : new Decimal(0));
+  const custody = s ? part(s.custodyBps) : new Decimal(0);
+  const platform = s ? part(s.platformMarginBps) : new Decimal(0);
+  const broker = total.minus(custody).minus(platform);
+  const lines: PostingLine[] = [{ account: cash(LedgerAccountType.BROKER_REVENUE), amount: broker.neg() }];
+  if (!platform.isZero()) lines.push({ account: cash(LedgerAccountType.PLATFORM_FEE_PAYABLE), amount: platform.neg() });
+  if (!custody.isZero()) lines.push({ account: cash(LedgerAccountType.CUSTODY_FEE_PAYABLE), amount: custody.neg() });
+  return lines;
 }
 
 /** A buy fill: consume reserved cash, owe the bank, book revenue and the position. */
@@ -135,7 +169,7 @@ export function buyFillEntry(f: FillAmounts): PostingLine[] {
   return validateEntry([
     { account: cash(LedgerAccountType.CLIENT_CASH_RESERVED, f.clientId), amount: clientTotal },
     { account: cash(LedgerAccountType.SETTLEMENT_PAYABLE, undefined, f.bankId), amount: bankTotal.neg() },
-    { account: cash(LedgerAccountType.BROKER_REVENUE), amount: bankTotal.minus(clientTotal) },
+    ...marginSplit(f, 'BUY'),
     {
       account: { type: LedgerAccountType.CLIENT_POSITION, unit: f.isin, clientId: f.clientId },
       amount: qty.neg(),
@@ -175,7 +209,7 @@ export function sellFillEntry(f: FillAmounts): PostingLine[] {
   return validateEntry([
     { account: cash(LedgerAccountType.SETTLEMENT_RECEIVABLE, undefined, f.bankId), amount: bankTotal },
     { account: cash(LedgerAccountType.CLIENT_CASH_AVAILABLE, f.clientId), amount: clientTotal.neg() },
-    { account: cash(LedgerAccountType.BROKER_REVENUE), amount: clientTotal.minus(bankTotal) },
+    ...marginSplit(f, 'SELL'),
     { account: position(LedgerAccountType.CLIENT_POSITION_RESERVED, f.isin, f.clientId), amount: qty },
     { account: position(LedgerAccountType.CUSTODY_POSITION, f.isin), amount: qty.neg() },
   ]);
@@ -239,10 +273,16 @@ export function withdrawalPaidEntry(clientId: string, amount: Decimal.Value): Po
  * client-money account into its own account, so the segregated account only
  * holds client money.
  */
-export function revenueSweepEntry(amount: Decimal.Value): PostingLine[] {
+/** Accounts whose balance leaves the client-money account when paid out. */
+export type PayoutAccount =
+  | LedgerAccountType.BROKER_REVENUE
+  | LedgerAccountType.PLATFORM_FEE_PAYABLE
+  | LedgerAccountType.CUSTODY_FEE_PAYABLE;
+
+export function revenueSweepEntry(amount: Decimal.Value, account: PayoutAccount = LedgerAccountType.BROKER_REVENUE): PostingLine[] {
   const a = positive(amount, 'Sweep amount');
   return validateEntry([
-    { account: cash(LedgerAccountType.BROKER_REVENUE), amount: a },
+    { account: cash(account), amount: a },
     { account: cash(LedgerAccountType.CLIENT_MONEY_BANK), amount: a.neg() },
   ]);
 }

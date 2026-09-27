@@ -16,6 +16,7 @@ import {
   buySettlementEntry,
   LedgerAccountType,
   revenueSweepEntry,
+  type PayoutAccount,
   sellSettlementEntry,
   withdrawableCash,
   withdrawalHoldEntry,
@@ -39,6 +40,13 @@ const SETTLEABLE = [OrdStatus.Filled, OrdStatus.Canceled, OrdStatus.Expired] as 
  * withdrawals with maker-checker payout, and sweeping broker revenue out of
  * the segregated client-money account.
  */
+export type PayoutKind = 'BROKER_REVENUE' | 'PLATFORM_FEE' | 'CUSTODY_FEE';
+const PAYOUT_ACCOUNTS: Record<PayoutKind, PayoutAccount> = {
+  BROKER_REVENUE: LedgerAccountType.BROKER_REVENUE,
+  PLATFORM_FEE: LedgerAccountType.PLATFORM_FEE_PAYABLE,
+  CUSTODY_FEE: LedgerAccountType.CUSTODY_FEE_PAYABLE,
+};
+
 @Injectable()
 export class CashService {
   constructor(
@@ -246,21 +254,34 @@ export class CashService {
 
   // --- Broker: revenue sweep ---------------------------------------------------------------------
 
+  /** What the client-money account still holds that isn't client money: broker revenue, Agyal's fee, custody costs. */
   async revenue(tenant: Tenant) {
-    return this.db.forTenant(tenant.id, async (tx) => ({
-      currency: 'EGP',
-      unswept: (await this.ledger.balance(tx, tenant.id, { type: LedgerAccountType.BROKER_REVENUE, unit: 'EGP' })).toFixed(2),
-    }));
+    return this.db.forTenant(tenant.id, async (tx) => {
+      const bal = async (type: PayoutAccount) => (await this.ledger.balance(tx, tenant.id, { type, unit: 'EGP' })).toFixed(2);
+      return {
+        currency: 'EGP',
+        unswept: await bal(LedgerAccountType.BROKER_REVENUE),
+        platformFee: await bal(LedgerAccountType.PLATFORM_FEE_PAYABLE),
+        custodyFee: await bal(LedgerAccountType.CUSTODY_FEE_PAYABLE),
+      };
+    });
   }
 
-  sweepRevenue(tenant: Tenant, actorId: string, input: { amount: string; bankReference: string }) {
+  /**
+   * Records a transfer out of the client-money account: the broker's revenue to
+   * its own account, Agyal's fee to Agyal, or custody costs to the custodian.
+   */
+  sweepRevenue(tenant: Tenant, actorId: string, input: { amount: string; bankReference: string; account?: PayoutKind }) {
+    const kind = input.account ?? 'BROKER_REVENUE';
+    const account = PAYOUT_ACCOUNTS[kind];
     return this.db.forTenant(tenant.id, async (tx) => {
-      const unswept = await this.ledger.balance(tx, tenant.id, { type: LedgerAccountType.BROKER_REVENUE, unit: 'EGP' });
+      const unswept = await this.ledger.balance(tx, tenant.id, { type: account, unit: 'EGP' });
       const amount = new Decimal(input.amount);
-      if (amount.gt(unswept)) throw new BadRequestException(`Only EGP ${unswept.toFixed(2)} of revenue is available to sweep`);
-      await this.ledger.post(tx, tenant.id, 'REVENUE_SWEEP', input.bankReference, revenueSweepEntry(amount), actorId);
-      await this.audit.record(tx, { tenantId: tenant.id, actorId, action: 'REVENUE_SWEPT', entity: 'Tenant', entityId: tenant.id, data: input });
-      return { swept: amount.toFixed(2) };
+      if (amount.gt(unswept)) throw new BadRequestException(`Only EGP ${unswept.toFixed(2)} is available to pay out`);
+      const eventType = kind === 'BROKER_REVENUE' ? 'REVENUE_SWEEP' : `${kind}_PAID`;
+      await this.ledger.post(tx, tenant.id, eventType, input.bankReference, revenueSweepEntry(amount, account), actorId);
+      await this.audit.record(tx, { tenantId: tenant.id, actorId, action: kind === 'BROKER_REVENUE' ? 'REVENUE_SWEPT' : `${kind}_PAID`, entity: 'Tenant', entityId: tenant.id, data: input });
+      return { swept: amount.toFixed(2), account: kind };
     });
   }
 

@@ -2,9 +2,11 @@ import { BadRequestException, Injectable, NotFoundException } from '@nestjs/comm
 import Decimal from 'decimal.js';
 import type { Instrument, Tenant } from '@prisma/client';
 import { DbService } from '../../common/db.service';
-import { taxRateFor, tenantConfig } from '../../common/tenant-config';
-import { addBusinessDays, bondYieldFromCleanPrice, tbillYieldFromPrice } from '../../domain/fixed-income';
-import { resolvePricingRule, type PricingInstrument } from '../../domain/pricing';
+import { EconomicsService } from '../../common/economics.service';
+import { tenantConfig } from '../../common/tenant-config';
+import { addBusinessDays, bondYieldFromCleanPrice, daysBetween, tbillYieldFromPrice } from '../../domain/fixed-income';
+import { clientWaterfall, waterfall, type Economics } from '../../domain/economics';
+import { type PricingInstrument } from '../../domain/pricing';
 import { clientPricePer100, nominalForAmount, projectHolding } from '../../domain/projection';
 
 export function pricingInstrument(i: Instrument): PricingInstrument {
@@ -25,11 +27,19 @@ export function yieldFromCleanPrice(i: Instrument, cleanPx: number, settle: Date
 
 @Injectable()
 export class InstrumentsService {
-  constructor(private readonly db: DbService) {}
+  constructor(
+    private readonly db: DbService,
+    private readonly economics: EconomicsService,
+  ) {}
 
-  /** Instruments this broker offers, with an indicative client yield (after the broker's markup). */
+  /**
+   * Instruments this broker offers, with an indicative client yield (after
+   * custody and margins), net yield after tax and the deposit comparison.
+   */
   async list(tenant: Tenant) {
     const config = tenantConfig(tenant.config);
+    const economics = await this.economics.forTenant(tenant);
+    const settle = addBusinessDays(new Date(), config.settlementDays);
     const instruments = await this.db.instrument.findMany({
       where: { type: { in: config.enabledInstrumentTypes as Instrument['type'][] }, maturityDate: { gt: new Date() } },
       orderBy: [{ type: 'asc' }, { maturityDate: 'asc' }],
@@ -39,12 +49,13 @@ export class InstrumentsService {
     );
     return instruments.map((i) => {
       const rate = rates.get(i.isin);
-      const clientYield = rate?.offerYield == null ? null : this.clientYield(tenant, i, Number(rate.offerYield));
+      const w = rate?.offerYield == null ? null : clientWaterfall(economics, i.type, Number(rate.offerYield), daysBetween(settle, i.maturityDate));
       return {
         ...i,
-        indicativeYield: clientYield == null ? null : clientYield.toFixed(6),
+        indicativeYield: w ? w.clientYield!.toFixed(6) : null,
         indicativeAsOf: rate?.asOf ?? null,
-        taxRate: taxRateFor(config, i.type),
+        taxRate: economics.taxRates[i.type],
+        returnBreakdown: w,
       };
     });
   }
@@ -58,11 +69,26 @@ export class InstrumentsService {
     return instrument;
   }
 
-  /** Bank offer yield less the broker's markup (a buyer's yield), never below zero. */
-  private clientYield(tenant: Tenant, i: Instrument, bankOfferYield: number): number {
-    const rule = resolvePricingRule(tenantConfig(tenant.config).pricing, i.type);
-    return Math.max(0, bankOfferYield - rule.markupBps / 10_000);
+  /**
+   * Broker/admin view: each offered paper's waterfall at today's indicative
+   * rate, flagging those where the client's net yield is below a deposit.
+   */
+  async economicsReport(tenant: Tenant, economics?: Economics) {
+    const config = tenantConfig(tenant.config);
+    const e = economics ?? (await this.economics.forTenant(tenant));
+    const settle = addBusinessDays(new Date(), config.settlementDays);
+    const instruments = await this.db.instrument.findMany({
+      where: { type: { in: config.enabledInstrumentTypes as Instrument['type'][] }, maturityDate: { gt: settle } },
+      orderBy: [{ type: 'asc' }, { maturityDate: 'asc' }],
+    });
+    const rates = new Map((await this.db.indicativeRate.findMany()).map((r) => [r.isin, r]));
+    return instruments.flatMap((i) => {
+      const r = rates.get(i.isin);
+      if (r?.offerYield == null) return [];
+      return [{ isin: i.isin, nameEn: i.nameEn, type: i.type, maturityDate: i.maturityDate, ...waterfall(e, i.type, Number(r.offerYield), daysBetween(settle, i.maturityDate)) }];
+    });
   }
+
 
   /**
    * "If you invest today" at the indicative rate: for an amount of money
@@ -71,12 +97,15 @@ export class InstrumentsService {
   async projection(tenant: Tenant, isin: string, q: { amount?: string; nominal?: string }) {
     const instrument = await this.byIsin(tenant, isin);
     const config = tenantConfig(tenant.config);
+    const economics = await this.economics.forTenant(tenant);
     const rate = await this.db.indicativeRate.findUnique({ where: { isin } });
     if (rate?.offerYield == null) throw new NotFoundException('No indicative rate for this paper yet');
     const settlDate = addBusinessDays(new Date(), config.settlementDays);
     if (settlDate >= instrument.maturityDate) throw new BadRequestException('This paper matures before settlement');
-    const rule = resolvePricingRule(config.pricing, instrument.type);
-    const clientYield = this.clientYield(tenant, instrument, Number(rate.offerYield));
+    const rule = await this.economics.rule(tenant);
+    const breakdown = clientWaterfall(economics, instrument.type, Number(rate.offerYield), daysBetween(settlDate, instrument.maturityDate));
+    const clientYield = breakdown.clientYield!;
+    const taxRate = economics.taxRates[instrument.type];
     const p = pricingInstrument(instrument);
 
     let nominal: Decimal | null;
@@ -95,9 +124,10 @@ export class InstrumentsService {
       isin,
       indicative: true,
       asOf: rate.asOf,
-      taxRate: taxRateFor(config, instrument.type),
+      taxRate,
       commissionRule: { bps: rule.commissionBps, min: rule.commissionMin },
-      ...projectHolding({ instrument: p, settlDate, clientYield, nominal, rule, taxRate: taxRateFor(config, instrument.type) }),
+      returnBreakdown: breakdown,
+      ...projectHolding({ instrument: p, settlDate, clientYield, nominal, rule, taxRate }),
     };
   }
 

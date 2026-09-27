@@ -22,7 +22,7 @@ import { AuditService } from '../../common/audit.service';
 import { newId } from '../../common/crypto.util';
 import { DbService, type Tx } from '../../common/db.service';
 import { tenantConfig } from '../../common/tenant-config';
-import {
+import { type FillAmounts,
   buyFillEntry,
   LedgerAccountType,
   positionReleaseEntry,
@@ -93,7 +93,7 @@ export class OrdersService {
       const bankPx = bankPriceFor(quote, side);
       if (!bankPx) throw new ConflictException('Quote has no price for this side');
       const quantity = request.orderQty.toString();
-      const price = this.pricing.price(tenant, side, instrument, bankPx, quantity, request.settlDate);
+      const price = await this.pricing.price(tenant, side, instrument, bankPx, quantity, request.settlDate);
 
       const clOrdId = newId('O');
       let reservedAmount = new Decimal(0);
@@ -276,7 +276,18 @@ export class OrdersService {
       const worse = side === 'BUY' ? lastPx.gt(snap.bankCleanPx.toString()) : lastPx.lt(snap.bankCleanPx.toString());
       if (worse) this.log.warn(`Order ${order.clOrdId} filled at a worse price than quoted`);
 
-      const fill = { clientId: order.clientId, bankId, isin: order.isin, quantity: qty, clientTotal: clientAmount, bankTotal };
+      // The quote's economics (custody / broker / platform split) are frozen in the price snapshot.
+      const split = (snap.pricingRule as { split?: FillAmounts['split'] } | null)?.split;
+      const fill: FillAmounts = {
+        clientId: order.clientId,
+        bankId,
+        isin: order.isin,
+        quantity: qty,
+        clientTotal: clientAmount,
+        bankTotal,
+        commission: commissionShare,
+        split,
+      };
       await this.ledger.post(
         tx,
         order.tenantId,

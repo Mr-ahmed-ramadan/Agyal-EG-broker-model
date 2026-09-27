@@ -3,6 +3,7 @@ import { api, getToken, setToken } from './api';
 import { ClientsScreen } from './screens/ClientsScreen';
 import { ComplianceScreen } from './screens/ComplianceScreen';
 import { DepositsScreen } from './screens/DepositsScreen';
+import { IncomeScreen } from './screens/IncomeScreen';
 import { LedgerScreen } from './screens/LedgerScreen';
 import { OrdersScreen } from './screens/OrdersScreen';
 import { SettlementsScreen } from './screens/SettlementsScreen';
@@ -16,6 +17,7 @@ const SCREENS = {
   clients: { label: 'Clients', roles: ['BROKER_COMPLIANCE', 'BROKER_OPS', 'BROKER_ADMIN'], el: ClientsScreen },
   orders: { label: 'Orders', roles: ['BROKER_DEALER', 'BROKER_OPS', 'BROKER_ADMIN', 'BROKER_COMPLIANCE'], el: OrdersScreen },
   settlements: { label: 'Settlements', roles: ['BROKER_OPS', 'BROKER_ADMIN'], el: SettlementsScreen },
+  income: { label: 'Coupons & maturities', roles: ['BROKER_OPS', 'BROKER_FINANCE', 'BROKER_ADMIN'], el: IncomeScreen },
   withdrawals: { label: 'Withdrawals', roles: ['BROKER_FINANCE', 'BROKER_OPS', 'BROKER_ADMIN'], el: WithdrawalsScreen },
   ledger: { label: 'Ledger', roles: ['BROKER_FINANCE', 'BROKER_OPS', 'BROKER_ADMIN'], el: LedgerScreen },
 } as const;

@@ -1,5 +1,6 @@
 import Decimal from 'decimal.js';
 import { describe, expect, it } from 'vitest';
+import { isValidIsin, withCheckDigit } from '../../src/domain/isin';
 import { holderMatchesClient, isValidEgyptianIban, maskIban, normaliseIban } from '../../src/domain/iban';
 import {
   buyFillEntry,
@@ -89,5 +90,15 @@ describe('IBAN', () => {
     expect(maskIban('EG380019000500000000263180002')).toBe('EG38 •••• •••• 0002');
     expect(holderMatchesClient('  nour   HASSAN ', 'Nour Hassan')).toBe(true);
     expect(holderMatchesClient('Someone Else', 'Nour Hassan')).toBe(false);
+  });
+});
+
+
+describe('ISIN', () => {
+  it('validates check digits', () => {
+    expect(isValidIsin('US0378331005')).toBe(true); // Apple
+    expect(isValidIsin('US0378331006')).toBe(false);
+    expect(isValidIsin(withCheckDigit('EGT91DEMO01'))).toBe(true);
+    expect(isValidIsin('eg123')).toBe(false);
   });
 });

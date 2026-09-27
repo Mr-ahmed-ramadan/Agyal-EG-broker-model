@@ -8,6 +8,7 @@
  */
 import assert from 'node:assert/strict';
 import { PrismaClient } from '@prisma/client';
+import { withCheckDigit } from '../../src/domain/isin';
 
 const API = process.env.API_URL ?? 'http://localhost:3000';
 const PASSWORD = 'Demo-Pass-2026!';
@@ -299,7 +300,52 @@ async function main() {
   assert.equal(money(clientMoney), money(250000 + bankFlows - 10000 - Number(rev.unswept)));
   console.log(`✓ revenue swept; client-money account EGP ${money(clientMoney)} = cash owed to clients`);
 
-  // 9. Manual compliance path: a PEP goes to the queue and is approved by compliance
+
+  // 9. Coupons and maturity: admin adds a short-dated bond; client buys; ops confirm coupon then redemption
+  const admin = await login(undefined, 'admin@agyal.local');
+  const shortIsin = withCheckDigit(`EGS${run.slice(-7).toUpperCase().padStart(7, '0')}1`);
+  const maturity = new Date(Date.now() + 10 * 86_400_000).toISOString().slice(0, 10);
+  await call('POST', '/admin/instruments', {
+    token: admin,
+    body: {
+      isin: shortIsin.slice(0, 11) + ((Number(shortIsin[11]) + 1) % 10), type: 'CORPORATE_BOND', issuer: 'Demo Leasing Co.',
+      nameEn: 'Short test bond', nameAr: 'سند اختبار قصير', couponRate: '0.24', couponFreq: 12,
+      maturityDate: maturity, depository: 'MCDR', minQty: '1000', qtyIncrement: '1000',
+    },
+    expect: 400, // wrong check digit
+  });
+  await call('POST', '/admin/instruments', {
+    token: admin,
+    body: {
+      isin: shortIsin, type: 'CORPORATE_BOND', issuer: 'Demo Leasing Co.', nameEn: 'Short test bond', nameAr: 'سند اختبار قصير',
+      couponRate: '0.24', couponFreq: 12, maturityDate: maturity, depository: 'MCDR', minQty: '1000', qtyIncrement: '1000',
+    },
+  });
+  await trade('BUY', T, c.token, shortIsin, '10000');
+  const cashBeforeIncome = Number((await call('GET', '/cash', { tenant: T, token: c.token })).available);
+  const due = (await call('GET', '/broker/income', { tenant: T, token: ops })).filter((e: Json) => e.isin === shortIsin);
+  assert.deepEqual(due.map((e: Json) => e.type), ['COUPON', 'REDEMPTION'], 'only the final coupon and redemption (earlier coupons predate the purchase)');
+  assert.equal(due[0].totalGross, '200.00'); // 10,000 x 24% / 12
+  assert.equal(due[1].totalGross, '10000.00');
+  const conf = (type: string, expect?: number) =>
+    call('POST', '/broker/income/confirm', { tenant: T, token: ops, body: { isin: shortIsin, type, paymentDate: maturity, reference: `CUST-${type}` }, expect });
+  await conf('REDEMPTION', 409); // final coupon first
+  assert.equal((await conf('COUPON')).totalGross, '200.00');
+  assert.equal((await conf('COUPON')).alreadyConfirmed, true);
+  await conf('REDEMPTION');
+  const inc = await call('GET', '/income', { tenant: T, token: c.token });
+  assert.deepEqual(inc.received.map((r: Json) => [r.type, r.net]).sort(), [['COUPON', '200.00'], ['REDEMPTION', '10000.00']]);
+  assert.equal(inc.upcoming.filter((u: Json) => u.isin === shortIsin).length, 0);
+  pf = await call('GET', '/portfolio', { tenant: T, token: c.token });
+  assert.ok(!pf.positions.some((p: Json) => p.isin === shortIsin), 'matured bond leaves the portfolio');
+  assert.equal(money((await call('GET', '/cash', { tenant: T, token: c.token })).available), money(cashBeforeIncome + 10200));
+  const tb3 = await call('GET', '/broker/ledger/trial-balance', { tenant: T, token: finance });
+  const perUnit3 = new Map<string, number>();
+  for (const r of tb3) perUnit3.set(r.unit, (perUnit3.get(r.unit) ?? 0) + Number(r.rawSum));
+  for (const [unit, total] of perUnit3) assert.ok(Math.abs(total) < 0.005, `${unit} nets to zero after income`);
+  console.log('✓ admin-added bond paid its final coupon (EGP 200) and matured (EGP 10,000); position closed');
+
+  // 10. Manual compliance path: a PEP goes to the queue and is approved by compliance
   const pep = await onboardClient(T, 'Minister Example', '28505151234561', true);
   assert.equal(pep.submitted.status, 'PENDING_APPROVAL');
   const queue = await call('GET', '/broker/compliance/queue', { tenant: T, token: compliance });
@@ -313,8 +359,7 @@ async function main() {
   assert.equal(status.clientStatus, 'ACTIVE');
   console.log('✓ PEP routed to compliance queue and approved');
 
-  // 10. Tenant isolation: a second broker cannot see the first broker's data
-  const admin = await login(undefined, 'admin@agyal.local');
+  // 11. Tenant isolation: a second broker cannot see the first broker's data
   const slug = `other-${run}`;
   await call('POST', '/admin/tenants', {
     token: admin,

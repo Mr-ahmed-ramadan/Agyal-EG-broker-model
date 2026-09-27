@@ -10,6 +10,11 @@ export interface TenantConfig {
   settlementDays: number;
   /** Extra cash reserved on top of the quoted total, in bps of principal */
   reserveBufferBps: number;
+  /**
+   * Tax withheld from coupons, as a fraction (0.2 = 20%). Default 0 until the
+   * broker's tax adviser confirms the rule per instrument and client type.
+   */
+  couponWithholdingRate: number;
 }
 
 export const DEFAULT_TENANT_CONFIG: TenantConfig = {
@@ -22,6 +27,7 @@ export const DEFAULT_TENANT_CONFIG: TenantConfig = {
   autoApproval: { enabled: true, maxRiskRating: 'LOW', version: 'default-v1' },
   settlementDays: 1,
   reserveBufferBps: 10,
+  couponWithholdingRate: 0,
 };
 
 export function tenantConfig(raw: unknown): TenantConfig {

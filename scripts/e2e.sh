@@ -9,6 +9,8 @@ export DATABASE_URL="${DATABASE_URL:-postgresql://agyal:agyal@localhost:5432/agy
 export PORT="${PORT:-3000}"
 # Return OTP codes in API responses so the test can complete sign-in (never in production).
 export OTP_DEV_ECHO=true
+# Allow confirming coupons/redemptions before their payment date (demo/testing only).
+export DEMO_MODE=true
 export API_URL="http://localhost:${PORT}"
 LOG_DIR="$(mktemp -d)"
 PIDS=()

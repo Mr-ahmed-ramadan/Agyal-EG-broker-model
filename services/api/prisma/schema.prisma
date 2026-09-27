@@ -115,6 +115,7 @@ model Client {
   orders          Order[]
   bankAccounts    ClientBankAccount[]
   withdrawals     Withdrawal[]
+  incomes         IncomeEntitlement[]
 
   @@unique([tenantId, depositReference])
   @@index([tenantId, status])
@@ -211,6 +212,44 @@ model Withdrawal {
   bankAccount ClientBankAccount @relation(fields: [bankAccountId], references: [id])
 
   @@index([tenantId, status])
+}
+
+/// A coupon or redemption received from the issuer and paid to clients (ADR 0007).
+model IncomeEvent {
+  id          String   @id @default(uuid())
+  tenantId    String
+  isin        String
+  /// COUPON or REDEMPTION
+  type        String
+  paymentDate DateTime
+  /// Cash per 100 of face value
+  per100      Decimal  @db.Decimal(18, 8)
+  totalGross  Decimal  @db.Decimal(20, 2)
+  totalTax    Decimal  @db.Decimal(20, 2)
+  /// Custodian / CBE payment reference
+  reference   String
+  confirmedById String
+  confirmedAt DateTime @default(now())
+
+  entitlements IncomeEntitlement[]
+
+  @@unique([tenantId, isin, type, paymentDate])
+}
+
+model IncomeEntitlement {
+  id       String  @id @default(uuid())
+  tenantId String
+  eventId  String
+  clientId String
+  nominal  Decimal @db.Decimal(20, 2)
+  gross    Decimal @db.Decimal(20, 2)
+  tax      Decimal @db.Decimal(20, 2)
+  net      Decimal @db.Decimal(20, 2)
+
+  event  IncomeEvent @relation(fields: [eventId], references: [id])
+  client Client      @relation(fields: [clientId], references: [id])
+
+  @@index([clientId])
 }
 
 // ---------------------------------------------------------------------------

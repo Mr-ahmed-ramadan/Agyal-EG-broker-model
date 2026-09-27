@@ -1,33 +1,30 @@
 /**
- * Local development seed: one Agyal operator, one demo broker with staff,
- * two simulated FIX banks, and demo instruments. Idempotent.
+ * Seed: one Agyal operator, one demo broker, two simulated FIX banks and demo
+ * instruments; optionally demo staff. Idempotent.
  *
- * All names, ISINs and passwords here are demo data for local use only.
+ * Environment (all optional locally; set them for a hosted demo):
+ *   ADMIN_EMAIL, ADMIN_MOBILE, ADMIN_PASSWORD  platform admin sign-in
+ *   SEED_DEMO_STAFF=false                       skip the *@demo-broker.example
+ *                                               staff (add real staff in the
+ *                                               admin console instead)
+ *
+ * Names and ISINs are demo data.
  */
 import { Prisma, PrismaClient } from '@prisma/client';
 import { hashPassword } from '../src/common/crypto.util';
 import { DEFAULT_TENANT_CONFIG } from '../src/common/tenant-config';
+import { withCheckDigit as isin } from '../src/domain/isin';
 
 const prisma = new PrismaClient();
 
 export const DEMO_PASSWORD = 'Demo-Pass-2026!';
+const ADMIN_EMAIL = (process.env.ADMIN_EMAIL ?? 'admin@agyal.local').toLowerCase();
+const ADMIN_MOBILE = process.env.ADMIN_MOBILE ?? '01000000000';
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD ?? DEMO_PASSWORD;
+const SEED_DEMO_STAFF = process.env.SEED_DEMO_STAFF !== 'false';
 
-/** ISIN check digit (ISO 6166): letters to numbers, then Luhn. */
-function isin(prefix11: string): string {
-  const digits = prefix11
-    .split('')
-    .map((c) => (/[A-Z]/.test(c) ? String(c.charCodeAt(0) - 55) : c))
-    .join('');
-  let sum = 0;
-  for (let i = 0; i < digits.length; i++) {
-    let d = Number(digits[digits.length - 1 - i]);
-    if (i % 2 === 0) {
-      d *= 2;
-      if (d > 9) d -= 9;
-    }
-    sum += d;
-  }
-  return prefix11 + String((10 - (sum % 10)) % 10);
+if (process.env.NODE_ENV === 'production' && !process.env.ADMIN_PASSWORD) {
+  throw new Error('Set ADMIN_PASSWORD (and ADMIN_EMAIL, ADMIN_MOBILE) to seed a hosted environment');
 }
 
 function inDays(days: number): Date {
@@ -42,14 +39,13 @@ function inYears(years: number): Date {
 
 async function main() {
   // --- Platform operator ------------------------------------------------------------
-  const adminEmail = 'admin@agyal.local';
-  if (!(await prisma.user.findFirst({ where: { tenantId: null, email: adminEmail } }))) {
+  if (!(await prisma.user.findFirst({ where: { tenantId: null, email: ADMIN_EMAIL } }))) {
     await prisma.user.create({
       data: {
-        email: adminEmail,
-        mobile: '01000000000',
+        email: ADMIN_EMAIL,
+        mobile: ADMIN_MOBILE,
         mobileVerifiedAt: new Date(),
-        passwordHash: hashPassword(DEMO_PASSWORD),
+        passwordHash: hashPassword(ADMIN_PASSWORD),
         roles: ['PLATFORM_ADMIN'],
       },
     });
@@ -96,7 +92,7 @@ async function main() {
     { email: 'dealer@demo-broker.example', mobile: '01000000004', roles: ['BROKER_DEALER'] },
     { email: 'finance@demo-broker.example', mobile: '01000000005', roles: ['BROKER_FINANCE'] },
   ];
-  for (const s of staff) {
+  for (const s of SEED_DEMO_STAFF ? staff : []) {
     await prisma.user.upsert({
       where: { tenantId_email: { tenantId: tenant.id, email: s.email } },
       create: {
@@ -153,7 +149,8 @@ async function main() {
   }
 
   console.log(`Seeded tenant ${tenant.slug}, ${banks.length} banks, ${instruments.length} instruments.`);
-  console.log(`Demo password for all seeded users: ${DEMO_PASSWORD}`);
+  console.log(`Platform admin: ${ADMIN_EMAIL}`);
+  if (SEED_DEMO_STAFF) console.log(`Demo staff seeded; demo password: ${DEMO_PASSWORD}`);
 }
 
 main()

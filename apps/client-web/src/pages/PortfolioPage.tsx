@@ -19,6 +19,11 @@ interface CashSummary {
   withdrawable: string;
 }
 
+interface IncomeView {
+  upcoming: { isin: string; type: 'COUPON' | 'REDEMPTION'; paymentDate: string; expectedNet: string }[];
+  received: { isin: string; type: 'COUPON' | 'REDEMPTION'; paymentDate: string; net: string }[];
+}
+
 interface Withdrawal {
   id: string;
   amount: string;
@@ -47,6 +52,7 @@ export function PortfolioPage({ depositReference }: { depositReference: string }
   const [withdrawing, setWithdrawing] = useState(false);
   const [cash, setCash] = useState<CashSummary | null>(null);
   const [withdrawals, setWithdrawals] = useState<Withdrawal[]>([]);
+  const [income, setIncome] = useState<IncomeView | null>(null);
   const [reload, setReload] = useState(0);
 
   useEffect(() => {
@@ -55,6 +61,7 @@ export function PortfolioPage({ depositReference }: { depositReference: string }
       api<Order[]>('GET', '/orders').then(setOrders);
       api<CashSummary>('GET', '/cash').then(setCash);
       api<Withdrawal[]>('GET', '/withdrawals').then(setWithdrawals);
+      api<IncomeView>('GET', '/income').then(setIncome);
     };
     load();
     api<Instrument[]>('GET', '/instruments').then((list) =>
@@ -132,6 +139,17 @@ export function PortfolioPage({ depositReference }: { depositReference: string }
                   <strong>{name(p.isin)}</strong>
                   <span className="meta muted">
                     <span>{nominal(p.nominal, locale)}</span>
+                    {(() => {
+                      const next = income?.upcoming.find((u) => u.isin === p.isin);
+                      return next ? (
+                        <>
+                          <span>
+                            {t('nextPayment')}: {date(next.paymentDate, locale)}
+                          </span>
+                          <span>{money(next.expectedNet, locale)}</span>
+                        </>
+                      ) : null;
+                    })()}
                     {Number(p.reservedForSale) > 0 ? (
                       <span>
                         {nominal(p.reservedForSale, locale)} {t('reservedForSale')}
@@ -148,6 +166,25 @@ export function PortfolioPage({ depositReference }: { depositReference: string }
             );
           })}
         </ul>
+        {income?.received.length ? (
+          <>
+            <h2>{t('income')}</h2>
+            <ul className="list">
+              {income.received.map((r, i) => (
+                <li key={i} className="row static">
+                  <span>
+                    <strong>{name(r.isin)}</strong>
+                    <span className="meta muted">
+                      <span>{t(`inc_${r.type}`)}</span>
+                      <span>{date(r.paymentDate, locale)}</span>
+                    </span>
+                  </span>
+                  <span>{money(r.net, locale)}</span>
+                </li>
+              ))}
+            </ul>
+          </>
+        ) : null}
         <h2>{t('orders')}</h2>
         {orders.length === 0 ? <p className="muted">{t('noOrders')}</p> : null}
         <ul className="list">

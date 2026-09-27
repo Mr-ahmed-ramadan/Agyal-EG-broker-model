@@ -24,6 +24,8 @@ export enum LedgerAccountType {
   SETTLEMENT_RECEIVABLE = 'SETTLEMENT_RECEIVABLE',
   /** Liability/equity: broker markup and commission earned */
   BROKER_REVENUE = 'BROKER_REVENUE',
+  /** Liability: tax withheld from client income, owed to the tax authority */
+  TAX_WITHHELD_PAYABLE = 'TAX_WITHHELD_PAYABLE',
   /** Liability (nominal): securities held for a client, free to sell */
   CLIENT_POSITION = 'CLIENT_POSITION',
   /** Liability (nominal): client securities earmarked for open sell orders */
@@ -38,6 +40,7 @@ const CREDIT_NORMAL = new Set<LedgerAccountType>([
   LedgerAccountType.CLIENT_CASH_PENDING_WITHDRAWAL,
   LedgerAccountType.SETTLEMENT_PAYABLE,
   LedgerAccountType.BROKER_REVENUE,
+  LedgerAccountType.TAX_WITHHELD_PAYABLE,
   LedgerAccountType.CLIENT_POSITION,
   LedgerAccountType.CLIENT_POSITION_RESERVED,
 ]);
@@ -250,4 +253,42 @@ export function revenueSweepEntry(amount: Decimal.Value): PostingLine[] {
  */
 export function withdrawableCash(available: Decimal.Value, unsettledSaleProceeds: Decimal.Value): Decimal {
   return Decimal.max(0, new Decimal(available).minus(unsettledSaleProceeds));
+}
+
+export interface IncomeLine {
+  clientId: string;
+  /** Gross cash for this client */
+  gross: Decimal.Value;
+  /** Tax withheld (coupons only) */
+  tax?: Decimal.Value;
+  /** Redemption only: nominal to close */
+  nominal?: Decimal.Value;
+}
+
+/**
+ * Income received from the issuer (via custodian/CBE) into the segregated
+ * account and credited to clients net of any withholding tax. A redemption
+ * also closes the clients' positions and the custody position.
+ */
+export function incomeReceivedEntry(isin: string, lines: IncomeLine[], redemption: boolean): PostingLine[] {
+  const out: PostingLine[] = [];
+  let total = new Decimal(0);
+  let taxTotal = new Decimal(0);
+  let nominalTotal = new Decimal(0);
+  for (const l of lines) {
+    const gross = positive(l.gross, 'Income');
+    const tax = new Decimal(l.tax ?? 0);
+    total = total.plus(gross);
+    taxTotal = taxTotal.plus(tax);
+    out.push({ account: cash(LedgerAccountType.CLIENT_CASH_AVAILABLE, l.clientId), amount: gross.minus(tax).neg() });
+    if (redemption) {
+      const nominal = positive(l.nominal ?? 0, 'Redeemed nominal');
+      nominalTotal = nominalTotal.plus(nominal);
+      out.push({ account: position(LedgerAccountType.CLIENT_POSITION, isin, l.clientId), amount: nominal });
+    }
+  }
+  out.push({ account: cash(LedgerAccountType.CLIENT_MONEY_BANK), amount: total });
+  if (!taxTotal.isZero()) out.push({ account: cash(LedgerAccountType.TAX_WITHHELD_PAYABLE), amount: taxTotal.neg() });
+  if (redemption) out.push({ account: position(LedgerAccountType.CUSTODY_POSITION, isin), amount: nominalTotal.neg() });
+  return validateEntry(out);
 }

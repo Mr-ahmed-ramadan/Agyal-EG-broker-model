@@ -4,6 +4,8 @@ export interface ResendEmail {
   to: string[];
   subject: string;
   text: string;
+  /** Optional HTML version; mail clients show it instead of the text. */
+  html?: string;
   replyTo?: string;
 }
 
@@ -16,6 +18,7 @@ export async function sendResendEmail(apiKey: string, email: ResendEmail, fetchI
       to: email.to,
       subject: email.subject,
       text: email.text,
+      ...(email.html ? { html: email.html } : {}),
       ...(email.replyTo ? { reply_to: email.replyTo } : {}),
     }),
   });
@@ -25,4 +28,9 @@ export async function sendResendEmail(apiKey: string, email: ResendEmail, fetchI
 /** "Display Name <address>" with characters that would break the header removed. */
 export function fromHeader(displayName: string, address: string): string {
   return `${displayName.replace(/[<>"\r\n]/g, '')} <${address}>`;
+}
+
+/** Escapes text for use inside HTML email bodies. */
+export function escapeHtml(value: string): string {
+  return value.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]!);
 }

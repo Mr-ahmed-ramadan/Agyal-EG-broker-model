@@ -14,7 +14,19 @@ describe('OTP delivery', () => {
     const body = JSON.parse(init.body);
     expect(body.from).toBe('Demo Securities <codes@example.com>');
     expect(body.to).toEqual(['nour@example.com']);
-    expect(body.subject).toContain('123456');
+    expect(body.subject).toBe('Demo Securities sign-in code');
+    expect(body.text).toContain('123456');
+    expect(body.html).toContain('123456');
+    expect(body.text).toContain('on behalf of Demo Securities');
+  });
+
+  it('escapes the broker name in the HTML body', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(new Response('{"id":"x"}', { status: 200 }));
+    const d = new ResendEmailOtpDelivery('re_key', 'codes@example.com', fetchMock as unknown as typeof fetch);
+    await d.deliver({ mobile: null, email: 'a@b.co' }, '654321', 'A&B <Securities>', 'STEP_UP');
+    const body = JSON.parse(fetchMock.mock.calls[0][1].body);
+    expect(body.html).toContain('A&amp;B &lt;Securities&gt;');
+    expect(body.html).not.toContain('<Securities>');
   });
 
   it('surfaces Resend errors', async () => {

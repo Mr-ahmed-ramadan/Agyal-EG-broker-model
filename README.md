@@ -73,9 +73,9 @@ Screenshots from an automated browser run are in
 
 [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md) puts the demo online at
 `egypt.agyal.net`: a landing page for prospect brokers, the client app,
-broker console and admin console on Vercel; the API and FIX gateway on
-Render (`render.yaml` blueprint); the database on Neon; Resend for sign-in
-codes and lead emails. It also explains how to create a **branded demo for a prospect**
+broker console and admin console on Vercel; the API, database and FIX
+gateway on Render (`render.yaml` blueprint); Resend for sign-in codes and
+lead emails. It also explains how to create a **branded demo for a prospect**
 in two minutes and what to show in a 10-minute call.
 
 ## Start here

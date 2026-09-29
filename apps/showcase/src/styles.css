@@ -110,7 +110,7 @@ main > section.band > * { max-width: 1040px; margin-inline: auto; }
 
 /* Numbers */
 .stats { display: grid; gap: 14px; margin: 22px 0; }
-@media (min-width: 720px) { .stats { grid-template-columns: repeat(3, 1fr); } }
+@media (min-width: 720px) { .stats { grid-template-columns: repeat(2, 1fr); } }
 .stat { background: #fff; border: 1px solid var(--line); border-radius: 14px; padding: 18px 20px; }
 .stat strong { display: block; font-family: var(--font-display); font-size: 2rem; color: var(--navy); line-height: 1.1; }
 .stat span { color: var(--muted); font-size: 0.95rem; }

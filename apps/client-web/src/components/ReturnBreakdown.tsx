@@ -29,8 +29,7 @@ export function ReturnBreakdown({ b }: { b: Breakdown }) {
             <>
               <tr><td>{t('wf_market')}</td><td>{p(b.marketYield)}</td></tr>
               <tr><td>{t('wf_custody')}</td><td>−{p(b.custody)}</td></tr>
-              <tr><td>{fill(t('wf_broker'), { broker: tenant.branding.displayName[locale] })}</td><td>−{p(b.brokerMargin)}</td></tr>
-              <tr><td>{t('wf_platform')}</td><td>−{p(b.platformMargin)}</td></tr>
+              <tr><td>{fill(t('wf_broker'), { broker: tenant.branding.displayName[locale] })}</td><td>−{p((b.brokerMargin ?? 0) + (b.platformMargin ?? 0))}</td></tr>
             </>
           ) : null}
           <tr className="sub"><td>{t('wf_client')}</td><td>{p(b.clientYield)}</td></tr>

@@ -103,14 +103,14 @@ const en: Content = {
     },
   },
   offer: {
-    title: 'Why it makes sense to join',
-    lead: 'You have the licence. We bring everything else it takes to turn it into a live fixed-income business, and we grow it with you.',
+    title: 'Why it makes sense to partner',
+    lead: 'You hold the licence. We bring everything else, and we grow it with you.',
     points: [
-      { title: 'You provide the licence', body: 'You stay the licensed, regulated party. Your brand, your rules, your name on every agreement. We are the technology behind you.' },
-      { title: 'Nothing to build, nothing to invest', body: 'No platform to build, no engineers to hire, no upfront cost. We set it up, run it, and keep it secure and compliant.' },
-      { title: 'Customers onboard themselves, online', body: 'Account opening is fully digital: identity, AML, suitability and e-signed agreements, on the platform you just tried.' },
-      { title: 'A new income line, in your name', body: 'The margin on every trade is booked under your brokerage. Fee income from a product you cannot offer today.' },
-      { title: 'A real partnership', body: 'We only earn from the margin your desk produces, so we are on the same side. We share the build, the bank connections and the growth.' },
+      { title: 'You provide the licence', body: 'You stay the licensed, regulated party. Your brand, your rules, your name on every agreement.' },
+      { title: 'Nothing to build, nothing to invest', body: 'No platform to build and no upfront cost. We set it up, run it, and keep it compliant.' },
+      { title: 'Customers onboard online', body: 'Account opening is fully digital, on the platform you just tried.' },
+      { title: 'A new income line, in your name', body: 'The margin on every trade is booked under your brokerage.' },
+      { title: 'A real partnership', body: 'You bring the licence and equity; we bring the technology and marketing. We earn only from the margin your desk produces.' },
     ],
     footnote: 'The only real change from what you just tried is your brand on the front and the margin in your name.',
   },
@@ -118,7 +118,6 @@ const en: Content = {
     title: 'What it could mean for your firm',
     lead: 'Egyptian savers want government paper, and today most of it is still bought the slow way, in a branch. A digital channel in your name meets that demand, at no cost to you.',
     stats: [
-      { value: '~25%+', label: 'Typical yields on Egyptian treasury bills and bonds, among the highest in the region.' },
       { value: 'Trillions EGP', label: 'Household savings still sitting in deposits that pay less after tax.' },
       { value: 'Fast-growing', label: 'Retail appetite to hold treasury paper directly, once it is easy to buy.' },
     ],
@@ -132,11 +131,11 @@ const en: Content = {
     invest: 'What you invest to earn it: only your licence.',
   },
   how: {
-    title: 'How it works',
+    title: 'What you get',
     steps: [
-      { title: 'Customers onboard online', body: 'They open an account online: identity, AML, suitability and e-signed agreements. Your rules decide who is approved automatically.' },
-      { title: 'Best price across your banks', body: 'Each price request goes to all your partner banks at once over FIX. The customer gets the best price, and the margin is booked in your name.' },
-      { title: 'Run the book in your console', body: 'Ledger, settlement, coupons, maturities, withdrawals with maker and checker, statements and a full audit trail, all in one place.' },
+      { title: 'Onboarding handled for you', body: 'Clients apply online and are checked against your rules, with no data entry for your team.' },
+      { title: 'Live pricing from your banks', body: 'Every request goes to your partner banks at once over FIX, and the margin is booked in your name.' },
+      { title: 'One console to run the book', body: 'Ledger, settlement, coupons, maturities, withdrawals and a full audit trail, all in one place.' },
     ],
   },
   close: {
@@ -195,14 +194,14 @@ const ar: Content = {
     },
   },
   offer: {
-    title: 'لماذا الانضمام في مصلحتك',
-    lead: 'أنت تملك الرخصة. ونحن نوفّر كل ما يلزم لتحويلها إلى نشاط دخل ثابت مباشر، وننمّيه معك.',
+    title: 'لماذا الشراكة في مصلحتك',
+    lead: 'أنت تملك الرخصة. ونحن نوفّر كل ما عدا ذلك، وننمّيه معك.',
     points: [
-      { title: 'أنت تقدّم الرخصة', body: 'تبقى أنت الطرف المرخّص والخاضع للرقابة. علامتك، وقواعدك، واسمك على كل عقد. ونحن التقنية خلفك.' },
-      { title: 'لا شيء تبنيه، ولا شيء تستثمره', body: 'لا منصّة تبنيها، ولا مهندسين توظّفهم، ولا تكلفة مقدّمة. نجهّزها ونشغّلها ونؤمّنها ونلتزم بالمتطلبات.' },
-      { title: 'عملاؤك يسجّلون أنفسهم إلكترونيًا', body: 'فتح الحساب رقمي بالكامل: الهوية، وفحص غسل الأموال، والملاءمة، والعقود الموقّعة إلكترونيًا، على المنصّة التي جرّبتها للتو.' },
-      { title: 'مصدر دخل جديد باسمك', body: 'يُقيَّد هامش كل صفقة تحت اسم شركتك. دخل من منتج لا تقدّمه اليوم.' },
-      { title: 'شراكة حقيقية', body: 'لا نكسب إلا من الهامش الذي يحقّقه مكتبك، فنحن في صفّك. نتقاسم البناء والربط مع البنوك والنمو.' },
+      { title: 'أنت تقدّم الرخصة', body: 'تبقى أنت الطرف المرخّص والخاضع للرقابة. علامتك، وقواعدك، واسمك على كل عقد.' },
+      { title: 'لا شيء تبنيه، ولا شيء تستثمره', body: 'لا منصّة تبنيها ولا تكلفة مقدّمة. نجهّزها ونشغّلها ونلتزم بالمتطلبات.' },
+      { title: 'عملاؤك يسجّلون إلكترونيًا', body: 'فتح الحساب رقمي بالكامل، على المنصّة التي جرّبتها للتو.' },
+      { title: 'مصدر دخل جديد باسمك', body: 'يُقيَّد هامش كل صفقة تحت اسم شركتك.' },
+      { title: 'شراكة حقيقية', body: 'أنت تقدّم الرخصة وحصة الملكية، ونحن نقدّم التقنية والتسويق. ولا نكسب إلا من الهامش الذي يحقّقه مكتبك.' },
     ],
     footnote: 'التغيير الوحيد عمّا جرّبته هو علامتك في الواجهة والهامش باسمك.',
   },
@@ -210,7 +209,6 @@ const ar: Content = {
     title: 'ماذا يمكن أن يعني ذلك لشركتك',
     lead: 'المدّخرون في مصر يريدون أوراق الحكومة، ومعظمها ما زال يُشترى بالطريقة البطيئة عبر الفروع. قناة رقمية باسمك تلبّي هذا الطلب، دون تكلفة عليك.',
     stats: [
-      { value: '~٢٥٪+', label: 'عوائد نموذجية على أذون وسندات الخزانة المصرية، من الأعلى في المنطقة.' },
       { value: 'تريليونات ج.م.', label: 'مدّخرات الأسر ما زالت في ودائع تعطي أقل بعد الضريبة.' },
       { value: 'نمو سريع', label: 'رغبة الأفراد في حيازة أوراق الخزانة مباشرةً متى صار شراؤها سهلًا.' },
     ],
@@ -224,11 +222,11 @@ const ar: Content = {
     invest: 'ما تستثمره لتحقيق ذلك: رخصتك فقط.',
   },
   how: {
-    title: 'كيف يعمل',
+    title: 'ماذا تحصل عليه',
     steps: [
-      { title: 'العملاء يسجّلون إلكترونيًا', body: 'يفتحون الحساب أونلاين: الهوية، وغسل الأموال، والملاءمة، والعقود الموقّعة. وقواعدك تقرّر من يُعتمد تلقائيًا.' },
-      { title: 'أفضل سعر عبر بنوكك', body: 'كل طلب سعر يذهب لكل بنوكك الشريكة دفعةً واحدة عبر FIX. يحصل العميل على أفضل سعر، ويُقيَّد الهامش باسمك.' },
-      { title: 'أدر الدفتر في لوحتك', body: 'دفتر الأستاذ، والتسوية، والكوبونات، والاستحقاقات، والسحوبات بمبدأ صانع ومدقّق، وكشوف الحساب وسجل تدقيق كامل، في مكان واحد.' },
+      { title: 'التسجيل يُدار نيابةً عنك', body: 'يتقدّم العملاء إلكترونيًا ويُفحصون وفق قواعدك، دون أي إدخال بيانات من فريقك.' },
+      { title: 'تسعير حيّ من بنوكك', body: 'كل طلب يذهب لبنوكك الشريكة دفعةً واحدة عبر FIX، ويُقيَّد الهامش باسمك.' },
+      { title: 'لوحة واحدة لإدارة الدفتر', body: 'دفتر الأستاذ، والتسوية، والكوبونات، والاستحقاقات، والسحوبات، وسجل تدقيق كامل، في مكان واحد.' },
     ],
   },
   close: {

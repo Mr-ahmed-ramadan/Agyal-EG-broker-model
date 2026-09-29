@@ -6,9 +6,9 @@
   --bg: #fbfaf5;
   --surface: #ffffff;
   --surface-alt: #f1eee3;
-  --text: #22302a;
-  --muted: #565d56;
-  --border: #e8e3d6;
+  --text: #1e2a24;
+  --muted: #4f574f;
+  --border: #cfc6ac;
   --error: #b23a3a;
   --ok: #2f7d5e;
   --font-display: 'Cormorant Garamond', 'Noto Serif', Georgia, serif;
@@ -29,8 +29,8 @@
     --surface: #18221c;
     --surface-alt: #1f2b24;
     --text: #e9efe9;
-    --muted: #a9b6ad;
-    --border: #2a3a31;
+    --muted: #b3c0b6;
+    --border: #3a4d42;
   }
 }
 
@@ -53,7 +53,7 @@ h3 { font-size: 1rem; margin-top: 16px; }
 .tab.on { background: rgb(255 255 255 / 0.18); }
 
 .container { max-width: 1040px; margin: 0 auto; padding: 16px; }
-.grid { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); align-items: start; }
+.grid { display: grid; gap: 20px; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); align-items: start; }
 .card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px; }
 .card.narrow { max-width: 440px; margin: 24px auto; }
 .lead { color: var(--muted); }
@@ -184,16 +184,17 @@ details.htm summary { cursor: pointer; font-weight: 600; }
 .stmt-head { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin: 12px 0; padding: 12px; border: 1px solid var(--border); border-radius: 10px; }
 .stmt-head > div { display: flex; flex-direction: column; gap: 2px; }
 
-/* --- Phones: tabs become a bottom bar ---------------------------------------- */
+/* --- Phones: tabs stay at the top as a strip under the brand ----------------- */
 .tabs { display: flex; gap: 4px; flex-wrap: wrap; }
 @media (max-width: 640px) {
+  .topbar { flex-wrap: wrap; }
+  .topbar nav { flex: 1; flex-wrap: wrap; justify-content: flex-end; align-items: center; gap: 8px; }
   .tabs {
-    position: fixed; inset-inline: 0; bottom: 0; z-index: 10; flex-wrap: nowrap; justify-content: space-around;
-    background: var(--surface); border-top: 1px solid var(--border); padding: 6px 4px calc(6px + env(safe-area-inset-bottom));
+    order: 5; flex-basis: 100%; flex-wrap: nowrap; justify-content: space-between; gap: 4px;
+    background: rgb(255 255 255 / 0.14); border-radius: 12px; padding: 4px;
   }
-  .tabs .tab { color: var(--text); flex: 1; padding: 10px 4px; font-size: 0.85rem; }
-  .tabs .tab.on { background: color-mix(in srgb, var(--brand) 12%, var(--surface)); color: var(--brand); font-weight: 600; }
-  body { padding-bottom: 64px; }
+  .tabs .tab { flex: 1; padding: 11px 4px; font-size: 0.9rem; text-align: center; color: var(--brand-contrast); border-radius: 8px; }
+  .tabs .tab.on { background: var(--brand-contrast); color: var(--brand); font-weight: 700; }
   .grid { grid-template-columns: minmax(0, 1fr); }
   .card { padding: 16px; }
 }
@@ -253,7 +254,7 @@ h1 { font-size: 2rem; }
 h2 { font-size: 1.6rem; }
 :root[dir='rtl'] { font-family: 'IBM Plex Sans Arabic', 'Inter', system-ui, sans-serif; }
 :root[dir='rtl'] h1, :root[dir='rtl'] h2 { font-family: 'IBM Plex Sans Arabic', sans-serif; font-weight: 700; }
-.card { border-radius: var(--radius-lg); box-shadow: var(--shadow-sm); }
+.card { border-radius: var(--radius-lg); box-shadow: var(--shadow-md); border-color: var(--border); }
 .row, .chip, input, select { border-radius: var(--radius-md); }
 .row:hover:not(.static) { box-shadow: var(--shadow-md); }
 button.primary { border-radius: 999px; padding: 12px 24px; letter-spacing: 0.01em; }
@@ -268,3 +269,13 @@ button.secondary { border-radius: 999px; }
 .authtabs { display: flex; gap: 4px; background: var(--bg); border: 1px solid var(--border); border-radius: 999px; padding: 4px; margin: 12px 0 4px; }
 .authtabs button { flex: 1; border: 0; background: none; color: var(--muted); font: inherit; font-weight: 600; padding: 9px 8px; border-radius: 999px; cursor: pointer; }
 .authtabs button.on { background: var(--brand); color: var(--brand-contrast, #fff); }
+
+/* Welcome banner (home landing) */
+.welcome-banner { grid-column: 1 / -1; background: color-mix(in srgb, var(--brand) 8%, var(--surface)); border: 1px solid color-mix(in srgb, var(--brand) 28%, var(--border)); border-radius: var(--radius-lg); padding: 18px 22px; box-shadow: var(--shadow-sm); }
+.welcome-banner h2 { margin: 0 0 4px; color: var(--brand); }
+.welcome-banner p { margin: 0; color: var(--muted); }
+
+/* "You will receive" summary under the payment schedule */
+.receive-banner { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin: 14px 0 4px; padding: 14px 16px; border-radius: var(--radius-md); background: color-mix(in srgb, var(--ok) 12%, var(--surface)); border: 1px solid color-mix(in srgb, var(--ok) 45%, var(--border)); }
+.receive-banner span { font-weight: 600; }
+.receive-banner strong { font-size: 1.35rem; color: var(--ok); font-variant-numeric: tabular-nums; }

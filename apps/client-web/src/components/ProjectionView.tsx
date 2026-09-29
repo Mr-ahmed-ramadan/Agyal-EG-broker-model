@@ -114,6 +114,10 @@ export function ProjectionDetail({ p }: { p: Projection }) {
           </tfoot>
         </table>
       </div>
+      <div className="receive-banner">
+        <span>{t('youReceive')}</span>
+        <strong>{money(p.totalReceivedNet, locale)}</strong>
+      </div>
       {Number(p.priceGain) !== 0 ? (
         <p className="muted">
           {t('priceGain')}: {money(p.priceGain, locale)}

@@ -51,7 +51,7 @@ export interface HomeView {
 
 /** The client's landing page: where they stand, what's coming, and news. */
 export function HomePage({ onExplore }: { onExplore: () => void }) {
-  const { t, locale } = useApp();
+  const { t, locale, tenant } = useApp();
   const [home, setHome] = useState<HomeView | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -89,6 +89,10 @@ export function HomePage({ onExplore }: { onExplore: () => void }) {
 
   return (
     <div className="grid">
+      <section className="welcome-banner">
+        <h2>{fill(t('welcomeTo'), { broker: tenant.branding.displayName[locale] })}</h2>
+        <p>{t('homeIntro')}</p>
+      </section>
       <section className="card">
         {inReview ? (
           <div className="banner">

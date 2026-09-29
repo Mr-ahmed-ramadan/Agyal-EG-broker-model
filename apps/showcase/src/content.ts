@@ -1,201 +1,256 @@
 export type Locale = 'en' | 'ar';
 
-const en = {
-  nav: { how: 'How it works', features: 'Features', pricing: 'Pricing', faq: 'FAQ', cta: 'Book a demo', lang: 'العربية' },
+/** Live hosted portals the proposal page links to (demo broker tenant). */
+export const LIVE = {
+  clientApp: 'https://invest.egypt.agyal.net/?broker=demo-broker',
+  brokerConsole: 'https://broker.egypt.agyal.net/?broker=demo-broker',
+};
+
+/**
+ * Throwaway demo logins printed on the page. Both are seeded on the demo tenant, and the
+ * one-time sign-in code is shown on-screen for these accounts (DEMO_LOGINS), so anyone can
+ * try the live product. Safe to publish — they only reach the demo broker's sandbox data.
+ */
+export const DEMO = {
+  client: { email: 'investor@demo-broker.example', password: 'Demo-Pass-2026!' },
+  ops: { email: 'admin@demo-broker.example', password: 'Demo-Pass-2026!' },
+};
+
+/** Illustrative revenue scenarios: annual margin income ≈ clients × avg holding × 0.50% markup. */
+export interface ScenarioRow {
+  clients: string;
+  holding: string;
+  aum: string;
+  revenue: string;
+}
+
+export interface Content {
+  dir: 'ltr' | 'rtl';
+  nav: { offer: string; tryit: string; numbers: string; contact: string; lang: string; cta: string };
+  hero: { eyebrow: string; title: string; lead: string; primary: string; secondary: string; note: string };
+  try: {
+    title: string;
+    lead: string;
+    codeNote: string;
+    emailLabel: string;
+    passwordLabel: string;
+    open: string;
+    copy: string;
+    copied: string;
+    client: { tag: string; title: string; desc: string };
+    ops: { tag: string; title: string; desc: string };
+  };
+  offer: { title: string; lead: string; points: { title: string; body: string }[]; footnote: string };
+  numbers: {
+    title: string;
+    lead: string;
+    stats: { value: string; label: string }[];
+    cols: { clients: string; holding: string; aum: string; revenue: string };
+    rows: ScenarioRow[];
+    assumption: string;
+    invest: string;
+  };
+  how: { title: string; steps: { title: string; body: string }[] };
+  close: { title: string; lead: string; next: string[] };
+  contact: {
+    title: string;
+    lead: string;
+    name: string;
+    firm: string;
+    role: string;
+    email: string;
+    mobile: string;
+    message: string;
+    submit: string;
+    sending: string;
+    thanks: string;
+    error: string;
+  };
+  footer: string;
+}
+
+const en: Content = {
+  dir: 'ltr',
+  nav: { offer: 'The offer', tryit: 'Try it live', numbers: 'The numbers', contact: 'Talk to us', lang: 'العربية', cta: 'Start the conversation' },
   hero: {
-    eyebrow: 'For licensed brokerage firms in Egypt',
-    title: 'Offer T-bills, bonds and sukuk to your clients, under your brand',
+    eyebrow: 'A partnership for licensed brokerage firms',
+    title: 'Offer fixed income under your own brand. You bring the licence — we bring the technology.',
     lead:
-      'Agyal gives your firm a ready fixed-income platform: a branded app for your clients, fully online onboarding, live prices from partner banks over FIX, and the back office to run it. No technology team needed.',
-    primary: 'Get your branded demo',
-    secondary: 'See how it works',
-    note: 'We set up a demo in your name, logo and colours.',
+      'Your clients want treasury bills, bonds and sukuk. Building the technology to sell them online — digital onboarding, bank connectivity, the ledger, settlement — takes years and a team you do not have. We have already built it. Put your name on it and go live, with no tech spend and no capital.',
+    primary: 'Try the live product now',
+    secondary: 'Why it works for you',
+    note: 'Live demo below — real screens, simulated banks, no sign-up.',
   },
-  why: {
-    title: 'Why brokers choose Agyal',
-    items: [
-      { title: 'Launch without building', body: 'Your clients get a finished app and your team a finished back office. We run the technology; you keep the client relationship.' },
-      { title: 'Your brand, your clients', body: 'Your name, logo, colours and domain, in Arabic and English. Clients never see ours.' },
-      { title: 'Best price from several banks', body: 'Every request goes to all your partner banks at once. Clients see the best price, with your markup and fees built in and disclosed.' },
-    ],
-  },
-  how: {
-    title: 'How it works',
-    steps: [
-      { title: 'We set you up', body: 'Your branded client app, broker console, pricing rules and links to your partner banks.' },
-      { title: 'Clients open accounts online', body: 'Identity check, AML screening, investment profile and MCDR unified code, with your compliance team approving anything flagged.' },
-      { title: 'They invest, you earn', body: 'Clients buy and sell at live bank prices. Orders go to the bank over FIX; your markup and commission are booked automatically.' },
-    ],
-  },
-  features: {
-    title: 'Everything a fixed-income desk needs',
-    items: [
-      { title: 'White-label app', body: 'Mobile-first web app in Arabic and English, in your brand.' },
-      { title: 'Online onboarding', body: 'eKYC, AML screening, suitability and unified-code handling, with a compliance queue.' },
-      { title: 'Live bank prices over FIX', body: 'Request-for-quote to several banks; firm prices with a countdown.' },
-      { title: 'Buy and sell before maturity', body: 'Clients can exit early at the banks’ bid; proceeds shown net of fees.' },
-      { title: 'Client-money ledger', body: 'Double-entry books per client, deposits by reference, daily balance checks.' },
-      { title: 'Settlement and withdrawals', body: 'Settlement with banks, withdrawals to the client’s own IBAN with two-person approval.' },
-      { title: 'Coupons and maturities', body: 'Coupons and redemptions credited to clients; matured holdings closed.' },
-      { title: 'Compliance and audit', body: 'Every action logged with who and when; each broker’s data kept separate.' },
-    ],
-  },
-  screens: {
-    title: 'See it in action',
-    client: 'Your clients’ app',
-    broker: 'Your team’s console',
-    captions: {
-      quote: 'Live price from partner banks',
-      sell: 'Selling before maturity',
-      arabic: 'Portfolio in Arabic',
-      orders: 'Orders and fills from banks',
-      settlements: 'Settlement with banks',
-      income: 'Coupons and maturities',
+  try: {
+    title: 'Try it live, right now',
+    lead:
+      'These are the real, working products — the same ones your clients and your team would use, running under a demo brokerage. Open either one and sign in with the credentials shown. The 6-digit code appears on the sign-in screen, so you can go straight in.',
+    codeNote: 'The one-time code shows on the sign-in screen for these demo accounts.',
+    emailLabel: 'Email',
+    passwordLabel: 'Password',
+    open: 'Open the portal',
+    copy: 'Copy',
+    copied: 'Copied',
+    client: {
+      tag: 'Your clients see this',
+      title: 'Client investor app',
+      desc: 'Open an account, browse today’s rates, see the after-tax return on any paper, and buy at a live price from partner banks. Arabic and English, phone-first.',
+    },
+    ops: {
+      tag: 'Your team runs this',
+      title: 'Broker / ops console',
+      desc: 'Compliance queue, unified codes and custody, deposits, orders, settlement, coupons, withdrawals and the ledger — everything your operations, finance and compliance teams need.',
     },
   },
-  pricing: {
-    title: 'Simple pricing',
-    lead: 'Free setup. Pay as your clients trade.',
-    items: [
-      { title: 'Growth', body: 'No setup fee and no subscription. A small technology fee per trade, billed monthly to your firm, never to your clients.' },
-      { title: 'Scale', body: 'A fixed subscription with a lower per-trade fee, for firms with steady volume.' },
+  offer: {
+    title: 'Why this is the right move for your firm',
+    lead: 'You already have the hardest thing to get: a licence and clients. We supply everything else.',
+    points: [
+      { title: 'You provide the licence — nothing else', body: 'You stay the licensed, regulated party. Your brand, your clients, your client agreements. We are the technology behind you.' },
+      { title: 'Zero technology spend, zero capital', body: 'No platform to build, no engineers to hire, no upfront investment. We set it up, run it and keep it secure and compliant.' },
+      { title: 'Clients onboarded digitally', body: 'Fully online account opening — eKYC, AML screening, suitability, e-signed agreements — using the exact platform you just tried.' },
+      { title: 'A new income line, under your name', body: 'The markup margin on every trade runs under your brokerage’s own name. New fee income from an asset class you do not offer today.' },
+      { title: 'Live in weeks, not years', body: 'A branded version of what you just used, connected to your partner banks — a pilot in a matter of weeks.' },
     ],
-    note: 'Indicative. We agree terms with each broker.',
+    footnote: 'The only visible change from the platform you just tried is the brand and the margin running under your name.',
   },
-  trust: {
-    title: 'Built for a regulated business',
-    items: [
-      'You remain the licensed party for every client and trade; Agyal is your technology provider.',
-      'Client money stays in your segregated account; Agyal never holds client funds.',
-      'Two-step sign-in, confirmation codes for withdrawals and an audit trail of every action.',
-      'Each broker’s data is isolated at the database level and encrypted where sensitive.',
+  numbers: {
+    title: 'What it can mean for your firm',
+    lead: 'Egypt’s savers are hungry for government paper, and most of it is still bought the hard way. A digital, branded channel captures that demand — at no cost to you.',
+    stats: [
+      { value: '~25%+', label: 'Prevailing yields on Egyptian T-bills and bonds — among the highest in the region' },
+      { value: 'Trillions EGP', label: 'Household savings still parked in bank deposits that pay less after tax' },
+      { value: 'Fast-growing', label: 'Retail appetite to hold treasury paper directly, once it is easy to buy' },
+    ],
+    cols: { clients: 'Active clients', holding: 'Avg. holding', aum: 'Assets on platform', revenue: 'Illustrative annual margin income' },
+    rows: [
+      { clients: '500', holding: 'EGP 250,000', aum: 'EGP 125m', revenue: 'EGP 625,000' },
+      { clients: '2,000', holding: 'EGP 250,000', aum: 'EGP 500m', revenue: 'EGP 2.5m' },
+      { clients: '5,000', holding: 'EGP 300,000', aum: 'EGP 1.5bn', revenue: 'EGP 7.5m' },
+    ],
+    assumption: 'Illustrative only. Annual margin income ≈ clients × average holding × a 0.50% markup, held for a year; adjust to your own assumptions. Not a forecast.',
+    invest: 'Your investment to earn it: nothing but your licence.',
+  },
+  how: {
+    title: 'How it works, end to end',
+    steps: [
+      { title: 'Onboard digitally', body: 'Clients open an account online — identity, AML, suitability, unified code and e-signed agreements. Your rules decide who is approved automatically.' },
+      { title: 'Price across banks over FIX', body: 'Every price request goes to your partner banks at once over FIX 4.4. The client gets the best price; the margin is booked under your name.' },
+      { title: 'Run the book under your brand', body: 'Double-entry ledger, settlement, coupons and maturities, withdrawals with maker-checker, statements and a full audit trail — in your console.' },
     ],
   },
-  faq: {
-    title: 'Questions brokers ask',
-    items: [
-      { q: 'Do we need our own technology team?', a: 'No. We set up and run the platform. Your team works in a browser-based console.' },
-      { q: 'Which banks can we connect?', a: 'Your partner banks. Banks with FIX connect directly; others can answer requests through a bank portal.' },
-      { q: 'Which instruments are covered?', a: 'Treasury bills, treasury bonds, corporate bonds and sukuk.' },
-      { q: 'What happens to our clients’ money?', a: 'It stays in your segregated client account. The platform keeps the ledger and helps you reconcile it.' },
-      { q: 'Can we try it first?', a: 'Yes. We create a demo in your firm’s name, logo and colours that you can use on your phone.' },
-    ],
+  close: {
+    title: 'Let’s talk',
+    lead: 'If entering fixed income under your brand — at no cost and no build — is interesting, the next step is a short conversation.',
+    next: ['We brand the demo in your name, logo and colours', 'We walk your compliance and operations leads through it', 'We agree a pilot with one or two of your partner banks'],
   },
   contact: {
-    title: 'Get your branded demo',
-    lead: 'Tell us about your firm. We will send you a demo in your own brand.',
+    title: 'Start the conversation',
+    lead: 'Tell us a little about your firm and we’ll be in touch.',
     name: 'Your name',
     firm: 'Brokerage firm',
     role: 'Your role',
-    email: 'Work email',
+    email: 'Email',
     mobile: 'Mobile',
-    message: 'Anything we should know? (optional)',
-    submit: 'Request a demo',
+    message: 'Anything you’d like us to know (optional)',
+    submit: 'Send',
     sending: 'Sending…',
-    thanks: 'Thank you. We will be in touch shortly.',
-    error: 'Something went wrong. Please try again, or email us.',
+    thanks: 'Thank you — we’ll be in touch shortly.',
+    error: 'Something went wrong. Please try again.',
   },
-  footer: 'Agyal Egypt. Technology for licensed brokers.',
+  footer: 'Agyal — the technology behind licensed brokers in Egypt',
 };
 
-type Content = typeof en;
-
 const ar: Content = {
-  nav: { how: 'كيف يعمل', features: 'المزايا', pricing: 'الأسعار', faq: 'الأسئلة', cta: 'اطلب عرضًا', lang: 'English' },
+  dir: 'rtl',
+  nav: { offer: 'العرض', tryit: 'جرّبه مباشرة', numbers: 'الأرقام', contact: 'تواصل معنا', lang: 'English', cta: 'ابدأ الحديث' },
   hero: {
-    eyebrow: 'لشركات السمسرة المرخّصة في مصر',
-    title: 'قدّم أذون وسندات الخزانة والصكوك لعملائك باسم شركتك',
+    eyebrow: 'شراكة لشركات الوساطة المرخّصة',
+    title: 'قدّم أدوات الدخل الثابت باسم شركتك. أنت تقدّم الرخصة، ونحن نقدّم التقنية.',
     lead:
-      'تمنح أجيال شركتك منصة جاهزة لأدوات الدخل الثابت: تطبيقًا باسمك لعملائك، وفتح حسابات أونلاين بالكامل، وأسعارًا حيّة من البنوك الشريكة عبر FIX، ونظام تشغيل متكاملًا. دون الحاجة إلى فريق تقني.',
-    primary: 'احصل على عرض باسم شركتك',
-    secondary: 'تعرّف على طريقة العمل',
-    note: 'نجهّز لك عرضًا تجريبيًا باسم شركتك وشعارها وألوانها.',
+      'عملاؤك يريدون أذون وسندات الخزانة والصكوك. بناء التقنية لبيعها إلكترونيًا — من فتح الحساب الرقمي إلى الربط مع البنوك ودفتر الأستاذ والتسوية — يستغرق سنوات وفريقًا لا تملكه. نحن بنيناها بالفعل. ضع اسمك عليها وانطلق، دون أي إنفاق تقني ودون رأس مال.',
+    primary: 'جرّب المنتج مباشرة الآن',
+    secondary: 'لماذا يناسبك',
+    note: 'تجربة حيّة بالأسفل — شاشات حقيقية، بنوك محاكاة، دون تسجيل.',
   },
-  why: {
-    title: 'لماذا تختار شركات السمسرة أجيال',
-    items: [
-      { title: 'انطلق دون بناء', body: 'يحصل عملاؤك على تطبيق جاهز وفريقك على نظام تشغيل جاهز. نحن نتولى التقنية، وتبقى العلاقة مع العميل لك.' },
-      { title: 'علامتك وعملاؤك', body: 'اسمك وشعارك وألوانك ونطاقك، بالعربية والإنجليزية. لا يرى عملاؤك اسمنا.' },
-      { title: 'أفضل سعر من عدة بنوك', body: 'يُرسل كل طلب إلى جميع البنوك الشريكة في آن واحد، ويرى العميل أفضل سعر متضمنًا هامشك ورسومك مع الإفصاح عنها.' },
-    ],
-  },
-  how: {
-    title: 'كيف يعمل',
-    steps: [
-      { title: 'نجهّز كل شيء', body: 'تطبيق العملاء باسمك، ولوحة تحكم الشركة، وقواعد التسعير، والربط مع بنوكك الشريكة.' },
-      { title: 'يفتح العملاء حساباتهم أونلاين', body: 'التحقق من الهوية، وفحص مكافحة غسل الأموال، والملف الاستثماري، والكود الموحد من مصر للمقاصة، مع موافقة فريق الالتزام لديك على أي حالة تحتاج مراجعة.' },
-      { title: 'يستثمرون وتربح', body: 'يشتري العملاء ويبيعون بأسعار البنوك الحيّة، وتُرسل الأوامر إلى البنك عبر FIX، ويُسجَّل هامشك وعمولتك تلقائيًا.' },
-    ],
-  },
-  features: {
-    title: 'كل ما يحتاجه مكتب الدخل الثابت',
-    items: [
-      { title: 'تطبيق باسمك', body: 'تطبيق ويب للموبايل أولًا بالعربية والإنجليزية وبهويتك.' },
-      { title: 'فتح حساب أونلاين', body: 'التحقق الإلكتروني من الهوية، وفحص غسل الأموال، والملاءمة، والكود الموحد، مع قائمة مراجعة للالتزام.' },
-      { title: 'أسعار حيّة من البنوك عبر FIX', body: 'طلب تسعير من عدة بنوك، وأسعار ملزمة بعدّاد زمني.' },
-      { title: 'الشراء والبيع قبل الاستحقاق', body: 'يمكن للعميل البيع مبكرًا بسعر شراء البنك، مع عرض الصافي بعد الرسوم.' },
-      { title: 'دفتر أموال العملاء', body: 'قيد مزدوج لكل عميل، وإيداعات برقم مرجعي، ومطابقة يومية.' },
-      { title: 'التسوية والسحب', body: 'التسوية مع البنوك، والسحب إلى حساب العميل البنكي باسمه بموافقة شخصين.' },
-      { title: 'الكوبونات والاستحقاقات', body: 'إضافة الكوبونات ومبالغ السداد لحسابات العملاء وإغلاق المراكز المستحقة.' },
-      { title: 'الالتزام والتدقيق', body: 'تسجيل كل إجراء ومن قام به ومتى، مع فصل بيانات كل شركة.' },
-    ],
-  },
-  screens: {
-    title: 'شاهدها وهي تعمل',
-    client: 'تطبيق عملائك',
-    broker: 'لوحة تحكم فريقك',
-    captions: {
-      quote: 'سعر حيّ من البنوك الشريكة',
-      sell: 'البيع قبل الاستحقاق',
-      arabic: 'المحفظة بالعربية',
-      orders: 'الأوامر والتنفيذ من البنوك',
-      settlements: 'التسوية مع البنوك',
-      income: 'الكوبونات والاستحقاقات',
+  try: {
+    title: 'جرّبه مباشرة، الآن',
+    lead:
+      'هذه هي المنتجات الحقيقية العاملة — نفس ما سيستخدمه عملاؤك وفريقك، تعمل تحت وسيط تجريبي. افتح أيًّا منها وسجّل الدخول بالبيانات الموضّحة. يظهر رمز التحقق المكوّن من ٦ أرقام على شاشة الدخول لتدخل مباشرة.',
+    codeNote: 'يظهر رمز الدخول لمرة واحدة على شاشة الدخول لهذه الحسابات التجريبية.',
+    emailLabel: 'البريد الإلكتروني',
+    passwordLabel: 'كلمة المرور',
+    open: 'افتح البوابة',
+    copy: 'نسخ',
+    copied: 'تم النسخ',
+    client: {
+      tag: 'هذا ما يراه عملاؤك',
+      title: 'تطبيق العميل المستثمر',
+      desc: 'فتح حساب، تصفّح أسعار اليوم، معرفة العائد بعد الضريبة لأي ورقة، والشراء بسعر حيّ من البنوك الشريكة. بالعربية والإنجليزية، وللهاتف أولًا.',
+    },
+    ops: {
+      tag: 'هذا ما يديره فريقك',
+      title: 'لوحة الوسيط والعمليات',
+      desc: 'قائمة الالتزام، الأكواد الموحّدة والحفظ، الإيداعات، الأوامر، التسوية، الكوبونات، السحوبات ودفتر الأستاذ — كل ما تحتاجه فرق العمليات والمالية والالتزام.',
     },
   },
-  pricing: {
-    title: 'أسعار بسيطة',
-    lead: 'دون رسوم إعداد. تدفع كلما تداول عملاؤك.',
-    items: [
-      { title: 'النمو', body: 'دون رسوم إعداد أو اشتراك. رسوم تقنية صغيرة على كل صفقة تُحصَّل شهريًا من الشركة، ولا تُحمَّل على العملاء.' },
-      { title: 'التوسع', body: 'اشتراك ثابت مع رسوم أقل على كل صفقة، للشركات ذات الأحجام المستقرة.' },
+  offer: {
+    title: 'لماذا هذه هي الخطوة الصحيحة لشركتك',
+    lead: 'لديك بالفعل أصعب ما يمكن الحصول عليه: رخصة وعملاء. ونحن نوفّر كل ما عدا ذلك.',
+    points: [
+      { title: 'أنت تقدّم الرخصة فقط', body: 'تبقى أنت الطرف المرخّص والخاضع للرقابة. علامتك، وعملاؤك، وعقودك معهم. ونحن التقنية خلفك.' },
+      { title: 'صفر إنفاق تقني وصفر رأس مال', body: 'لا منصّة تبنيها، ولا مهندسين توظّفهم، ولا استثمار مقدّم. نحن نجهّزها ونشغّلها ونؤمّنها ونلتزم بالمتطلبات.' },
+      { title: 'عملاء يُسجَّلون رقميًا', body: 'فتح حساب إلكتروني بالكامل — تحقق الهوية، فحص غسل الأموال، الملاءمة، والعقود الموقّعة إلكترونيًا — بنفس المنصّة التي جرّبتها للتو.' },
+      { title: 'مصدر دخل جديد باسمك', body: 'هامش الربح على كل صفقة يجري تحت اسم شركتك. دخل جديد من فئة أصول لا تقدّمها اليوم.' },
+      { title: 'انطلاق خلال أسابيع لا سنوات', body: 'نسخة تحمل علامتك مما استخدمته للتو، مرتبطة ببنوكك الشريكة — تجربة أولى خلال أسابيع.' },
     ],
-    note: 'استرشادية. نتفق على الشروط مع كل شركة.',
+    footnote: 'التغيير الوحيد المرئي عمّا جرّبته هو العلامة والهامش اللذان يعملان تحت اسمك.',
   },
-  trust: {
-    title: 'مصممة لنشاط خاضع للرقابة',
-    items: [
-      'تبقى شركتك الجهة المرخّصة لكل عميل وكل صفقة، وأجيال هي مزوّد التقنية.',
-      'تبقى أموال العملاء في حسابك المنفصل، ولا تحتفظ أجيال بأي أموال للعملاء.',
-      'تسجيل دخول بخطوتين، ورموز تأكيد لعمليات السحب، وسجل تدقيق لكل إجراء.',
-      'بيانات كل شركة معزولة على مستوى قاعدة البيانات ومشفّرة حيث تكون حساسة.',
+  numbers: {
+    title: 'ماذا يعني ذلك لشركتك',
+    lead: 'المدّخرون في مصر متعطّشون لأوراق الحكومة، ومعظمها ما زال يُشترى بالطريقة الصعبة. قناة رقمية باسمك تلتقط هذا الطلب — دون تكلفة عليك.',
+    stats: [
+      { value: '~٢٥٪+', label: 'العوائد السائدة على أذون وسندات الخزانة المصرية — من الأعلى في المنطقة' },
+      { value: 'تريليونات ج.م.', label: 'مدّخرات الأسر ما زالت في ودائع تعطي أقل بعد الضريبة' },
+      { value: 'نمو سريع', label: 'رغبة الأفراد في حيازة أوراق الخزانة مباشرةً متى صار شراؤها سهلًا' },
+    ],
+    cols: { clients: 'عملاء نشطون', holding: 'متوسط الحيازة', aum: 'الأصول على المنصّة', revenue: 'دخل الهامش السنوي التوضيحي' },
+    rows: [
+      { clients: '٥٠٠', holding: '٢٥٠٬٠٠٠ ج.م.', aum: '١٢٥ مليون ج.م.', revenue: '٦٢٥٬٠٠٠ ج.م.' },
+      { clients: '٢٬٠٠٠', holding: '٢٥٠٬٠٠٠ ج.م.', aum: '٥٠٠ مليون ج.م.', revenue: '٢٫٥ مليون ج.م.' },
+      { clients: '٥٬٠٠٠', holding: '٣٠٠٬٠٠٠ ج.م.', aum: '١٫٥ مليار ج.م.', revenue: '٧٫٥ مليون ج.م.' },
+    ],
+    assumption: 'أرقام توضيحية فقط. دخل الهامش السنوي ≈ العملاء × متوسط الحيازة × هامش ٠٫٥٠٪ على مدار سنة؛ عدّلها وفق افتراضاتك. ليست تنبؤًا.',
+    invest: 'استثمارك لتحقيق ذلك: لا شيء سوى رخصتك.',
+  },
+  how: {
+    title: 'كيف يعمل، من البداية للنهاية',
+    steps: [
+      { title: 'تسجيل رقمي', body: 'يفتح العملاء الحساب إلكترونيًا — الهوية، غسل الأموال، الملاءمة، الكود الموحّد والعقود الموقّعة. وقواعدك تقرّر من يُعتمد تلقائيًا.' },
+      { title: 'تسعير عبر البنوك بـ FIX', body: 'كل طلب سعر يذهب لبنوكك الشريكة دفعةً واحدة عبر FIX 4.4. يحصل العميل على أفضل سعر، ويُقيَّد الهامش باسمك.' },
+      { title: 'إدارة الدفتر باسمك', body: 'دفتر أستاذ مزدوج القيد، تسوية، كوبونات واستحقاقات، سحوبات بمبدأ صانع-مدقّق، كشوف حساب وسجل تدقيق كامل — في لوحتك.' },
     ],
   },
-  faq: {
-    title: 'أسئلة تطرحها شركات السمسرة',
-    items: [
-      { q: 'هل نحتاج إلى فريق تقني خاص بنا؟', a: 'لا. نحن نجهّز المنصة ونشغّلها، ويعمل فريقك من خلال لوحة تحكم على المتصفح.' },
-      { q: 'ما البنوك التي يمكننا الربط معها؟', a: 'بنوكك الشريكة. البنوك التي تدعم FIX ترتبط مباشرة، والبقية يمكنها الرد على الطلبات من خلال بوابة للبنوك.' },
-      { q: 'ما الأدوات المتاحة؟', a: 'أذون الخزانة، وسندات الخزانة، وسندات الشركات، والصكوك.' },
-      { q: 'ماذا يحدث لأموال عملائنا؟', a: 'تبقى في حساب العملاء المنفصل لديك، وتحتفظ المنصة بالدفاتر وتساعدك على مطابقتها.' },
-      { q: 'هل يمكننا التجربة أولًا؟', a: 'نعم. نجهّز لك عرضًا تجريبيًا باسم شركتك وشعارها وألوانها يمكنك استخدامه من الموبايل.' },
-    ],
+  close: {
+    title: 'لنتحدّث',
+    lead: 'إذا كان دخول سوق الدخل الثابت باسمك — دون تكلفة ودون بناء — يهمّك، فالخطوة التالية حديث قصير.',
+    next: ['نجهّز التجربة باسمك وشعارك وألوانك', 'نستعرضها مع قادة الالتزام والعمليات لديك', 'نتفق على تجربة أولى مع أحد بنوكك الشريكة أو اثنين'],
   },
   contact: {
-    title: 'احصل على عرض باسم شركتك',
-    lead: 'أخبرنا عن شركتك، وسنرسل لك عرضًا تجريبيًا بهويتك.',
-    name: 'الاسم',
-    firm: 'شركة السمسرة',
-    role: 'المنصب',
-    email: 'البريد الإلكتروني للعمل',
-    mobile: 'رقم الموبايل',
-    message: 'هل هناك ما تود إخبارنا به؟ (اختياري)',
-    submit: 'اطلب عرضًا',
+    title: 'ابدأ الحديث',
+    lead: 'أخبرنا قليلًا عن شركتك وسنتواصل معك.',
+    name: 'اسمك',
+    firm: 'شركة الوساطة',
+    role: 'دورك',
+    email: 'البريد الإلكتروني',
+    mobile: 'الهاتف',
+    message: 'أي شيء تودّ إخبارنا به (اختياري)',
+    submit: 'إرسال',
     sending: 'جارٍ الإرسال…',
-    thanks: 'شكرًا لك. سنتواصل معك قريبًا.',
-    error: 'حدث خطأ. حاول مرة أخرى أو راسلنا عبر البريد.',
+    thanks: 'شكرًا لك — سنتواصل معك قريبًا.',
+    error: 'حدث خطأ ما. من فضلك حاول مرة أخرى.',
   },
-  footer: 'أجيال مصر. تقنية لشركات السمسرة المرخّصة.',
+  footer: 'Agyal — التقنية خلف الوسطاء المرخّصين في مصر',
 };
 
 export const content: Record<Locale, Content> = { en, ar };

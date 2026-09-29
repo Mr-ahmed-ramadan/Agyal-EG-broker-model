@@ -14,14 +14,21 @@ import { Prisma, PrismaClient } from '@prisma/client';
 import { hashPassword } from '../src/common/crypto.util';
 import { DEFAULT_TENANT_CONFIG } from '../src/common/tenant-config';
 import { withCheckDigit as isin } from '../src/domain/isin';
+import { depositEntry } from '../src/domain/ledger-rules';
+import { LedgerService } from '../src/modules/ledger/ledger.service';
 
 const prisma = new PrismaClient();
 
 export const DEMO_PASSWORD = 'Demo-Pass-2026!';
+/** A ready-to-use investor login printed on the public proposal page (DEMO_LOGINS echoes its code). */
+const DEMO_CLIENT_EMAIL = 'investor@demo-broker.example';
+const DEMO_CLIENT_CASH = '500000'; // EGP available to trade in the demo
 const ADMIN_EMAIL = (process.env.ADMIN_EMAIL ?? 'admin@agyal.local').toLowerCase();
 const ADMIN_MOBILE = process.env.ADMIN_MOBILE ?? '01000000000';
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD ?? DEMO_PASSWORD;
 const SEED_DEMO_STAFF = process.env.SEED_DEMO_STAFF !== 'false';
+/** A funded demo investor for the public proposal page. Off in the e2e (it asserts tenant balances). */
+const SEED_DEMO_CLIENT = SEED_DEMO_STAFF && process.env.SEED_DEMO_CLIENT !== 'false';
 
 if (process.env.NODE_ENV === 'production' && !process.env.ADMIN_PASSWORD) {
   throw new Error('Set ADMIN_PASSWORD (and ADMIN_EMAIL, ADMIN_MOBILE) to seed a hosted environment');
@@ -115,6 +122,66 @@ async function main() {
     });
   }
 
+  // --- Ready-to-use demo investor (printed on the public proposal page) ----------------
+  // Approved, funded and holding a verified unified code + custody, so a visitor can sign
+  // in with the printed credentials and immediately request a live price and buy.
+  if (SEED_DEMO_CLIENT && !(await prisma.user.findFirst({ where: { tenantId: tenant.id, email: DEMO_CLIENT_EMAIL } }))) {
+    await prisma.$transaction(async (tx) => {
+      await tx.$executeRaw`SELECT set_config('app.tenant_id', ${tenant.id}, true)`;
+      const now = new Date();
+      const user = await tx.user.create({
+        data: {
+          tenantId: tenant.id,
+          email: DEMO_CLIENT_EMAIL,
+          mobile: '01099999999',
+          mobileVerifiedAt: now,
+          passwordHash: hashPassword(DEMO_PASSWORD),
+          roles: ['CLIENT'],
+        },
+      });
+      const client = await tx.client.create({
+        data: {
+          tenantId: tenant.id,
+          userId: user.id,
+          depositReference: 'DEMO-INVEST-001',
+          status: 'ACTIVE',
+          fullNameEn: 'Demo Investor',
+          fullNameAr: 'مستثمر تجريبي',
+          nationalIdLast4: '4567',
+          riskRating: 'MEDIUM',
+          riskProfile: 'BALANCED',
+          kycApprovedAt: now,
+          kycReviewDueAt: inDays(365),
+        },
+      });
+      await tx.onboardingApplication.create({
+        data: {
+          tenantId: tenant.id,
+          clientId: client.id,
+          completed: ['IDENTITY', 'PROFILE', 'SUITABILITY', 'UNIFIED_CODE', 'AGREEMENTS'],
+          ekycResult: { passed: true, faceMatchScore: 0.98, source: 'seed-demo' },
+          amlResult: { flag: 'NONE', isPep: false, riskRating: 'MEDIUM', hits: [] },
+          suitability: { horizon: '1_3_YEARS', lossTolerance: 'SMALL', experience: 'SOME' },
+          submittedAt: now,
+          decisionBy: 'seed:auto-approved',
+          decisionNote: 'Demo investor account for the public proposal page.',
+          decidedAt: now,
+        },
+      });
+      await tx.investorCode.create({
+        data: { tenantId: tenant.id, clientId: client.id, code: '12345678', status: 'VERIFIED', source: 'EXISTING_DECLARED' },
+      });
+      await tx.custodyAccount.createMany({
+        data: [
+          { tenantId: tenant.id, clientId: client.id, custodian: 'Demo Custodian (MCDR)', accountNumber: 'MCDR-DEMO-001', depository: 'MCDR' },
+          { tenantId: tenant.id, clientId: client.id, custodian: 'Simulated Bank A (CBE)', accountNumber: 'CBE-DEMO-001', depository: 'CBE' },
+        ],
+      });
+      // Opening cash via the same double-entry path the app uses to confirm a deposit.
+      await new LedgerService().post(tx, tenant.id, 'DEPOSIT', `seed-demo-${client.id}`, depositEntry(client.id, DEMO_CLIENT_CASH));
+    });
+  }
+
   await prisma.$transaction(async (tx) => {
     await tx.$executeRaw`SELECT set_config('app.tenant_id', ${tenant.id}, true)`;
     for (const code of ['SIMBANK', 'SIMBANK2']) {
@@ -193,7 +260,7 @@ async function main() {
 
   console.log(`Seeded tenant ${tenant.slug}, ${banks.length} banks, ${instruments.length} instruments.`);
   console.log(`Platform admin: ${ADMIN_EMAIL}`);
-  if (SEED_DEMO_STAFF) console.log(`Demo staff seeded; demo password: ${DEMO_PASSWORD}`);
+  if (SEED_DEMO_STAFF) console.log(`Demo staff${SEED_DEMO_CLIENT ? ` + investor (${DEMO_CLIENT_EMAIL})` : ''} seeded; demo password: ${DEMO_PASSWORD}`);
 }
 
 main()

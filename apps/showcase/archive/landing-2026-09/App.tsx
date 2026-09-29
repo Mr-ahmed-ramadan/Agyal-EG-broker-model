@@ -1,5 +1,5 @@
 import { useEffect, useState, type FormEvent } from 'react';
-import { content, DEMO, LIVE, type Locale } from './content';
+import { content, type Locale } from './content';
 
 const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:3000';
 
@@ -20,8 +20,8 @@ export function App() {
 
   useEffect(() => {
     document.documentElement.lang = locale;
-    document.documentElement.dir = t.dir;
-  }, [locale, t.dir]);
+    document.documentElement.dir = locale === 'ar' ? 'rtl' : 'ltr';
+  }, [locale]);
 
   return (
     <>
@@ -31,9 +31,10 @@ export function App() {
           <span>Agyal <em>Egypt</em></span>
         </a>
         <nav>
-          <a href="#offer">{t.nav.offer}</a>
-          <a href="#try">{t.nav.tryit}</a>
-          <a href="#numbers">{t.nav.numbers}</a>
+          <a href="#how">{t.nav.how}</a>
+          <a href="#features">{t.nav.features}</a>
+          <a href="#pricing">{t.nav.pricing}</a>
+          <a href="#faq">{t.nav.faq}</a>
         </nav>
         <div className="nav-actions">
           <button className="lang" onClick={() => setLocale(locale === 'en' ? 'ar' : 'en')}>{t.nav.lang}</button>
@@ -48,74 +49,26 @@ export function App() {
             <h1>{t.hero.title}</h1>
             <p className="lead">{t.hero.lead}</p>
             <div className="ctas">
-              <a className="btn" href="#try">{t.hero.primary}</a>
-              <a className="btn ghost" href="#offer">{t.hero.secondary}</a>
+              <a className="btn" href="#contact">{t.hero.primary}</a>
+              <a className="btn ghost" href="#how">{t.hero.secondary}</a>
             </div>
             <p className="note">{t.hero.note}</p>
           </div>
-        </section>
-
-        <section id="try" className="band">
-          <h2>{t.try.title}</h2>
-          <p className="lead center">{t.try.lead}</p>
-          <div className="portals">
-            <PortalCard kind="client" url={LIVE.clientApp} creds={DEMO.client} t={t} />
-            <PortalCard kind="ops" url={LIVE.brokerConsole} creds={DEMO.ops} t={t} />
+          <div className="hero-art" aria-hidden="true">
+            <Phone src="/screens/client-quote.png" alt={t.screens.captions.quote} />
           </div>
         </section>
 
-        <section id="offer">
-          <h2>{t.offer.title}</h2>
-          <p className="lead center">{t.offer.lead}</p>
-          <div className="offer-grid">
-            {t.offer.points.map((p) => (
-              <article key={p.title} className="offer-card">
-                <span className="check" aria-hidden="true">✓</span>
-                <div>
-                  <h3>{p.title}</h3>
-                  <p>{p.body}</p>
-                </div>
+        <section className="band">
+          <h2>{t.why.title}</h2>
+          <div className="cards three">
+            {t.why.items.map((i) => (
+              <article key={i.title} className="card">
+                <h3>{i.title}</h3>
+                <p>{i.body}</p>
               </article>
             ))}
           </div>
-          <p className="note center">{t.offer.footnote}</p>
-        </section>
-
-        <section id="numbers" className="band">
-          <h2>{t.numbers.title}</h2>
-          <p className="lead center">{t.numbers.lead}</p>
-          <div className="stats">
-            {t.numbers.stats.map((s) => (
-              <div key={s.label} className="stat">
-                <strong>{s.value}</strong>
-                <span>{s.label}</span>
-              </div>
-            ))}
-          </div>
-          <div className="table-wrap">
-            <table className="scenarios">
-              <thead>
-                <tr>
-                  <th>{t.numbers.cols.clients}</th>
-                  <th>{t.numbers.cols.holding}</th>
-                  <th>{t.numbers.cols.aum}</th>
-                  <th>{t.numbers.cols.revenue}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {t.numbers.rows.map((r) => (
-                  <tr key={r.clients}>
-                    <td>{r.clients}</td>
-                    <td>{r.holding}</td>
-                    <td>{r.aum}</td>
-                    <td className="rev">{r.revenue}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-          <p className="invest">{t.numbers.invest}</p>
-          <p className="note center">{t.numbers.assumption}</p>
         </section>
 
         <section id="how">
@@ -133,12 +86,70 @@ export function App() {
           </ol>
         </section>
 
-        <section id="contact" className="band">
-          <h2>{t.close.title}</h2>
-          <p className="lead center">{t.close.lead}</p>
-          <ul className="next">
-            {t.close.next.map((x) => <li key={x}>{x}</li>)}
+        <section id="features" className="band">
+          <h2>{t.features.title}</h2>
+          <div className="cards four">
+            {t.features.items.map((f) => (
+              <article key={f.title} className="card feature">
+                <h3>{f.title}</h3>
+                <p>{f.body}</p>
+              </article>
+            ))}
+          </div>
+        </section>
+
+        <section>
+          <h2>{t.screens.title}</h2>
+          <h3 className="sub">{t.screens.client}</h3>
+          <div className="gallery phones">
+            <Phone src="/screens/client-quote.png" alt={t.screens.captions.quote} caption={t.screens.captions.quote} />
+            <Phone src="/screens/client-sell.png" alt={t.screens.captions.sell} caption={t.screens.captions.sell} />
+            <Phone src="/screens/client-arabic.png" alt={t.screens.captions.arabic} caption={t.screens.captions.arabic} />
+          </div>
+          <h3 className="sub">{t.screens.broker}</h3>
+          <div className="gallery desktops">
+            <Shot src="/screens/broker-orders.png" caption={t.screens.captions.orders} />
+            <Shot src="/screens/broker-settlements.png" caption={t.screens.captions.settlements} />
+            <Shot src="/screens/broker-income.png" caption={t.screens.captions.income} />
+          </div>
+        </section>
+
+        <section id="pricing" className="band">
+          <h2>{t.pricing.title}</h2>
+          <p className="lead center">{t.pricing.lead}</p>
+          <div className="cards two">
+            {t.pricing.items.map((p) => (
+              <article key={p.title} className="card">
+                <h3>{p.title}</h3>
+                <p>{p.body}</p>
+              </article>
+            ))}
+          </div>
+          <p className="note center">{t.pricing.note}</p>
+        </section>
+
+        <section>
+          <h2>{t.trust.title}</h2>
+          <ul className="checks">
+            {t.trust.items.map((x) => <li key={x}>{x}</li>)}
           </ul>
+        </section>
+
+        <section id="faq" className="band">
+          <h2>{t.faq.title}</h2>
+          <div className="faq">
+            {t.faq.items.map((f) => (
+              <details key={f.q}>
+                <summary>{f.q}</summary>
+                <p>{f.a}</p>
+              </details>
+            ))}
+          </div>
+        </section>
+
+        <section id="contact">
+          <h2>{t.contact.title}</h2>
+          <p className="lead center">{t.contact.lead}</p>
           <ContactForm locale={locale} />
         </section>
       </main>
@@ -151,52 +162,26 @@ export function App() {
   );
 }
 
-function PortalCard({
-  kind,
-  url,
-  creds,
-  t,
-}: {
-  kind: 'client' | 'ops';
-  url: string;
-  creds: { email: string; password: string };
-  t: (typeof content)[Locale];
-}) {
-  const c = t.try[kind];
-  const [copied, setCopied] = useState<string | null>(null);
-  async function copy(value: string) {
-    try {
-      await navigator.clipboard.writeText(value);
-    } catch {
-      window.prompt('Copy', value);
-    }
-    setCopied(value);
-    setTimeout(() => setCopied((v) => (v === value ? null : v)), 1500);
-  }
+function Phone({ src, alt, caption }: { src: string; alt: string; caption?: string }) {
   return (
-    <article className={`portal ${kind}`}>
-      <span className="portal-tag">{c.tag}</span>
-      <h3>{c.title}</h3>
-      <p>{c.desc}</p>
-      <dl className="creds" dir="ltr">
-        <div>
-          <dt>{t.try.emailLabel}</dt>
-          <dd>
-            <code>{creds.email}</code>
-            <button onClick={() => copy(creds.email)}>{copied === creds.email ? t.try.copied : t.try.copy}</button>
-          </dd>
-        </div>
-        <div>
-          <dt>{t.try.passwordLabel}</dt>
-          <dd>
-            <code>{creds.password}</code>
-            <button onClick={() => copy(creds.password)}>{copied === creds.password ? t.try.copied : t.try.copy}</button>
-          </dd>
-        </div>
-      </dl>
-      <a className="btn wide" href={url} target="_blank" rel="noreferrer">{t.try.open} →</a>
-      <p className="code-note">{t.try.codeNote}</p>
-    </article>
+    <figure className="phone">
+      <div className="frame">
+        <img src={src} alt={alt} loading="lazy" />
+      </div>
+      {caption ? <figcaption>{caption}</figcaption> : null}
+    </figure>
+  );
+}
+
+function Shot({ src, caption }: { src: string; caption: string }) {
+  return (
+    <figure className="shot">
+      <div className="browser">
+        <span /><span /><span />
+      </div>
+      <img src={src} alt={caption} loading="lazy" />
+      <figcaption>{caption}</figcaption>
+    </figure>
   );
 }
 
@@ -237,7 +222,7 @@ function ContactForm({ locale }: { locale: Locale }) {
       <label>{t.role}<input value={f.role} onChange={set('role')} autoComplete="organization-title" /></label>
       <label>{t.email}<input type="email" value={f.email} onChange={set('email')} required autoComplete="email" dir="ltr" /></label>
       <label>{t.mobile}<input type="tel" value={f.mobile} onChange={set('mobile')} autoComplete="tel" dir="ltr" placeholder="+20 10 0000 0000" /></label>
-      <label className="wide">{t.message}<textarea value={f.message} onChange={set('message')} rows={3} maxLength={2000} /></label>
+      <label className="wide">{t.message}<textarea value={f.message} onChange={set('message')} rows={4} maxLength={2000} /></label>
       {/* Honeypot: hidden from people, filled by bots */}
       <label className="hp" aria-hidden="true">Website<input tabIndex={-1} autoComplete="off" value={f.website} onChange={set('website')} /></label>
       {error ? <p className="error wide">{error}</p> : null}

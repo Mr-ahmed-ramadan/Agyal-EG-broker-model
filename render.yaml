@@ -62,6 +62,10 @@ services:
       # Demo only: lets ops confirm coupons/redemptions before their payment date.
       - key: DEMO_MODE
         value: "true"
+      # Demo only: show the sign-in code on-screen for *@demo-broker.example accounts,
+      # so anyone can try the live demo from the proposal page (real users still get email codes).
+      - key: DEMO_LOGINS
+        value: "true"
       # First platform admin (created once by the seed).
       - key: ADMIN_EMAIL
         sync: false
@@ -69,9 +73,10 @@ services:
         sync: false
       - key: ADMIN_PASSWORD
         sync: false
-      # Don't create the *@demo-broker.example staff; add real staff in the admin console.
+      # Seed the *@demo-broker.example staff and a ready demo investor for the public
+      # proposal page's live logins. Set "false" once the demo is no longer needed.
       - key: SEED_DEMO_STAFF
-        value: "false"
+        value: "true"
 
   - type: worker
     name: agyal-fix

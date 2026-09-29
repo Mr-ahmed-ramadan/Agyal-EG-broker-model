@@ -15,6 +15,7 @@ import {
   generateCode,
   hashCode,
   OTP_TTL_MS,
+  shouldEchoCode,
   type OtpPurpose,
 } from '../../domain/otp';
 import { OTP_DELIVERY, type OtpDelivery } from './otp-delivery';
@@ -26,17 +27,13 @@ function otpSecret(): string {
   return 'dev-only-otp-secret';
 }
 
-/** Only outside production, and only when explicitly enabled, is the code returned to the caller. */
-function devEcho(): boolean {
-  return process.env.OTP_DEV_ECHO === 'true' && process.env.NODE_ENV !== 'production';
-}
 
 export interface IssuedChallenge {
   challengeId: string;
   purpose: OtpPurpose;
   expiresAt: Date;
   sentTo: string;
-  /** Development only (OTP_DEV_ECHO=true) */
+  /** Shown on-screen for demo accounts (DEMO_LOGINS) or in dev (OTP_DEV_ECHO); never for real users. */
   devCode?: string;
 }
 
@@ -111,7 +108,7 @@ export class OtpService {
       purpose,
       expiresAt: challenge.expiresAt,
       sentTo,
-      ...(devEcho() ? { devCode: code } : {}),
+      ...(shouldEchoCode(user.email) ? { devCode: code } : {}),
     };
   }
 

@@ -1,0 +1,163 @@
+:root {
+  /* Ivory & Forest (shared with clientegypt.agyal.net) */
+  --navy: #234838;
+  --navy-2: #2f5a45;
+  --gold: #e3cba0;
+  --bronze: #a8823a;
+  --ink: #22302a;
+  --muted: #565d56;
+  --bg: #fbfaf5;
+  --soft: #f1eee3;
+  --line: #e8e3d6;
+  --error: #b23a3a;
+  --ok: #2f7d5e;
+  --font-display: 'Cormorant Garamond', 'Noto Serif', Georgia, serif;
+  font-family: 'Inter', 'IBM Plex Sans Arabic', system-ui, sans-serif;
+  color: var(--ink);
+  background: var(--bg);
+}
+:root[dir='rtl'] { font-family: 'IBM Plex Sans Arabic', 'Inter', system-ui, sans-serif; }
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body { margin: 0; background: var(--bg); line-height: 1.55; }
+img { max-width: 100%; display: block; }
+h1, h2, h3 { line-height: 1.2; margin: 0 0 12px; }
+h1 { font-size: clamp(1.9rem, 6vw, 3.1rem); letter-spacing: -0.01em; }
+h2 { font-size: clamp(1.5rem, 4.5vw, 2.1rem); text-align: center; margin-bottom: 24px; }
+h3 { font-size: 1.1rem; }
+p { margin: 0 0 12px; }
+a { color: inherit; }
+
+/* Nav */
+.nav {
+  position: sticky; top: 0; z-index: 10; display: flex; align-items: center; gap: 12px;
+  padding: 12px 16px; background: rgb(255 255 255 / 0.94); backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--line);
+}
+.logo { display: flex; align-items: center; gap: 8px; text-decoration: none; font-weight: 700; font-size: 1.1rem; white-space: nowrap; }
+.nav-actions .btn.small { white-space: nowrap; }
+/* Small phones: the hero already has the main call to action. */
+@media (max-width: 420px) { .nav-actions .btn.small { display: none; } }
+.logo em { font-style: normal; color: var(--bronze); }
+.mark { width: 32px; height: 32px; border-radius: 8px; background: var(--navy); color: var(--gold); display: grid; place-items: center; font-weight: 700; }
+.nav nav { display: none; gap: 20px; margin-inline-start: auto; }
+.nav nav a { text-decoration: none; color: var(--muted); font-weight: 600; }
+.nav nav a:hover { color: var(--navy); }
+.nav-actions { display: flex; gap: 8px; align-items: center; margin-inline-start: auto; }
+.lang { background: none; border: 1px solid var(--line); border-radius: 999px; padding: 6px 12px; font: inherit; cursor: pointer; }
+@media (min-width: 900px) {
+  .nav { padding: 14px 32px; }
+  .nav nav { display: flex; }
+  .nav-actions { margin-inline-start: 24px; }
+}
+
+/* Buttons */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 48px;
+  padding: 12px 22px; border-radius: 10px; border: 0; background: var(--navy); color: #fff;
+  font: inherit; font-weight: 700; text-decoration: none; cursor: pointer;
+}
+.btn:hover { background: var(--navy-2); }
+.btn.small { min-height: 38px; padding: 8px 14px; font-size: 0.95rem; }
+.btn.ghost { background: transparent; color: var(--navy); border: 2px solid var(--navy); }
+.btn:disabled { opacity: 0.6; cursor: default; }
+
+/* Sections */
+main > section { padding: 56px 16px; max-width: 1120px; margin: 0 auto; }
+main > section.band { max-width: none; background: var(--soft); }
+main > section.band > * { max-width: 1120px; margin-inline: auto; }
+.lead { font-size: 1.1rem; color: var(--muted); }
+.center { text-align: center; }
+.note { color: var(--muted); font-size: 0.92rem; }
+.sub { text-align: center; color: var(--muted); font-weight: 600; margin-top: 12px; }
+
+/* Hero */
+.hero { display: grid; gap: 32px; align-items: center; padding-top: 40px; }
+.eyebrow { color: var(--navy-2); font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; font-size: 0.85rem; }
+:root[dir='rtl'] .eyebrow { text-transform: none; letter-spacing: 0; }
+.ctas { display: flex; flex-wrap: wrap; gap: 12px; margin: 20px 0 8px; }
+.ctas .btn { flex: 1 1 200px; }
+.hero-art { display: flex; justify-content: center; }
+@media (min-width: 900px) {
+  .hero { grid-template-columns: 1.15fr 0.85fr; padding-top: 72px; }
+  .ctas .btn { flex: 0 0 auto; }
+}
+
+/* Cards */
+.cards { display: grid; gap: 16px; }
+.card { background: #fff; border: 1px solid var(--line); border-radius: 14px; padding: 20px; }
+.card p { color: var(--muted); margin: 0; }
+.feature h3 { color: var(--navy); }
+@media (min-width: 700px) {
+  .cards.two, .cards.four { grid-template-columns: repeat(2, 1fr); }
+  .cards.three { grid-template-columns: repeat(3, 1fr); }
+}
+@media (min-width: 1000px) { .cards.four { grid-template-columns: repeat(4, 1fr); } }
+
+/* Steps */
+.steps { list-style: none; padding: 0; margin: 0; display: grid; gap: 16px; }
+.steps li { display: flex; gap: 16px; align-items: flex-start; }
+.steps p { color: var(--muted); }
+.num { flex: none; width: 40px; height: 40px; border-radius: 50%; background: var(--gold); color: var(--navy); display: grid; place-items: center; font-weight: 700; }
+@media (min-width: 900px) {
+  .steps { grid-template-columns: repeat(3, 1fr); }
+  .steps li { flex-direction: column; }
+}
+
+/* Screens */
+.gallery { display: grid; gap: 20px; margin: 16px 0 32px; }
+.gallery.phones { grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); justify-items: center; }
+.gallery.desktops { grid-template-columns: 1fr; }
+@media (min-width: 900px) { .gallery.desktops { grid-template-columns: repeat(3, 1fr); } }
+.phone { margin: 0; width: min(260px, 80vw); }
+.phone .frame { border: 10px solid #111; border-radius: 30px; overflow: hidden; height: 470px; box-shadow: 0 20px 40px rgb(35 72 56 / 0.18); background: #fff; }
+.phone .frame img { width: 100%; }
+.hero .phone { width: min(290px, 78vw); }
+.hero .phone .frame { height: 540px; }
+figcaption { text-align: center; color: var(--muted); font-size: 0.92rem; margin-top: 10px; }
+.shot { margin: 0; border: 1px solid var(--line); border-radius: 12px; overflow: hidden; background: #fff; box-shadow: 0 10px 24px rgb(35 72 56 / 0.1); }
+.shot .browser { display: flex; gap: 6px; padding: 8px 10px; background: var(--soft); border-bottom: 1px solid var(--line); }
+.shot .browser span { width: 10px; height: 10px; border-radius: 50%; background: var(--line); }
+.shot figcaption { padding: 0 10px 10px; }
+
+/* Trust */
+.checks { list-style: none; padding: 0; margin: 0 auto; max-width: 760px; display: grid; gap: 12px; }
+.checks li { position: relative; padding-inline-start: 34px; }
+.checks li::before { content: '✓'; position: absolute; inset-inline-start: 0; top: 0; width: 24px; height: 24px; border-radius: 50%; background: var(--navy); color: var(--gold); display: grid; place-items: center; font-size: 0.85rem; font-weight: 700; }
+
+/* FAQ */
+.faq { max-width: 760px; display: grid; gap: 10px; }
+details { background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 14px 18px; }
+summary { cursor: pointer; font-weight: 700; }
+details p { margin: 10px 0 0; color: var(--muted); }
+
+/* Contact */
+.contact { max-width: 720px; margin: 0 auto; display: grid; gap: 14px; }
+.contact label { display: flex; flex-direction: column; gap: 6px; font-weight: 600; font-size: 0.95rem; }
+.contact input, .contact textarea {
+  font: inherit; font-weight: 400; padding: 12px 14px; border: 1px solid var(--line); border-radius: 10px; background: #fff; color: var(--ink); width: 100%;
+}
+.contact input:focus, .contact textarea:focus { outline: 2px solid var(--navy-2); outline-offset: 1px; }
+/* Visually hidden without moving it off-screen (an offset would widen the page in RTL). */
+.contact .hp { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.error { color: var(--error); }
+.thanks { text-align: center; font-size: 1.2rem; color: var(--ok); font-weight: 700; }
+@media (min-width: 700px) {
+  .contact { grid-template-columns: 1fr 1fr; }
+  .contact .wide { grid-column: 1 / -1; }
+}
+
+.footer { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px; padding: 24px 16px; border-top: 1px solid var(--line); color: var(--muted); font-size: 0.9rem; }
+@media (min-width: 900px) { .footer { padding: 24px 32px; } }
+
+/* --- Ivory & Forest finish ------------------------------------------------ */
+h1, h2, h3, .logo { font-family: var(--font-display); font-weight: 600; letter-spacing: 0.005em; }
+h1 { font-size: clamp(2.3rem, 7vw, 3.8rem); line-height: 1.08; }
+h2 { font-size: clamp(1.9rem, 5.5vw, 2.7rem); }
+h3 { font-size: 1.35rem; }
+.logo { font-size: 1.45rem; }
+.mark { font-family: var(--font-display); font-size: 1.2rem; }
+:root[dir='rtl'] h1, :root[dir='rtl'] h2, :root[dir='rtl'] h3, :root[dir='rtl'] .logo { font-family: 'IBM Plex Sans Arabic', sans-serif; font-weight: 700; }
+.nav { background: rgb(251 250 245 / 0.94); }
+.btn { border-radius: 999px; }
+.eyebrow { color: #86662a; } /* darker bronze: 4.5:1 on ivory for small text */

@@ -18,6 +18,27 @@ export function generateCode(): string {
   return randomInt(0, 1_000_000).toString().padStart(6, '0');
 }
 
+/** Email domain reserved for demo accounts shown on the public proposal page. */
+export const DEMO_ACCOUNT_DOMAIN = '@demo-broker.example';
+
+/** True for the throwaway demo logins (staff and demo investor) printed on the landing page. */
+export function isDemoAccount(email: string | null | undefined): boolean {
+  return !!email && email.toLowerCase().endsWith(DEMO_ACCOUNT_DOMAIN);
+}
+
+/**
+ * Whether a sign-in code may be shown on-screen instead of only sent by email/SMS.
+ * True for demo accounts when DEMO_LOGINS is on (so anyone can try the live demo from
+ * the landing page), or in dev when OTP_DEV_ECHO is on. Never for real accounts.
+ */
+export function shouldEchoCode(
+  email: string | null | undefined,
+  env: { DEMO_LOGINS?: string; OTP_DEV_ECHO?: string; NODE_ENV?: string } = process.env,
+): boolean {
+  if (env.DEMO_LOGINS === 'true' && isDemoAccount(email)) return true;
+  return env.OTP_DEV_ECHO === 'true' && env.NODE_ENV !== 'production';
+}
+
 export function hashCode(secret: string, challengeId: string, code: string): string {
   return createHmac('sha256', secret).update(`${challengeId}:${code}`).digest('base64');
 }

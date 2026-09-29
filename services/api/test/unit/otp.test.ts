@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { canIssue, checkCode, generateCode, hashCode, maskMobile, OTP_MAX_ATTEMPTS } from '../../src/domain/otp';
+import { canIssue, checkCode, generateCode, hashCode, isDemoAccount, maskMobile, OTP_MAX_ATTEMPTS, shouldEchoCode } from '../../src/domain/otp';
 
 const secret = 'test-secret';
 const now = new Date('2026-09-27T12:00:00Z');
@@ -57,5 +57,31 @@ describe('OTP rate limit', () => {
 
   it('masks mobile numbers', () => {
     expect(maskMobile('01012345678')).toBe('•••• 5678');
+  });
+});
+
+describe('demo account code echo', () => {
+  it('recognises demo accounts by email domain', () => {
+    expect(isDemoAccount('ops@demo-broker.example')).toBe(true);
+    expect(isDemoAccount('investor@demo-broker.example')).toBe(true);
+    expect(isDemoAccount('OPS@Demo-Broker.Example')).toBe(true);
+    expect(isDemoAccount('real.person@gmail.com')).toBe(false);
+    expect(isDemoAccount(null)).toBe(false);
+  });
+
+  it('echoes the code for demo accounts only when DEMO_LOGINS is on', () => {
+    const prod = { NODE_ENV: 'production', DEMO_LOGINS: 'true' };
+    expect(shouldEchoCode('ops@demo-broker.example', prod)).toBe(true);
+    expect(shouldEchoCode('real@gmail.com', prod)).toBe(false); // real users never echo
+  });
+
+  it('never echoes a real account, even in production without DEMO_LOGINS', () => {
+    expect(shouldEchoCode('ops@demo-broker.example', { NODE_ENV: 'production' })).toBe(false);
+    expect(shouldEchoCode('real@gmail.com', { NODE_ENV: 'production' })).toBe(false);
+  });
+
+  it('still supports the dev echo path outside production', () => {
+    expect(shouldEchoCode('real@gmail.com', { NODE_ENV: 'development', OTP_DEV_ECHO: 'true' })).toBe(true);
+    expect(shouldEchoCode('real@gmail.com', { NODE_ENV: 'production', OTP_DEV_ECHO: 'true' })).toBe(false);
   });
 });

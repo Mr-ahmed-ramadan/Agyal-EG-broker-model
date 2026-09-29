@@ -263,3 +263,8 @@ button.secondary { border-radius: 999px; }
 .topbar .brand span { font-family: var(--font-display); font-size: 1.35rem; font-weight: 600; }
 :root[dir='rtl'] .topbar .brand span { font-family: 'IBM Plex Sans Arabic', sans-serif; font-size: 1.1rem; }
 .big-yield strong, .rate-figure strong, .quote .yield strong { font-family: var(--font-display); font-weight: 700; }
+
+/* Auth segmented toggle (Sign in / Open an account) */
+.authtabs { display: flex; gap: 4px; background: var(--bg); border: 1px solid var(--border); border-radius: 999px; padding: 4px; margin: 12px 0 4px; }
+.authtabs button { flex: 1; border: 0; background: none; color: var(--muted); font: inherit; font-weight: 600; padding: 9px 8px; border-radius: 999px; cursor: pointer; }
+.authtabs button.on { background: var(--brand); color: var(--brand-contrast, #fff); }

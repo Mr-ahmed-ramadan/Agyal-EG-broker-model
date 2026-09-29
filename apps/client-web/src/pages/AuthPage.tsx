@@ -9,9 +9,18 @@ interface Challenge {
   devCode?: string;
 }
 
+/** Start on Sign in when the link says so (e.g. the demo link uses ?login=1). */
+function initialMode(): 'login' | 'register' {
+  try {
+    return new URLSearchParams(window.location.search).has('login') ? 'login' : 'register';
+  } catch {
+    return 'register';
+  }
+}
+
 export function AuthPage({ onSignedIn }: { onSignedIn: (token: string) => void }) {
   const { t } = useApp();
-  const [mode, setMode] = useState<'login' | 'register'>('register');
+  const [mode, setMode] = useState<'login' | 'register'>(initialMode);
   const [challenge, setChallenge] = useState<Challenge | null>(null);
   const [form, setForm] = useState({ email: '', password: '', mobile: '', fullNameEn: '' });
   const [error, setError] = useState<string | null>(null);
@@ -54,7 +63,14 @@ export function AuthPage({ onSignedIn }: { onSignedIn: (token: string) => void }
   return (
     <section className="card narrow">
       <p className="lead">{t('tagline')}</p>
-      <h1>{mode === 'login' ? t('signIn') : t('openAccount')}</h1>
+      <div className="authtabs" role="tablist">
+        <button type="button" role="tab" aria-selected={mode === 'login'} className={mode === 'login' ? 'on' : ''} onClick={() => setMode('login')}>
+          {t('signIn')}
+        </button>
+        <button type="button" role="tab" aria-selected={mode === 'register'} className={mode === 'register' ? 'on' : ''} onClick={() => setMode('register')}>
+          {t('openAccount')}
+        </button>
+      </div>
       <form onSubmit={submit} className="form">
         {mode === 'register' ? (
           <>
@@ -82,9 +98,6 @@ export function AuthPage({ onSignedIn }: { onSignedIn: (token: string) => void }
           {mode === 'login' ? t('signIn') : t('openAccount')}
         </button>
       </form>
-      <button className="link" onClick={() => setMode(mode === 'login' ? 'register' : 'login')}>
-        {mode === 'login' ? t('noAccount') : t('haveAccount')}
-      </button>
     </section>
   );
 }

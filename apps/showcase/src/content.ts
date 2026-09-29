@@ -2,7 +2,7 @@ export type Locale = 'en' | 'ar';
 
 /** Live hosted portals the proposal page links to (demo broker tenant). */
 export const LIVE = {
-  clientApp: 'https://invest.egypt.agyal.net/?broker=demo-broker',
+  clientApp: 'https://invest.egypt.agyal.net/?broker=demo-broker&login=1',
   brokerConsole: 'https://broker.egypt.agyal.net/?broker=demo-broker',
 };
 

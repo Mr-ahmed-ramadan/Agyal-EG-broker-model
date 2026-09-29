@@ -2,6 +2,7 @@ import { useEffect, useState, type FormEvent } from 'react';
 import { api, getToken, setToken } from './api';
 import { ClientsScreen } from './screens/ClientsScreen';
 import { ComplianceScreen } from './screens/ComplianceScreen';
+import { OverviewScreen } from './screens/OverviewScreen';
 import { DepositsScreen } from './screens/DepositsScreen';
 import { EconomicsScreen } from './screens/EconomicsScreen';
 import { IncomeScreen } from './screens/IncomeScreen';
@@ -13,6 +14,7 @@ import { WithdrawalsScreen } from './screens/WithdrawalsScreen';
 import { UnifiedCodesScreen } from './screens/UnifiedCodesScreen';
 
 const SCREENS = {
+  overview: { label: 'Overview', roles: ['BROKER_ADMIN', 'BROKER_COMPLIANCE', 'BROKER_OPS', 'BROKER_DEALER', 'BROKER_FINANCE'], el: OverviewScreen },
   compliance: { label: 'Compliance queue', roles: ['BROKER_COMPLIANCE', 'BROKER_ADMIN'], el: ComplianceScreen },
   codes: { label: 'Unified codes & custody', roles: ['BROKER_OPS', 'BROKER_ADMIN'], el: UnifiedCodesScreen },
   deposits: { label: 'Deposits', roles: ['BROKER_OPS', 'BROKER_FINANCE', 'BROKER_ADMIN'], el: DepositsScreen },
@@ -98,7 +100,7 @@ export function App() {
           Sign out
         </button>
       </aside>
-      <main>{Screen ? <Screen roles={roles} /> : <p>No screens for your role.</p>}</main>
+      <main>{Screen ? <Screen roles={roles} onNavigate={(k: string) => setScreen(k as ScreenKey)} /> : <p>No screens for your role.</p>}</main>
     </div>
   );
 }

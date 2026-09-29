@@ -63,6 +63,13 @@ export const DOCUMENTS: DocumentDef[] = [
     blurb: 'Internal build-state audit: capabilities by surface, an honest real-vs-simulated table, hardening required before real money, and the phase map for the next releases. Do not share externally.',
     internal: true,
   },
+  {
+    key: 'partnership-term-sheet',
+    title: 'Partnership term sheet (internal)',
+    file: 'partnership-term-sheet.html',
+    blurb: 'Internal negotiation term sheet: the two-layer partnership structure — a Layer 1 revenue-share services agreement, and a Layer 2 milestone-vesting equity option in the broker’s existing firm plus an operating mandate — with cost allocation, exclusivity, change-of-control, sequencing and a legal caveat. Do not share externally.',
+    internal: true,
+  },
 ];
 
 export function documentByKey(key: string): DocumentDef | undefined {

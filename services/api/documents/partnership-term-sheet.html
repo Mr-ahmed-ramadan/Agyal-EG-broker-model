@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="robots" content="noindex, nofollow" />
+<title>Agyal · Partnership term sheet</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>{{STYLE}}
+.layer { background: var(--white); border: 1px solid var(--border); border-radius: 14px; padding: 16px 20px; margin: 12px 0; }
+.layer h3 { margin-top: 0; }
+.layer .eyebrow { margin-bottom: 2px; }
+td.who { white-space: nowrap; font-weight: 600; color: var(--forest-deep); }
+</style>
+</head>
+<body>
+<button class="print-btn" onclick="window.print()">Print / Save as PDF</button>
+<div class="wrap">
+  <div class="doc-head">
+    <div class="brand"><span class="mark">A</span> Agyal <em>Egypt</em></div>
+    <div class="meta"><span class="tag internal">Internal — do not share</span><br />Partnership term sheet · {{TODAY}}</div>
+  </div>
+  <h1>Partnership term sheet</h1>
+  <p class="muted">How Agyal structures a partnership with a licensed broker. For internal use in negotiations. Indicative, not an offer; final terms go in the definitive agreement after legal review.</p>
+
+  <div class="callout"><strong>The shape in one line.</strong> The broker brings the licence and equity; Agyal brings the technology and marketing. Agyal is paid a margin on every trade now, and earns equity later only if the desk performs. Two layers, signed in sequence.</div>
+
+  <h2>1. The two layers</h2>
+  <div class="layer">
+    <div class="eyebrow">Layer 1 · sign first</div>
+    <h3>Commercial: a technology and services agreement</h3>
+    <p>Agyal earns a margin on every trade, booked under the broker's own name and settled monthly from a separate payable account. This pays Agyal whether or not the equity layer ever happens, and it keeps client money ring-fenced.</p>
+  </div>
+  <div class="layer">
+    <div class="eyebrow">Layer 2 · earn it in the pilot</div>
+    <h3>Equity and control: a milestone-vesting option, plus an operating mandate</h3>
+    <p>Rather than buying into a firm up front, Agyal takes an equity option that vests as the desk hits agreed numbers, and an operating role to run what it built. Structured to sit below the regulator's significant-shareholder threshold.</p>
+  </div>
+
+  <h2>2. Layer 1 — how Agyal is paid</h2>
+  <ul>
+    <li>No set-up fee and no subscription during the pilot.</li>
+    <li>On each trade the margin is taken inside the yield and shown to the client. Current split: custody and operations {{CUSTODY}}, broker margin {{BROKER_MARGIN}}, Agyal margin {{AGYAL_MARGIN}} (total {{TOTAL_DEDUCTION}} of yield).</li>
+    <li>Each component is booked separately in the broker's ledger. Agyal's margin accrues to its own payable account and is transferred monthly against an invoice, never from client money.</li>
+    <li>Any commission the broker charges is the broker's. Margins are agreed per broker and can be revised in the definitive agreement.</li>
+  </ul>
+
+  <h2>3. Layer 2 — the equity option</h2>
+  <ul>
+    <li><strong>Instrument:</strong> an option or warrant over shares in the broker's existing company, granted to Agyal, exercisable later.</li>
+    <li><strong>Vesting:</strong> tied to milestones the desk controls, for example active clients, assets on the platform, trade volume and desk profitability, measured over the first year.</li>
+    <li><strong>Size:</strong> kept below the regulator's significant-shareholder threshold, so it does not trigger fit-and-proper vetting or change-of-control approval; any stake above that is only pursued with the required Financial Regulatory Authority approval.</li>
+    <li><strong>Price:</strong> a strike agreed up front so Agyal is rewarded for the value it adds, not for the firm's state today. Exact size, strike and triggers go in the definitive agreement.</li>
+  </ul>
+  <div class="callout"><strong>Why an option, not a stake today.</strong> A struggling firm is hard to value and may carry liabilities. An option that vests on performance avoids paying for problems, and lets the pilot numbers set the terms.</div>
+
+  <h2>4. Operating mandate and governance</h2>
+  <ul>
+    <li>Agyal runs the fixed-income desk and owns the platform roadmap under a management arrangement, with a seat on the board or a steering committee.</li>
+    <li>Agyal is <strong>not</strong> a registered executive officer of the regulated broker: the broker's own licensed officers stay accountable to the regulator. Any formal title for Agyal is scoped to the fixed-income business, not the parent.</li>
+    <li>Reserved matters (budget, pricing, risk limits, change of control) are agreed jointly.</li>
+  </ul>
+
+  <h2>5. Who pays for what</h2>
+  <table>
+    <thead><tr><th>Item</th><th>Funded by</th></tr></thead>
+    <tbody>
+      <tr><td>Platform, hosting, security, support, engineering</td><td class="who">Agyal</td></tr>
+      <tr><td>Bank connectivity (FIX) build and maintenance</td><td class="who">Agyal</td></tr>
+      <tr><td>Marketing and client acquisition</td><td class="who">Agyal</td></tr>
+      <tr><td>eKYC / AML provider and SMS sender</td><td class="who">Shared / agreed</td></tr>
+      <tr><td>Custody and depository (MCDR / CBE) fees</td><td class="who">Broker</td></tr>
+      <tr><td>Licence, regulatory reporting and compliance staff</td><td class="who">Broker</td></tr>
+      <tr><td>Client-money and settlement banking</td><td class="who">Broker</td></tr>
+    </tbody>
+  </table>
+  <p class="muted">Agyal's margin is set to cover the platform, hosting, support and marketing it funds; the broker's margin covers its regulatory and operational overhead.</p>
+
+  <h2>6. Exclusivity, change of control and exit</h2>
+  <ul>
+    <li><strong>Exclusivity:</strong> the broker is not exclusive to Agyal in every sense — Agyal is a multi-tenant platform and continues to serve other brokers. The broker agrees not to run a competing fixed-income platform during the term.</li>
+    <li><strong>Change of control:</strong> if either party is acquired, the other is notified and the option and mandate are addressed; the broker's clients and data always belong to the broker.</li>
+    <li><strong>Exit:</strong> on termination Agyal returns the broker's data in a standard format and supports an orderly handover. Vested option rights survive per the definitive agreement; unvested rights lapse.</li>
+  </ul>
+
+  <h2>7. Sequencing</h2>
+  <ol class="steps">
+    <li><strong>MOU.</strong> Non-binding, sets intent and the shape above; confidentiality binds from signature.</li>
+    <li><strong>Pilot, 8 to 12 weeks.</strong> One or two partner banks, the broker's accounts, a first group of clients. This is where the option's milestones are measured.</li>
+    <li><strong>Definitive agreement.</strong> The services agreement (Layer 1) plus the option and mandate (Layer 2), with the pilot's numbers setting the final terms.</li>
+  </ol>
+
+  <div class="callout"><strong>Before you sign anything.</strong> This is not legal or tax advice. The option-versus-stake choice, the significant-shareholder threshold, the operating role and whether any part needs its own licence all need Egyptian corporate and FRA counsel.</div>
+
+  <p class="footer-note">Internal document. Figures are the current platform defaults and are illustrative; all terms are subject to negotiation and legal review.</p>
+</div>
+</body>
+</html>

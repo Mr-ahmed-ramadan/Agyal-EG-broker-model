@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="robots" content="noindex, nofollow" />
+<title>Agyal · The universe</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>{{STYLE}}
+.map { width: 100%; height: auto; display: block; margin: 8px 0 4px; }
+.map text { font-family: var(--body); }
+.spoke { stroke: #b9c6bd; stroke-width: 2; fill: none; }
+.spoke.dash { stroke-dasharray: 6 6; stroke: #a8823a; }
+.peripheral { stroke: #c9b892; stroke-width: 1.6; stroke-dasharray: 4 5; fill: none; }
+.node { stroke-width: 1.5; rx: 12; }
+.nt { font-size: 15px; font-weight: 700; fill: #22302a; }
+.ns { font-size: 11px; fill: #565d56; }
+.hub-t { font-family: var(--display); font-size: 40px; font-weight: 700; fill: #e3cba0; }
+.hub-s { font-size: 13px; fill: #eef4ef; }
+.hub-s2 { font-size: 11px; fill: #b7c6bc; }
+.zone { font-size: 11px; font-weight: 700; letter-spacing: 0.12em; fill: #9aa79d; }
+.legend { display: flex; flex-wrap: wrap; gap: 14px 22px; align-items: center; font-size: 0.85rem; color: var(--muted); margin: 4px 0 0; }
+.legend span { display: inline-flex; align-items: center; gap: 8px; }
+.legend i { width: 26px; height: 0; border-top: 2px solid #b9c6bd; display: inline-block; }
+.legend i.dash { border-top: 2px dashed #a8823a; }
+@media (max-width: 700px) { .map { min-width: 640px; } .scrollx { overflow-x: auto; } }
+</style>
+</head>
+<body>
+<button class="print-btn" onclick="window.print()">Print / Save as PDF</button>
+<div class="wrap">
+  <div class="doc-head">
+    <div class="brand"><span class="mark">A</span> Agyal <em>Egypt</em></div>
+    <div class="meta"><span class="tag">Ecosystem map · shareable</span><br />Version 1 · {{TODAY}}</div>
+  </div>
+  <h1>The Agyal universe</h1>
+  <p class="muted">Where Agyal sits, and how everything connects. Agyal is the platform behind a licensed broker: it powers the client app and the back office, and links the broker to banks, market venues, custody and the service providers around a trade. Money and securities never sit with Agyal.</p>
+
+  <div class="scrollx">
+  <svg class="map" viewBox="0 0 1060 760" role="img" aria-label="Agyal ecosystem map">
+    <!-- zone captions -->
+    <text class="zone" x="530" y="20" text-anchor="middle">REGULATOR</text>
+    <text class="zone" x="1010" y="150" text-anchor="end">BANKS &amp; VENUES</text>
+    <text class="zone" x="530" y="752" text-anchor="middle">MONEY &amp; SAFEKEEPING</text>
+    <text class="zone" x="50" y="150" text-anchor="start">DISTRIBUTION</text>
+
+    <!-- spokes (drawn first, boxes cover the ends) -->
+    <g>
+      <line class="spoke" x1="530" y1="390" x2="530" y2="90" />
+      <line class="spoke" x1="530" y1="390" x2="742" y2="160" />
+      <line class="spoke dash" x1="530" y1="390" x2="855" y2="338" />
+      <line class="spoke" x1="530" y1="390" x2="816" y2="540" />
+      <line class="spoke" x1="530" y1="390" x2="643" y2="672" />
+      <line class="spoke" x1="530" y1="390" x2="417" y2="672" />
+      <line class="spoke" x1="530" y1="390" x2="244" y2="540" />
+      <line class="spoke" x1="530" y1="390" x2="205" y2="338" />
+      <line class="spoke" x1="530" y1="390" x2="318" y2="160" />
+    </g>
+    <!-- peripheral: banks buy at CBE auction -->
+    <path class="peripheral" d="M 812 200 C 905 300, 905 430, 830 500" />
+    <text class="ns" x="978" y="418" text-anchor="middle">buys at</text>
+    <text class="ns" x="978" y="433" text-anchor="middle">auction</text>
+
+    <!-- hub -->
+    <rect x="415" y="330" width="230" height="120" rx="16" fill="#234838" stroke="#234838" />
+    <text class="hub-t" x="530" y="378" text-anchor="middle">Agyal</text>
+    <text class="hub-s" x="530" y="404" text-anchor="middle">The platform behind the broker</text>
+    <text class="hub-s2" x="530" y="426" text-anchor="middle">onboarding · pricing · ledger · settlement · white-label</text>
+
+    <!-- satellites: g with rect + title + subtitle -->
+    <!-- 1 FRA -->
+    <g>
+      <rect class="node" x="440" y="52" width="180" height="76" fill="#f5ecd9" stroke="#a8823a" />
+      <text class="nt" x="530" y="86" text-anchor="middle">FRA — Regulator</text>
+      <text class="ns" x="530" y="106" text-anchor="middle">Licenses the broker · oversight</text>
+    </g>
+    <!-- 2 Partner banks -->
+    <g>
+      <rect class="node" x="652" y="122" width="180" height="76" fill="#e7efe9" stroke="#3c6e55" />
+      <text class="nt" x="742" y="152" text-anchor="middle">Partner banks</text>
+      <text class="ns" x="742" y="172" text-anchor="middle">FIX 4.4 · quotes, orders, fills</text>
+    </g>
+    <!-- 3 G-FIT / EGX -->
+    <g>
+      <rect class="node" x="765" y="300" width="180" height="76" fill="#e7efe9" stroke="#a8823a" stroke-dasharray="6 5" />
+      <text class="nt" x="855" y="330" text-anchor="middle">G-FIT · EGX</text>
+      <text class="ns" x="855" y="350" text-anchor="middle">Exchange venue · secondary</text>
+      <text class="ns" x="855" y="365" text-anchor="middle">(roadmap route)</text>
+    </g>
+    <!-- 4 CBE -->
+    <g>
+      <rect class="node" x="726" y="502" width="180" height="76" fill="#f1eee3" stroke="#e8e3d6" />
+      <text class="nt" x="816" y="532" text-anchor="middle">Central Bank (CBE)</text>
+      <text class="ns" x="816" y="552" text-anchor="middle">Primary auctions · settlement</text>
+    </g>
+    <!-- 5 Custody -->
+    <g>
+      <rect class="node" x="553" y="634" width="180" height="76" fill="#f1eee3" stroke="#e8e3d6" />
+      <text class="nt" x="643" y="664" text-anchor="middle">MCDR · CBE custody</text>
+      <text class="ns" x="643" y="684" text-anchor="middle">Paper under the client’s code</text>
+    </g>
+    <!-- 6 Client-money account -->
+    <g>
+      <rect class="node" x="327" y="634" width="180" height="76" fill="#f1eee3" stroke="#e8e3d6" />
+      <text class="nt" x="417" y="660" text-anchor="middle">Client-money account</text>
+      <text class="ns" x="417" y="680" text-anchor="middle">Segregated · at the broker’s</text>
+      <text class="ns" x="417" y="695" text-anchor="middle">bank · never Agyal</text>
+    </g>
+    <!-- 7 Enablers -->
+    <g>
+      <rect class="node" x="154" y="502" width="180" height="76" fill="#ffffff" stroke="#e8e3d6" />
+      <text class="nt" x="244" y="532" text-anchor="middle">Onboarding &amp; auth</text>
+      <text class="ns" x="244" y="552" text-anchor="middle">eKYC/AML · SMS · email</text>
+    </g>
+    <!-- 8 Broker -->
+    <g>
+      <rect class="node" x="115" y="300" width="180" height="76" fill="#ffffff" stroke="#a8823a" />
+      <text class="nt" x="205" y="330" text-anchor="middle">Broker — licensed</text>
+      <text class="ns" x="205" y="350" text-anchor="middle">The face · console for the team</text>
+    </g>
+    <!-- 9 Investors -->
+    <g>
+      <rect class="node" x="228" y="122" width="180" height="76" fill="#ffffff" stroke="#2f5a45" />
+      <text class="nt" x="318" y="152" text-anchor="middle">Investors (retail)</text>
+      <text class="ns" x="318" y="172" text-anchor="middle">Broker-branded app</text>
+    </g>
+  </svg>
+  </div>
+
+  <div class="legend">
+    <span><i></i> Live connection</span>
+    <span><i class="dash"></i> Roadmap / to integrate</span>
+    <span>Bronze border = the licensed party and the regulator</span>
+  </div>
+
+  <h2>How to read it</h2>
+  <ul>
+    <li><strong>Agyal is the middle layer, not the front.</strong> The investor sees the broker's brand; the broker's team works in the console. Both run on Agyal.</li>
+    <li><strong>The broker stays the licensed party</strong> under the FRA. Agyal is the technology and operations behind it, and never contracts with clients.</li>
+    <li><strong>Paper is sourced from the banks</strong> (primary dealers) over FIX, with the best price shown to the client. <strong>G-FIT · EGX</strong> is the exchange's secondary venue and a future execution route the same engine can plug into.</li>
+    <li><strong>Money and securities stay outside Agyal.</strong> Client cash sits only in the broker's segregated account; every paper is registered to the client's own unified code at MCDR or the CBE.</li>
+    <li><strong>The service providers</strong> around a trade — eKYC/AML, SMS and email — connect through Agyal but are the broker's chosen, licensed providers.</li>
+  </ul>
+
+  <p class="footer-note">Shareable overview. Roadmap items (dashed) are not yet integrated; see the technical annex and capability audit for detail.</p>
+</div>
+</body>
+</html>

@@ -70,6 +70,13 @@ export const DOCUMENTS: DocumentDef[] = [
     blurb: 'Internal negotiation term sheet: the two-layer partnership structure — a Layer 1 revenue-share services agreement, and a Layer 2 milestone-vesting equity option in the broker’s existing firm plus an operating mandate — with cost allocation, exclusivity, change-of-control, sequencing and a legal caveat. Do not share externally.',
     internal: true,
   },
+  {
+    key: 'agyal-universe',
+    title: 'The Agyal universe (ecosystem map)',
+    file: 'agyal-universe.html',
+    blurb: 'A one-page ecosystem map: Agyal at the centre as the platform behind a licensed broker, connected to investors, partner banks over FIX, the G-FIT/EGX venue, CBE and MCDR custody, the segregated client-money account, the FRA and the onboarding/auth providers. Shows where money and securities sit (never with Agyal). Shareable; prints to PDF.',
+    internal: false,
+  },
 ];
 
 export function documentByKey(key: string): DocumentDef | undefined {

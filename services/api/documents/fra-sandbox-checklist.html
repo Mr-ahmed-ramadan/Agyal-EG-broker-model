@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="robots" content="noindex, nofollow" />
+<title>Agyal · FRA sandbox submission checklist</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>{{STYLE}}
+td.who { white-space: nowrap; font-weight: 600; color: var(--forest-deep); }
+.state { white-space: nowrap; font-weight: 700; font-size: 0.78rem; letter-spacing: 0.04em; }
+.state.have { color: #2f5a45; }
+.state.need { color: #a8823a; }
+.state.block { color: #9a3b2f; }
+.q { background: var(--white); border: 1px solid var(--border); border-left: 3px solid var(--bronze); border-radius: 10px; padding: 10px 16px; margin: 10px 0; }
+</style>
+</head>
+<body>
+<button class="print-btn" onclick="window.print()">Print / Save as PDF</button>
+<div class="wrap">
+  <div class="doc-head">
+    <div class="brand"><span class="mark">A</span> Agyal <em>Egypt</em></div>
+    <div class="meta"><span class="tag internal">Internal — working checklist</span><br />FRA submission checklist · {{TODAY}}</div>
+  </div>
+  <h1>Submission checklist and open questions</h1>
+  <p class="muted">What the FRA asks for, what already exists, what only you can produce, and what to confirm before filing. Internal working document — not for submission.</p>
+
+  <div class="callout"><strong>The route.</strong> This is an application for <strong>Regulatory Guidance</strong> through the FRA Sandbox, submitted via the portal's Apply page after reviewing the published eligibility criteria. It is a narrative submission against four criteria rather than a heavy document filing — so the main application document carries most of the weight, and everything else is supporting material.</div>
+
+  <h2>1. The four criteria, and how the pack answers them</h2>
+  <table>
+    <tr><th>Criterion</th><th>Where it is answered</th><th>State</th></tr>
+    <tr><td><strong>1. Innovative idea or technology</strong><br /><span class="muted">Market-ready or under development; tech in the non-bank financial sector</span></td><td>Application §1 — five innovation points, plus a plain statement of build state and which integrations are simulated</td><td class="state have">DRAFTED</td></tr>
+    <tr><td><strong>2. Benefit to customers and market</strong></td><td>Application §2 — split into customer benefit and market benefit</td><td class="state have">DRAFTED</td></tr>
+    <tr><td><strong>3a. Roadmap — market launch</strong></td><td>Application §3.1 — four staged gates with proposed caps; detail in the testing plan</td><td class="state need">NUMBERS TO AGREE</td></tr>
+    <tr><td><strong>3b. Regulatory alignment &amp; legal framework</strong></td><td>Application §3.2 — responsibility table, the "never holds client money" control, intended outsourcing characterisation</td><td class="state block">COUNSEL REVIEW</td></tr>
+    <tr><td><strong>3c. Management strategy</strong></td><td>Application §3.3 — operational controls drafted; <strong>team, ownership and funding are blank</strong></td><td class="state need">YOU MUST SUPPLY</td></tr>
+    <tr><td><strong>3d. Global precedent</strong></td><td>Application §3.4 — Tesouro Direto (closest: retail govvies via licensed brokers), RBI Retail Direct, TreasuryDirect, DhowCSD</td><td class="state need">VERIFY DETAIL</td></tr>
+    <tr><td><strong>4. Specific assistance area</strong></td><td>Application §4 — six guidance asks, led by outsourcing-vs-licence</td><td class="state have">DRAFTED</td></tr>
+  </table>
+
+  <h2>2. Documents in this pack</h2>
+  <table>
+    <tr><th>Document</th><th>Role</th><th>State</th></tr>
+    <tr><td>Application for Regulatory Guidance</td><td>The submission itself, structured to the four criteria</td><td class="state need">FILL FIELDS</td></tr>
+    <tr><td>Testing plan, KPIs and exit</td><td>Supports criteria 3 and 4 — shows the roadmap is real and measurable</td><td class="state need">AGREE NUMBERS</td></tr>
+    <tr><td>Technical annex</td><td>Architecture, FIX flow, onboarding, ledger, security, hosting</td><td class="state have">EXISTS</td></tr>
+    <tr><td>Capability audit</td><td>Honest real-vs-simulated statement</td><td class="state have">EXISTS</td></tr>
+    <tr><td>Operations SOP</td><td>Lifecycle, controls, approvals — evidence for management strategy</td><td class="state have">EXISTS</td></tr>
+    <tr><td>Ecosystem map</td><td>One page showing where money and securities sit</td><td class="state have">EXISTS</td></tr>
+  </table>
+  <p class="muted">The four existing documents were written for brokers, not a regulator. Re-read them in the Authority's voice before attaching — strip anything that reads as sales copy, and make sure nothing contradicts the application's statement of build state.</p>
+
+  <h2>3. What only you can supply</h2>
+  <table>
+    <tr><th>Item</th><th>Note</th><th>State</th></tr>
+    <tr><td>Commercial register extract</td><td>Recent; evidences Egyptian presence</td><td class="state need">GATHER</td></tr>
+    <tr><td>Tax card</td><td></td><td class="state need">GATHER</td></tr>
+    <tr><td>Articles of association</td><td></td><td class="state need">GATHER</td></tr>
+    <tr><td>Shareholding and ultimate beneficial owners</td><td>Prepare a clean chart; regulators always ask</td><td class="state need">GATHER</td></tr>
+    <tr><td>Founder and key-staff CVs</td><td>Lead with capital-markets and technology experience</td><td class="state need">GATHER</td></tr>
+    <tr><td>Organisation chart</td><td>Name who holds compliance responsibility</td><td class="state need">GATHER</td></tr>
+    <tr><td>Funding position and runway</td><td>If pre-revenue, say so plainly and show who funds the guided phase</td><td class="state need">GATHER</td></tr>
+    <tr><td>Business plan with projections</td><td>The investor pack is a starting point but is not a business plan</td><td class="state need">WRITE</td></tr>
+    <tr><td>Licensed broker partner</td><td>Signed MOU or heads of terms, with licence number</td><td class="state block">CRITICAL PATH</td></tr>
+    <tr><td>Partner bank letters of intent</td><td>Even non-binding willingness to FIX-certify strengthens the file considerably</td><td class="state block">CRITICAL PATH</td></tr>
+    <tr><td>eKYC and AML providers</td><td>Naming real licensed Egyptian providers materially strengthens criterion 1</td><td class="state need">SELECT</td></tr>
+    <tr><td>Client agreement, risk disclosure, privacy notice</td><td>The broker's documents; needs counsel</td><td class="state need">DRAFT</td></tr>
+    <tr><td>Law 151/2020 data-protection pack</td><td>Processor terms, residency, retention, breach procedure</td><td class="state need">DRAFT</td></tr>
+    <tr><td>Remediation / indemnity position</td><td>How client loss during a guided phase is made good, and who funds it</td><td class="state need">DECIDE</td></tr>
+  </table>
+
+  <h2>4. Questions to raise with the FRA</h2>
+  <p>Criterion 4 invites exactly this, so most of these belong <em>in</em> the application rather than in a separate conversation. These two are better asked first, because the answers change what you file:</p>
+  <div class="q"><strong>Sandbox guidance, or the outsourcing register?</strong> If Agyal is purely a technology provider to a licensed broker, the destination may be registration as an outsourcing provider rather than anything sandbox-related. Ask early — the answer could shorten this whole exercise.</div>
+  <div class="q"><strong>Who is the applicant, and is a partner required up front?</strong> A live phase with client money runs under the broker's licence, which argues for a joint filing. If a named licensed broker is a precondition for guidance, the partner becomes the critical path and the application waits behind it.</div>
+  <p>Also worth confirming: whether the submission must be in <strong>Arabic</strong> (assume yes and budget for legal translation — these drafts are English); whether any fees apply; expected timelines; and what a successful guidance engagement leads to in practice.</p>
+
+  <h2>5. Suggested sequence</h2>
+  <ol>
+    <li><strong>Re-read the official eligibility criteria page</strong> and the Apply form, and map the application document onto its actual fields. Field labels and length limits will differ from these headings.</li>
+    <li><strong>Ask the two questions in §4</strong> before investing further.</li>
+    <li><strong>Engage Egyptian counsel</strong> experienced in FRA licensing to review criteria 3.2 and 4. Do not file the perimeter statements without this.</li>
+    <li><strong>Fill the management-strategy section</strong> (§3.3) — it is the largest genuine gap and cannot be drafted for you.</li>
+    <li><strong>Write the business plan with projections.</strong></li>
+    <li><strong>Gather the corporate pack</strong> in §3 in parallel; none of it blocks on anything else.</li>
+    <li><strong>Select eKYC and AML providers</strong> and get indicative terms.</li>
+    <li><strong>Verify the global-precedent detail</strong> in §3.4 before citing it to a regulator.</li>
+    <li><strong>Translate, assemble, review, submit.</strong></li>
+  </ol>
+
+  <h2>6. Two cautions</h2>
+  <p><strong>The partner dependency does not go away.</strong> This model is built so a licensed broker holds client money and is counterparty to every trade, so any live phase needs that broker. Applying for guidance does not route around the problem of reaching brokers — but engaging the Authority is a legitimate way to make broker conversations easier, and that is a sound reason to do it.</p>
+  <p><strong>Do not overclaim readiness.</strong> The criteria explicitly accept solutions still under development, so there is no advantage in dressing up the simulators — and real cost if a regulator later finds the bank connectivity was a simulator at the time of filing. The honest version is strong: a complete, tested platform whose remaining step is connecting live licensed providers under supervision.</p>
+
+  <p class="footer-note">Internal working document. Not for submission to the FRA.</p>
+</div>
+</body>
+</html>

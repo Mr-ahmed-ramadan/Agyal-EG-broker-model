@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="robots" content="noindex, nofollow" />
+<title>Agyal · FRA sandbox testing plan</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>{{STYLE}}
+.fill { background: #fdf6e3; border-bottom: 1px solid var(--bronze); padding: 0 4px; font-weight: 600; }
+.phase { background: var(--white); border: 1px solid var(--border); border-radius: 14px; padding: 14px 20px; margin: 12px 0; }
+.phase h3 { margin-top: 0; }
+td.who { white-space: nowrap; font-weight: 600; color: var(--forest-deep); }
+td.num { white-space: nowrap; text-align: right; font-variant-numeric: tabular-nums; }
+</style>
+</head>
+<body>
+<button class="print-btn" onclick="window.print()">Print / Save as PDF</button>
+<div class="wrap">
+  <div class="doc-head">
+    <div class="brand"><span class="mark">A</span> Agyal <em>Egypt</em></div>
+    <div class="meta"><span class="tag internal">Draft — for review before submission</span><br />Testing plan &amp; KPIs · {{TODAY}}</div>
+  </div>
+  <h1>Sandbox testing plan, KPIs and exit</h1>
+  <p class="muted">Accompanies the FRA sandbox application dossier. Sets out what would be tested, within what limits, measured how, protected by what safeguards, and wound down in what way.</p>
+
+  <div class="callout"><strong>Design principle.</strong> Every limit below is deliberately conservative. The purpose of the test is to prove the controls hold and to answer the regulatory questions — not to build a book. Caps are proposed, and we would adopt whatever the FRA prefers.</div>
+
+  <h2>1. Test objectives</h2>
+  <ol>
+    <li>Demonstrate that a retail client can be onboarded fully remotely into a securities relationship, to an evidential standard the FRA accepts.</li>
+    <li>Demonstrate that retail orders routed to multiple partner banks over FIX produce a documented best-execution decision on every trade.</li>
+    <li>Demonstrate that client money and client securities remain at all times with the licensed broker and the depository, and never with the technology provider — and that this is evidenced by the ledger and the audit trail.</li>
+    <li>Demonstrate that itemised yield-based pricing is understood by retail clients and disclosed to the FRA's satisfaction.</li>
+    <li>Establish the operational error rate, reconciliation accuracy and complaint profile of a digital fixed-income desk at small ticket sizes.</li>
+  </ol>
+
+  <h2>2. Scope — in and out</h2>
+  <table>
+    <tr><th>In scope</th><th>Explicitly out of scope</th></tr>
+    <tr>
+      <td>
+        Egyptian government treasury bills and bonds, primary and secondary, sourced from partner banks.<br />
+        Retail individual clients, Egyptian nationals, 18+.<br />
+        EGP only.<br />
+        Buy, hold to maturity, coupon and redemption, and sell.
+      </td>
+      <td>
+        Corporate paper, equities, derivatives, funds, FX.<br />
+        Corporate, institutional and non-resident clients.<br />
+        Margin, leverage, securities lending, short selling.<br />
+        Any discretionary management or advice.<br />
+        Any holding of client money or securities by Agyal.
+      </td>
+    </tr>
+  </table>
+
+  <h2>3. Proposed test limits</h2>
+  <table>
+    <tr><td class="who">Clients</td><td class="num"><span class="fill">[100]</span></td><td>Capped cohort, recruited in waves; onboarding stops at the cap.</td></tr>
+    <tr><td class="who">Per-client holding</td><td class="num"><span class="fill">[EGP 250,000]</span></td><td>Hard limit enforced by the platform at order entry.</td></tr>
+    <tr><td class="who">Per-order size</td><td class="num"><span class="fill">[EGP 100,000]</span></td><td>Enforced pre-trade.</td></tr>
+    <tr><td class="who">Aggregate cohort exposure</td><td class="num"><span class="fill">[EGP 10,000,000]</span></td><td>Monitored daily; breach halts new orders.</td></tr>
+    <tr><td class="who">Duration</td><td class="num"><span class="fill">[9 months]</span></td><td>Phased as below; extendable only with FRA consent.</td></tr>
+    <tr><td class="who">Partner banks</td><td class="num"><span class="fill">[2–3]</span></td><td>Each FIX-certified before the live phase.</td></tr>
+  </table>
+
+  <h2>4. Phases</h2>
+  <div class="phase">
+    <div class="eyebrow">Phase 0 · pre-live — <span class="fill">[6 weeks]</span></div>
+    <h3>Controls assessment, no client money</h3>
+    <p>Live eKYC and AML providers connected and tested on internal subjects. FIX certification completed with each partner bank. The FRA is given access to a demonstration environment and the full audit trail. Policies, client agreements and risk disclosures reviewed. Exit criterion: the FRA is satisfied with the controls and confirms move to live.</p>
+  </div>
+  <div class="phase">
+    <div class="eyebrow">Phase 1 · friendly live — <span class="fill">[8 weeks]</span></div>
+    <h3>First <span class="fill">[20]</span> clients, staff and close contacts</h3>
+    <p>Real money, real trades, lowest caps. Every order reviewed manually by the broker's dealer in addition to the automated checks. Daily reconciliation. Objective: find operational defects where the affected population is small and informed.</p>
+  </div>
+  <div class="phase">
+    <div class="eyebrow">Phase 2 · open cohort — <span class="fill">[16 weeks]</span></div>
+    <h3>Up to the full capped cohort, publicly recruited</h3>
+    <p>Caps as in section 3. Manual order review steps down to sampling once the error rate holds. Full KPI measurement runs through this phase. Objective: measure the model at a realistic mix of client experience levels.</p>
+  </div>
+  <div class="phase">
+    <div class="eyebrow">Phase 3 · assessment — <span class="fill">[4 weeks]</span></div>
+    <h3>Report, and decide the destination</h3>
+    <p>Final report to the FRA against every KPI, with the regulatory questions answered from evidence. Agreement on the permanent status of the arrangement — outsourcing registration, licence, or conditions.</p>
+  </div>
+
+  <h2>5. KPIs and success criteria</h2>
+  <table>
+    <tr><th>Measure</th><th>Target</th><th>Why it matters</th></tr>
+    <tr><td>Onboarding completion rate</td><td class="num"><span class="fill">[≥ 70%]</span></td><td>Tests whether remote onboarding genuinely widens access.</td></tr>
+    <tr><td>Median time to first trade</td><td class="num"><span class="fill">[&lt; 48h]</span></td><td>Digital access is only inclusive if it is fast.</td></tr>
+    <tr><td>eKYC false-accept rate</td><td class="num">0</td><td>Core evidential question for the FRA.</td></tr>
+    <tr><td>Orders with a documented multi-bank quote comparison</td><td class="num">100%</td><td>Best-execution evidence.</td></tr>
+    <tr><td>Trades priced at the best available quote</td><td class="num">100%</td><td>Any exception explained and logged.</td></tr>
+    <tr><td>Ledger trial balance net</td><td class="num">Zero, daily</td><td>Books-and-records integrity.</td></tr>
+    <tr><td>Client-money reconciliation breaks</td><td class="num">0 unresolved &gt; 1 business day</td><td>The central client-protection control.</td></tr>
+    <tr><td>Settlement failures</td><td class="num"><span class="fill">[&lt; 0.5%]</span></td><td>Operational readiness.</td></tr>
+    <tr><td>Complaints, and complaints upheld</td><td class="num">Reported in full</td><td>Consumer-outcome evidence.</td></tr>
+    <tr><td>Clients who correctly state their net yield and deductions when surveyed</td><td class="num"><span class="fill">[≥ 80%]</span></td><td>Tests comprehension, not just disclosure.</td></tr>
+    <tr><td>Share of clients new to government securities</td><td class="num"><span class="fill">[≥ 50%]</span></td><td>The financial-inclusion claim, measured.</td></tr>
+    <tr><td>Median ticket size</td><td class="num">Reported</td><td>Evidence on whether small tickets are genuinely served.</td></tr>
+    <tr><td>Unplanned downtime in market hours</td><td class="num"><span class="fill">[&lt; 0.5%]</span></td><td>Resilience.</td></tr>
+    <tr><td>Security incidents / data breaches</td><td class="num">0</td><td>Reported to the FRA immediately regardless of materiality.</td></tr>
+  </table>
+
+  <h2>6. Consumer safeguards</h2>
+  <ul>
+    <li><strong>Informed participation.</strong> Every client is told in writing, in Arabic, that they are in an FRA sandbox test, what that means, and that participation is voluntary.</li>
+    <li><strong>No lock-in.</strong> Clients may sell and withdraw at any time, subject only to normal settlement. Exiting the test never requires the client's consent to anything further.</li>
+    <li><strong>Only government paper.</strong> The instrument universe is restricted to Egyptian sovereign issues — no credit risk selection by the client.</li>
+    <li><strong>Hard caps</strong> on per-client holding and per-order size, enforced by software at order entry rather than by procedure.</li>
+    <li><strong>Suitability and risk profiling</strong> at onboarding, with plain-language disclosure and a pre-trade projection showing expected proceeds and tax.</li>
+    <li><strong>Complaints</strong> logged in the platform with the broker's own complaints procedure and escalation to the FRA; the full log is reportable.</li>
+    <li><strong>Remediation commitment.</strong> <span class="fill">[State the agreed position: the broker and Agyal make good any client loss caused by platform defect or operational error during the test, and how this is funded — insurance, indemnity in the technology agreement, or a set-aside.]</span></li>
+  </ul>
+
+  <h2>7. Reporting to the FRA</h2>
+  <table>
+    <tr><td class="who">Immediately</td><td>Any security incident, data breach, client-money discrepancy, or suspected fraud — regardless of materiality.</td></tr>
+    <tr><td class="who">Weekly</td><td>Phase 1 only: clients onboarded, trades, exceptions, complaints, reconciliation status.</td></tr>
+    <tr><td class="who">Monthly</td><td>Full KPI pack, exception log, complaints register, cohort and exposure against caps.</td></tr>
+    <tr><td class="who">End of phase</td><td>Phase report with findings and a recommendation on proceeding.</td></tr>
+    <tr><td class="who">On request</td><td>Read access for FRA supervisors to the platform's audit trail, order records and ledger.</td></tr>
+  </table>
+
+  <h2>8. Stop conditions</h2>
+  <p>Testing halts immediately, and the FRA is notified the same day, on any of:</p>
+  <ul>
+    <li>Any unexplained client-money discrepancy, or a trial balance that does not net to zero.</li>
+    <li>Any confirmed data breach affecting client personal data.</li>
+    <li>An eKYC false accept, or any evidence of identity fraud succeeding at onboarding.</li>
+    <li>Breach of a cohort or exposure cap.</li>
+    <li>Settlement failures above <span class="fill">[2%]</span> in any rolling week.</li>
+    <li>Loss of the licensed broker partner, or of the last remaining partner bank.</li>
+    <li>Any FRA instruction to suspend.</li>
+  </ul>
+
+  <h2>9. Exit and transition</h2>
+  <p>The test ends by design, not by surprise. Three outcomes are planned for:</p>
+  <table>
+    <tr><td class="who">Proceed</td><td>The FRA confirms the permanent status of the arrangement. Caps lift on an agreed schedule; clients are notified that the test has concluded and normal service continues under the broker's licence.</td></tr>
+    <tr><td class="who">Modify</td><td>Specific conditions are imposed. Changes are implemented and re-evidenced before caps lift.</td></tr>
+    <tr><td class="who">Discontinue</td><td>Orderly wind-down as below.</td></tr>
+  </table>
+  <p><strong>Wind-down.</strong> No new clients and no new buy orders. Clients are notified in writing with at least <span class="fill">[30 days]</span> notice. Each client chooses to hold their paper to maturity, sell, or transfer the holding to another licensed broker — the securities are already registered at MCDR under the client's own unified code, so a transfer does not require the position to be sold. Cash is returned to each client's registered bank account under the broker's existing maker-checker payout process. The ledger, audit trail and client records remain the broker's property and are exported in full; Agyal retains nothing beyond what law requires and certifies deletion. A final reconciliation and closing report goes to the FRA.</p>
+  <p class="muted">Because Agyal never holds client money or securities, discontinuation is a software decommissioning, not an insolvency event for clients. That is the central reason the model is structured this way.</p>
+
+  <p class="footer-note">Draft for internal review. All bracketed values are proposals to be confirmed with the licensed partner, counsel and the FRA.</p>
+</div>
+</body>
+</html>

@@ -77,6 +77,30 @@ export const DOCUMENTS: DocumentDef[] = [
     blurb: 'A one-page ecosystem map: Agyal at the centre as the platform behind a licensed broker, connected to investors, partner banks over FIX, the G-FIT/EGX venue, CBE and MCDR custody, the segregated client-money account, the FRA and the onboarding/auth providers. Shows where money and securities sit (never with Agyal). Shareable; prints to PDF.',
     internal: false,
   },
+  {
+    key: 'fra-sandbox-application',
+    title: 'FRA sandbox — application for Regulatory Guidance',
+    file: 'fra-sandbox-application.html',
+    blurb:
+      'Draft submission to the FRA Sandbox, structured to the Authority’s four eligibility criteria: the innovation and an honest statement of build state, benefit to customers and the market, the roadmap (launch stages, regulatory alignment, management strategy, global precedent), and six specific areas where guidance is sought — led by whether a technology provider belongs on the outsourcing register rather than holding a licence. Contains placeholders to fill before filing.',
+    internal: false,
+  },
+  {
+    key: 'fra-sandbox-testing-plan',
+    title: 'FRA sandbox — testing plan, KPIs and exit',
+    file: 'fra-sandbox-testing-plan.html',
+    blurb:
+      'Companion to the FRA application: test objectives, what is in and out of scope, proposed caps on cohort and exposure, four staged phases, measurable KPIs and success criteria, consumer safeguards, reporting cadence to the Authority, stop conditions, and an orderly exit and wind-down plan. Bracketed values are proposals to agree with the partner and the FRA.',
+    internal: false,
+  },
+  {
+    key: 'fra-sandbox-checklist',
+    title: 'FRA sandbox — submission checklist (internal)',
+    file: 'fra-sandbox-checklist.html',
+    blurb:
+      'Internal working checklist for the FRA submission: how the pack answers each of the four criteria, which documents already exist and which must be written, the corporate and partner items only the applicant can supply, the questions to raise with the Authority first, a suggested sequence, and two cautions on the broker-partner dependency and not overclaiming readiness. Do not share externally.',
+    internal: true,
+  },
 ];
 
 export function documentByKey(key: string): DocumentDef | undefined {

@@ -591,7 +591,7 @@ async function main() {
 
   // 13. Documents: per-recipient tracked links; every open is logged; nothing reachable without a token
   const docList = await call('GET', '/admin/documents', { token: admin });
-  assert.equal(docList.length, 9);
+  assert.equal(docList.length, 12);
   await call('GET', '/admin/documents', { tenant: T, token: compliance, expect: 403 });
   const recipientName = `Mona Adel ${run}`;
   const dl = await call('POST', '/admin/documents/partnership-deck/links', { token: admin, body: { recipient: recipientName } });

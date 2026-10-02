@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="robots" content="noindex, nofollow" />
+<title>Agyal · FRA sandbox application</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>{{STYLE}}
+.fill { background: #fdf6e3; border-bottom: 1px solid var(--bronze); padding: 0 4px; font-weight: 600; }
+.crit { background: var(--white); border: 1px solid var(--border); border-radius: 14px; padding: 16px 20px; margin: 14px 0; }
+.crit h2 { margin-top: 0; }
+.ask { background: var(--white); border: 1px solid var(--border); border-left: 3px solid var(--bronze); border-radius: 10px; padding: 12px 16px; margin: 10px 0; }
+.ask h3 { margin: 0 0 4px; }
+td.who { white-space: nowrap; font-weight: 600; color: var(--forest-deep); }
+</style>
+</head>
+<body>
+<button class="print-btn" onclick="window.print()">Print / Save as PDF</button>
+<div class="wrap">
+  <div class="doc-head">
+    <div class="brand"><span class="mark">A</span> Agyal <em>Egypt</em></div>
+    <div class="meta"><span class="tag internal">Draft — for review before submission</span><br />FRA Sandbox · Regulatory Guidance · {{TODAY}}</div>
+  </div>
+  <h1>Application for Regulatory Guidance</h1>
+  <p class="muted">Prepared for submission through the FRA Sandbox portal. Structured to the Authority's four eligibility criteria: innovation, benefit, roadmap and vision, and the specific areas where guidance is sought.</p>
+
+  <div class="callout"><strong>Before submitting.</strong> Every <span class="fill">highlighted field</span> needs a real value. The regulatory-perimeter statements in criteria 3 and 4 should be read by Egyptian counsel before filing.</div>
+
+  <h2>Applicant</h2>
+  <table>
+    <tr><td class="who">Legal entity</td><td><span class="fill">[Full legal name, as registered]</span></td></tr>
+    <tr><td class="who">Commercial register</td><td><span class="fill">[CR number and issuing office]</span></td></tr>
+    <tr><td class="who">Registered address</td><td><span class="fill">[Egyptian address]</span></td></tr>
+    <tr><td class="who">Current FRA status</td><td>Not licensed by the FRA. Operates as a technology provider to FRA-licensed entities.</td></tr>
+    <tr><td class="who">Sector</td><td>Capital markets — fixed income distribution technology.</td></tr>
+    <tr><td class="who">Contact</td><td><span class="fill">[Name, title, mobile, email]</span></td></tr>
+    <tr><td class="who">Licensed partner</td><td><span class="fill">[Partner brokerage firm and FRA licence number, or "in discussion"]</span></td></tr>
+  </table>
+
+  <div class="callout"><strong>The proposition in one paragraph.</strong> Agyal is a white-label, FIX-native platform that enables an FRA-licensed brokerage firm to offer retail investors digital access to Egyptian government treasury bills and bonds under the broker's own brand. The broker remains the licensed party, holds all client money in its own segregated account, and owns the books and records. Agyal provides the software only, and never holds client money or securities. We are seeking the Authority's guidance on how this technology-provider model should be structured and supervised.</p></div>
+
+  <!-- ─────────── CRITERION 1 ─────────── -->
+  <div class="crit">
+  <h2>1. Innovative idea or technology</h2>
+  <p>The concept is established internationally but has not been applied to Egyptian retail fixed income in this form. Five elements make it innovative in this market:</p>
+  <ul>
+    <li><strong>Retail access to government paper at small ticket sizes.</strong> Egyptian retail savers today largely reach treasury bills through bank branches, with high minimums and manual paperwork. Because the cost to serve is software rather than branch staff, the platform is built to serve materially smaller tickets economically.</li>
+    <li><strong>Competitive multi-bank pricing for a retail order.</strong> On every order the platform issues a FIX 4.4 quote request to all connected partner banks simultaneously and presents the best price to the client. Retail-size fixed-income orders in this market are not normally subject to competitive quoting.</li>
+    <li><strong>Fully digital onboarding into a securities relationship</strong> — ID capture with liveness and face match, automated AML and PEP screening, risk profiling and suitability, and MCDR unified-code registration — without a branch visit.</li>
+    <li><strong>Transparent, itemised pricing.</strong> The client is shown the net yield they receive and each deduction separately (custody and operations, broker margin, platform margin), rather than an undisclosed spread embedded in the price.</li>
+    <li><strong>A white-label model that multiplies access.</strong> One platform can stand behind many licensed brokers, each under its own brand — so the innovation reaches the market through existing licensed firms rather than requiring a new licensed entrant.</li>
+  </ul>
+  <p><strong>Build state, stated plainly.</strong> The platform is functionally complete end to end and covered by an automated test suite exercising the full client lifecycle: onboarding and compliance screening, unified-code and custody linkage, deposits, buying and selling over FIX, settlement, coupons and maturity with tax withholding, withdrawals with maker-checker approval, and a double-entry ledger that nets to zero. Several external integrations currently run against simulators — partner-bank FIX, eKYC, AML screening, MCDR custody confirmations and SMS delivery — and connecting these to live licensed providers is part of what we would do under the Authority's guidance. A detailed capability audit setting out exactly what is live and what is simulated accompanies this application.</p>
+  </div>
+
+  <!-- ─────────── CRITERION 2 ─────────── -->
+  <div class="crit">
+  <h2>2. Benefit to customers and the market</h2>
+  <p><strong>For customers</strong></p>
+  <ul>
+    <li><strong>Lower minimums.</strong> A digital cost base makes small subscriptions viable, opening sovereign paper to savers currently priced out of it.</li>
+    <li><strong>Geographic reach.</strong> Remote onboarding serves governorates with thin branch coverage, and savers who cannot take a working day to visit a branch.</li>
+    <li><strong>Price transparency.</strong> The client sees their net yield and every deduction before committing, with a projection of expected proceeds at maturity and tax shown separately.</li>
+    <li><strong>Designed for first-time investors</strong>, in Arabic, with risk disclosure in plain language rather than professional terminology.</li>
+    <li><strong>Protected holdings.</strong> Every client is onboarded with full KYC and every security is registered to the client's own unified code at MCDR or the CBE — not pooled in a nominee structure.</li>
+  </ul>
+  <p><strong>For the non-banking financial market</strong></p>
+  <ul>
+    <li><strong>New distribution capacity for licensed brokers.</strong> Smaller brokerage firms gain a retail fixed-income capability they could not economically build alone, strengthening firms that are under competitive pressure.</li>
+    <li><strong>Broader domestic participation in government funding,</strong> consistent with national objectives on savings mobilisation and financial inclusion.</li>
+    <li><strong>A formalisation channel.</strong> Savings currently held informally move into regulated, registered, KYC'd holdings.</li>
+    <li><strong>Price discovery.</strong> Competitive quoting for retail-size orders puts gentle pressure on retail spreads across the market.</li>
+    <li><strong>Digital transformation of a traditionally manual segment,</strong> with a complete electronic audit trail available to the broker's compliance function and to the Authority.</li>
+  </ul>
+  </div>
+
+  <!-- ─────────── CRITERION 3 ─────────── -->
+  <div class="crit">
+  <h2>3. Roadmap and vision</h2>
+
+  <h3>3.1 Market launch</h3>
+  <p>Launch is staged deliberately, with each stage gated on evidence rather than time:</p>
+  <table>
+    <tr><td class="who">Stage 1 · Readiness</td><td>Connect live eKYC and AML providers; complete FIX certification with <span class="fill">[2–3]</span> partner banks; finalise client agreement and risk disclosure with the licensed partner. No client money.</td></tr>
+    <tr><td class="who">Stage 2 · Controlled pilot</td><td>A capped first cohort of <span class="fill">[20]</span> clients with real money at the lowest limits, every order additionally reviewed by the broker's dealer, daily reconciliation.</td></tr>
+    <tr><td class="who">Stage 3 · Open cohort</td><td>Up to <span class="fill">[100]</span> clients recruited publicly, within caps on per-client holding and aggregate exposure. Full measurement against the KPIs in the accompanying testing plan.</td></tr>
+    <tr><td class="who">Stage 4 · Scale</td><td>On the Authority's confirmation of permanent status, caps lift on an agreed schedule and the platform is offered to additional licensed brokers.</td></tr>
+  </table>
+  <p>Proposed limits during the guided phases — conservative by design, and adjustable to whatever the Authority prefers: per-client holding <span class="fill">[EGP 250,000]</span>, per-order <span class="fill">[EGP 100,000]</span>, aggregate cohort exposure <span class="fill">[EGP 10,000,000]</span>, duration <span class="fill">[9 months]</span>. Scope is restricted to Egyptian government treasury bills and bonds in EGP for resident retail individuals aged 18+; no corporate paper, equities, derivatives, FX, margin, leverage, short selling, discretionary management or advice.</p>
+
+  <h3>3.2 Regulatory alignment and intended legal framework</h3>
+  <p>The model is built so that the licensed broker, not Agyal, is the regulated party in every client relationship and every trade:</p>
+  <table>
+    <tr><th>Concern</th><th>Owner</th></tr>
+    <tr><td>Client relationship, KYC/AML decision, suitability</td><td class="who">Licensed broker</td></tr>
+    <tr><td>Client money (segregated client account at a bank)</td><td class="who">Licensed broker</td></tr>
+    <tr><td>Books and records</td><td class="who">Licensed broker, using the platform's ledger</td></tr>
+    <tr><td>Execution</td><td class="who">Partner bank, on the broker's instruction</td></tr>
+    <tr><td>Custody and unified code</td><td class="who">Broker / custodian via MCDR</td></tr>
+    <tr><td>Software, hosting, data processing, uptime</td><td class="who">Agyal</td></tr>
+  </table>
+  <p><strong>Agyal never holds client money or securities, and this is enforced in the software itself rather than by policy alone.</strong> Every money-moving function is restricted to the broker's own finance and operations roles; the platform-operator role has no access to any of them. Client cash exists only in the broker's segregated bank account, mirrored in a double-entry ledger whose trial balance must net to zero. Securities are registered to each client's own unified code. Agyal is remunerated by the broker under a software and services agreement — never by the end client, and never out of client money.</p>
+  <p><strong>Intended framework.</strong> Our working assumption is that Agyal is properly characterised as an outsourced technology and operations provider to FRA-licensed entities, rather than as an entity requiring its own licence. Confirming that characterisation — and the conditions attaching to it — is the principal reason for this application. Data processing is conducted as processor on the broker's instruction under Law 151/2020, with access minimised, audited, and data residency agreed per broker.</p>
+
+  <h3>3.3 Management strategy</h3>
+  <p><span class="fill">[Complete with real detail — founders and key staff, relevant capital-markets and technology experience, organisation chart, who holds compliance responsibility, shareholding and ultimate beneficial owners, funding position and runway.]</span></p>
+  <p>Operationally, the division of responsibility is documented in an operations SOP covering the full client lifecycle — who performs each step, what is checked, and what requires a second approver. Money movements use maker-checker approval. Every data change and every sign-in is recorded in an immutable audit log available to the broker's compliance function and to the Authority on request. Service levels, audit rights, business continuity, data return and exit terms are set out in the technology agreement with each broker.</p>
+
+  <h3>3.4 Global precedent</h3>
+  <p>Retail access to government securities through supervised digital channels is well established internationally. The closest analogue is Brazil's <strong>Tesouro Direto</strong>, operated by the National Treasury with B3, which distributes federal government bonds to retail investors <em>through licensed brokers and agents</em> — structurally the same division of roles proposed here. Other relevant precedents include <strong>RBI Retail Direct</strong> in India, which opened direct retail access to government securities; <strong>TreasuryDirect</strong> in the United States; and <strong>DhowCSD</strong> in Kenya, which digitised retail access to government paper.</p>
+  <p>On the technology-provider side, the model of a non-licensed platform operating behind licensed brokers is established in several regulated markets, where brokerage-infrastructure providers supply onboarding, order routing and books-and-records software to licensed firms under outsourcing rules with defined audit, continuity and exit obligations.</p>
+  <p class="muted">Precedents are cited as illustration of the regulatory pattern; specifics should be verified before filing, and we would be glad to prepare a fuller comparative note if that would assist the Authority.</p>
+  </div>
+
+  <!-- ─────────── CRITERION 4 ─────────── -->
+  <div class="crit">
+  <h2>4. Specific areas where guidance is sought</h2>
+  <p>The platform is built; our open questions are regulatory rather than technical. In order of importance to us:</p>
+
+  <div class="ask">
+    <h3>a. The correct status for a technology provider in this model</h3>
+    <p>Is a provider that supplies onboarding workflow, order routing and books-and-records software to FRA-licensed brokers — while never holding client money or securities, never contracting with end clients, and never exercising discretion — correctly treated as an outsourced service provider rather than as an entity requiring its own licence? If registration on the Authority's outsourcing register is the appropriate destination, we would welcome guidance on the criteria, the process, and the conditions that would attach.</p>
+  </div>
+  <div class="ask">
+    <h3>b. Evidential standards for fully remote onboarding</h3>
+    <p>What evidence does the Authority expect for opening a retail securities relationship without a branch visit — acceptable identity documents, liveness and face-match thresholds, screening scope, record retention — and is remote onboarding sufficient for MCDR unified-code issuance?</p>
+  </div>
+  <div class="ask">
+    <h3>c. Evidencing best execution for OTC fixed income</h3>
+    <p>How should a broker evidence best execution where retail-size orders are priced by competing quotes from several banks? What records should be retained for each decision, and how should exceptions be documented?</p>
+  </div>
+  <div class="ask">
+    <h3>d. Disclosure of yield-based pricing</h3>
+    <p>Does itemised disclosure of the deduction from gross yield — shown pre-trade and on the contract note, with each component separately identified — meet the Authority's transparency expectations for retail clients? Is any prescribed form or wording required?</p>
+  </div>
+  <div class="ask">
+    <h3>e. Structure of the application and the partner requirement</h3>
+    <p>Because the licensed broker is the regulated party, a live test involving client money would run under the broker's licence. Should this application be made by Agyal alone, by the broker, or jointly — and may guidance be given before a licensed partner is signed, with any live phase conditional on naming one?</p>
+  </div>
+  <div class="ask">
+    <h3>f. Proportionate limits</h3>
+    <p>Are the proposed caps on cohort size, per-client holding and aggregate exposure in the range the Authority would consider appropriate, and what reporting would it wish to receive during a guided phase?</p>
+  </div>
+  </div>
+
+  <h2>Supporting documents available</h2>
+  <ul>
+    <li><strong>Testing plan, KPIs and exit</strong> — objectives, scope, caps, phases, measurable success criteria, consumer safeguards, stop conditions and orderly wind-down.</li>
+    <li><strong>Technical annex</strong> — architecture, FIX flow, onboarding, ledger and client money, security controls, hosting.</li>
+    <li><strong>Capability audit</strong> — an honest statement of what is live and what is simulated today.</li>
+    <li><strong>Operations SOP</strong> — the end-to-end client lifecycle with controls and approvals.</li>
+    <li><strong>Ecosystem map</strong> — a one-page visual of the parties and where money and securities sit.</li>
+    <li>A live demonstration environment can be made available to the Authority on request.</li>
+  </ul>
+
+  <p class="footer-note">Draft prepared for internal review. Regulatory statements require confirmation by Egyptian counsel before filing. Bracketed values are proposals to be agreed with the licensed partner and the Authority.</p>
+</div>
+</body>
+</html>

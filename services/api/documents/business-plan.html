@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="robots" content="noindex, nofollow" />
+<title>Agyal · Business plan</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>{{STYLE}}
+.fill { background: #fdf6e3; border-bottom: 1px solid var(--bronze); padding: 0 4px; font-weight: 600; }
+td.who { white-space: nowrap; font-weight: 600; color: var(--forest-deep); }
+td.num, th.num { text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
+tr.total td { font-weight: 700; border-top: 2px solid var(--forest-tint); }
+.keyline { background: var(--white); border: 1px solid var(--border); border-left: 3px solid var(--forest-tint); border-radius: 10px; padding: 12px 18px; margin: 12px 0; }
+</style>
+</head>
+<body>
+<button class="print-btn" onclick="window.print()">Print / Save as PDF</button>
+<div class="wrap">
+  <div class="doc-head">
+    <div class="brand"><span class="mark">A</span> Agyal <em>Egypt</em></div>
+    <div class="meta"><span class="tag">Business plan · draft</span><br />Prepared for the FRA · {{TODAY}}</div>
+  </div>
+  <h1>Business plan</h1>
+  <p class="muted">The business, how it earns, what it costs to run, and when it covers its own costs. Prepared to accompany an application to the FRA Sandbox for Regulatory Guidance. Projections are projections; every assumption behind them is listed so it can be challenged on its merits.</p>
+
+  <div class="callout"><strong>The plan in one line.</strong> Agyal sells software to FRA-licensed brokerage firms and is paid a margin on the trades that software enables. The company is founder-run and bootstrapped, with a cost base small enough that a single modest broker covers it — so the business does not depend on raising money, and is under no pressure to grow faster than it can be governed.</div>
+
+  <h2>1. Executive summary</h2>
+  <ul>
+    <li><strong>What we sell.</strong> A white-label, FIX-native platform that lets a licensed brokerage firm offer retail investors digital access to Egyptian government treasury bills and bonds under the broker's own brand.</li>
+    <li><strong>Who pays.</strong> The broker, under a software and services agreement. Never the end client, and never out of client money.</li>
+    <li><strong>How we earn.</strong> A margin of 100 basis points built into the yield, booked to a separate payable account in the broker's ledger and settled monthly against an invoice.</li>
+    <li><strong>Cost base.</strong> Founder-run and bootstrapped. Running costs are hosting and per-use service fees; they scale with usage rather than stepping up ahead of it.</li>
+    <li><strong>Break-even.</strong> Because revenue is approximately 1% of assets on the platform per year, break-even is reached at roughly one hundred times annual cost in assets — a level one modest broker relationship can reach. Section 7 shows this across a range of cost levels.</li>
+    <li><strong>Funding.</strong> No external funding is required to operate, nor to meet the obligations of a guided phase. Growth capital would accelerate broker onboarding, not keep the lights on.</li>
+    <li><strong>Principal dependency.</strong> Signing licensed brokers. This is a commercial risk, not a technical one, and is treated as the central risk of the plan.</li>
+  </ul>
+
+  <h2>2. The business and the model</h2>
+  <p>Agyal is a technology provider, not a regulated intermediary. The licensed broker is the counterparty to every client and every trade, holds all client money in its own segregated account, and owns the books and records. Agyal provides the software, the onboarding workflow, the multi-bank execution gateway and the ledger the broker operates.</p>
+  <table>
+    <tr><th>Concern</th><th>Owner</th></tr>
+    <tr><td>Client relationship, KYC/AML decision, suitability</td><td class="who">Licensed broker</td></tr>
+    <tr><td>Client money (segregated account at a bank)</td><td class="who">Licensed broker</td></tr>
+    <tr><td>Books and records</td><td class="who">Licensed broker, on the platform's ledger</td></tr>
+    <tr><td>Execution</td><td class="who">Partner bank, on the broker's instruction</td></tr>
+    <tr><td>Custody and unified code</td><td class="who">Broker / custodian via MCDR</td></tr>
+    <tr><td>Software, hosting, data processing</td><td class="who">Agyal</td></tr>
+  </table>
+  <p>This division is not merely contractual. Every money-moving function in the platform is restricted to the broker's own finance and operations roles; the platform-operator role has no access to any of them. The consequence for this plan is that <strong>Agyal carries no client-money risk and holds no client assets on its balance sheet</strong> — the company's balance sheet is its own cash and its own software.</p>
+
+  <h2>3. Market and opportunity</h2>
+  <p>Egyptian retail savers hold a large share of their savings in bank deposits. Government treasury bills and bonds frequently offer a better return than a same-term deposit, but retail access runs mainly through bank branches, with high minimums and manual paperwork. The opportunity is to make that access digital, cheaper to serve, and therefore available at smaller ticket sizes — distributed through brokerage firms that already hold licences and client relationships.</p>
+  <p><strong>What we do not claim to know.</strong> We do not have a defensible estimate of how many Egyptian retail savers would move money into government paper given an easier route, nor of the price elasticity of that decision. We have therefore built the plan so that it works at a small share of any plausible market, and have not sized the opportunity top-down. <span class="fill">[If you obtain market data — retail T-bill holdings, brokerage account numbers, deposit balances — add it here with its source.]</span></p>
+
+  <h2>4. Revenue model and unit economics</h2>
+  <p>The margin is taken inside the yield and disclosed to the client. Platform defaults, as configured in the product today:</p>
+  <table>
+    <tr><th>Component</th><th class="num">Basis points</th><th>To whom</th></tr>
+    <tr><td>Custody and operations</td><td class="num">5</td><td>Custodian / operations</td></tr>
+    <tr><td>Broker margin</td><td class="num">50</td><td>The licensed broker</td></tr>
+    <tr><td><strong>Platform margin</strong></td><td class="num"><strong>100</strong></td><td><strong>Agyal</strong></td></tr>
+    <tr class="total"><td>Total deduction from gross yield</td><td class="num">155</td><td>Against a 300 bps cap enforced in software</td></tr>
+  </table>
+  <p>Margins are agreed per broker and may differ from these defaults; the platform enforces a hard ceiling on the total deduction so that a client's yield cannot be eroded beyond a set limit regardless of commercial agreement.</p>
+  <div class="keyline"><strong>The unit economic.</strong> Agyal revenue ≈ assets on the platform × 1.00% × time held. Every EGP 1 million held for a year earns roughly EGP 10,000. Revenue recurs as clients roll maturing paper into new paper, so a client acquired once contributes for as long as they stay invested.</div>
+  <p><strong>Revenue recognition.</strong> Margin accrues to a platform-fee payable account in the broker's ledger at the point of each fill, and is transferred monthly against an invoice — separately from, and never out of, client money.</p>
+  <p><strong>Cost to serve.</strong> Marginal cost per client is small and mostly variable: identity and screening checks at onboarding, message delivery, and a share of hosting. There is no branch, no retail advertising, and no per-client staff cost in the normal case.</p>
+
+  <h2>5. Assumptions</h2>
+  <p>Every number in section 8 derives from this table. A reader who disagrees with the plan should be able to point at a row.</p>
+  <table>
+    <tr><th>Driver</th><th class="num">Assumption</th><th>Basis</th></tr>
+    <tr><td>Agyal margin</td><td class="num">1.00% p.a.</td><td>Platform default, configured in the product</td></tr>
+    <tr><td>Average client holding</td><td class="num"><span class="fill">EGP 100,000</span></td><td>Pilot-stage assumption; to be replaced with observed data</td></tr>
+    <tr><td>Share of a broker's client base activated</td><td class="num"><span class="fill">[5–10%]</span></td><td>Assumption — the single most uncertain input</td></tr>
+    <tr><td>Average time invested per year</td><td class="num"><span class="fill">[0.8 of the year]</span></td><td>Allows for gaps between maturity and reinvestment</td></tr>
+    <tr><td>Client attrition</td><td class="num"><span class="fill">[15% p.a.]</span></td><td>Assumption; no observed data yet</td></tr>
+    <tr><td>Time to onboard a broker</td><td class="num"><span class="fill">[3–6 months]</span></td><td>From first contact to first live trade</td></tr>
+    <tr><td>Brokers signed, year 1 / 2 / 3</td><td class="num"><span class="fill">[1 / 2 / 4]</span></td><td>Conservative case, section 8</td></tr>
+    <tr><td>Annual operating cost</td><td class="num"><span class="fill">[EGP ___]</span></td><td>Section 6 — complete with real figures</td></tr>
+    <tr><td>Founder compensation</td><td class="num"><span class="fill">[EGP ___]</span></td><td>Currently nil or minimal draw; state the policy</td></tr>
+  </table>
+
+  <h2>6. Cost base</h2>
+  <p>The company is founder-run and bootstrapped. There are no employees today, and the plan does not assume hiring ahead of revenue — the first hires in section 8 are funded from margin already being earned, not from a raise.</p>
+  <table>
+    <tr><th>Cost</th><th>Behaviour</th><th class="num">Annual <span class="fill">[EGP]</span></th></tr>
+    <tr><td>Cloud hosting and database</td><td>Mostly fixed, steps with load</td><td class="num"><span class="fill">[___]</span></td></tr>
+    <tr><td>Domains, email, monitoring tooling</td><td>Fixed, small</td><td class="num"><span class="fill">[___]</span></td></tr>
+    <tr><td>eKYC and identity checks</td><td>Variable, per onboarded client</td><td class="num"><span class="fill">[___]</span></td></tr>
+    <tr><td>AML screening and ongoing monitoring</td><td>Variable, per client per period</td><td class="num"><span class="fill">[___]</span></td></tr>
+    <tr><td>SMS delivery</td><td>Variable, per message</td><td class="num"><span class="fill">[___]</span></td></tr>
+    <tr><td>Legal and accounting</td><td>Fixed, with project spikes</td><td class="num"><span class="fill">[___]</span></td></tr>
+    <tr><td>Regulatory and filing fees</td><td>As applicable</td><td class="num"><span class="fill">[___]</span></td></tr>
+    <tr><td>Insurance</td><td>If taken</td><td class="num"><span class="fill">[___]</span></td></tr>
+    <tr><td>Founder draw</td><td><span class="fill">[Nil / minimal — state policy]</span></td><td class="num"><span class="fill">[___]</span></td></tr>
+    <tr class="total"><td>Total annual operating cost</td><td></td><td class="num"><span class="fill">[___]</span></td></tr>
+  </table>
+  <p class="muted">The variable lines are genuinely variable: they are incurred per client onboarded or per message sent, so they arrive alongside the revenue that justifies them rather than ahead of it.</p>
+
+  <h2>7. Break-even</h2>
+  <p>Because revenue is approximately 1.00% of assets on the platform per year, break-even depends on one number only:</p>
+  <div class="keyline"><strong>Break-even assets on platform = annual operating cost ÷ 1.00%</strong> — that is, one hundred times annual cost.</div>
+  <p>The table shows what that means at a range of cost levels, and how many clients it implies at an average holding of EGP 100,000:</p>
+  <table>
+    <tr><th class="num">Annual cost (EGP)</th><th class="num">Break-even assets (EGP)</th><th class="num">Clients at EGP 100k</th><th>Reachable with</th></tr>
+    <tr><td class="num">300,000</td><td class="num">30,000,000</td><td class="num">300</td><td>One small broker</td></tr>
+    <tr><td class="num">600,000</td><td class="num">60,000,000</td><td class="num">600</td><td>One modest broker</td></tr>
+    <tr><td class="num">1,200,000</td><td class="num">120,000,000</td><td class="num">1,200</td><td>One active broker</td></tr>
+    <tr><td class="num">2,400,000</td><td class="num">240,000,000</td><td class="num">2,400</td><td>Two brokers</td></tr>
+  </table>
+  <p>This is the core of the plan's prudence argument. <strong>Break-even does not require scale, a second product, or a funding round</strong> — it requires one broker relationship working properly. Everything beyond that is growth rather than survival.</p>
+
+  <h2>8. Projections — conservative case</h2>
+  <p>A deliberately slow ramp: one broker in year one, reaching live trading mid-year after the guided phase; a second in year two; four by year three. Assets build as clients are activated in waves and as holdings roll.</p>
+  <table>
+    <tr><th></th><th class="num">Year 1</th><th class="num">Year 2</th><th class="num">Year 3</th></tr>
+    <tr><td class="who">Brokers live</td><td class="num"><span class="fill">1</span></td><td class="num"><span class="fill">2</span></td><td class="num"><span class="fill">4</span></td></tr>
+    <tr><td class="who">Active clients</td><td class="num"><span class="fill">300</span></td><td class="num"><span class="fill">1,500</span></td><td class="num"><span class="fill">5,000</span></td></tr>
+    <tr><td class="who">Average holding (EGP)</td><td class="num"><span class="fill">100,000</span></td><td class="num"><span class="fill">120,000</span></td><td class="num"><span class="fill">140,000</span></td></tr>
+    <tr><td class="who">Assets on platform (EGP)</td><td class="num"><span class="fill">30m</span></td><td class="num"><span class="fill">180m</span></td><td class="num"><span class="fill">700m</span></td></tr>
+    <tr><td class="who">Revenue at 1.00% (EGP)</td><td class="num"><span class="fill">~150k</span></td><td class="num"><span class="fill">~1.4m</span></td><td class="num"><span class="fill">~6.0m</span></td></tr>
+    <tr><td class="who">Operating cost (EGP)</td><td class="num"><span class="fill">[___]</span></td><td class="num"><span class="fill">[___]</span></td><td class="num"><span class="fill">[___]</span></td></tr>
+    <tr class="total"><td>Operating result (EGP)</td><td class="num"><span class="fill">[___]</span></td><td class="num"><span class="fill">[___]</span></td><td class="num"><span class="fill">[___]</span></td></tr>
+  </table>
+  <p class="muted">Year-1 revenue is part-year and assumes assets build through the year rather than sitting at the closing balance from day one. Year 1 is not expected to cover costs; the plan funds it from existing resources, as section 9 sets out.</p>
+  <p><strong>Hiring.</strong> The first hire is assumed only once recurring revenue covers it — <span class="fill">[role, and the revenue level that triggers it]</span>. Operations and support remain with the broker, whose staff perform client-facing and money-moving steps; Agyal's own headcount therefore grows with the number of brokers, not with the number of clients.</p>
+  <p>A more ambitious case, and the funding that would accelerate it, is set out separately in the investor business plan so that this document is not read as a growth forecast.</p>
+
+  <h2>9. Funding the guided phase</h2>
+  <p>A guided phase imposes real obligations: connecting live eKYC and AML providers, FIX certification with partner banks, reporting to the Authority, and making good any client loss caused by platform defect or operational error. The plan meets these from existing resources rather than from revenue that has not yet been earned.</p>
+  <p><span class="fill">[State the position plainly: cash available, the founder's commitment, and how remediation would be funded — insurance, an indemnity in the technology agreement, or a set-aside. A regulator will ask, and a precise answer is far better than a confident vague one.]</span></p>
+
+  <h2>10. Sensitivities — what would break this plan</h2>
+  <table>
+    <tr><th>If this moves</th><th>Effect</th><th>Response</th></tr>
+    <tr><td><strong>Broker signing is slower than assumed</strong></td><td>The largest risk by far. Revenue is delayed in direct proportion; costs are low enough that the company survives, but break-even moves out.</td><td>Keep the cost base variable; do not hire ahead of signed brokers. Treat broker acquisition as the primary business activity.</td></tr>
+    <tr><td>Activation rate below assumption</td><td>Fewer clients per broker; revenue falls proportionally</td><td>Work the activation funnel with the broker; the platform already measures onboarding completion and time to first trade.</td></tr>
+    <tr><td>Average holding below assumption</td><td>Revenue falls proportionally</td><td>Break-even is a function of assets, not client count — a smaller average holding simply needs more clients.</td></tr>
+    <tr><td>Margin compression</td><td>Revenue falls proportionally; at 50 bps, break-even assets double</td><td>Margins are agreed per broker; compression is likely as brokers gain leverage, and is modelled rather than denied.</td></tr>
+    <tr><td>Shorter time invested per year</td><td>Revenue falls; idle cash earns nothing</td><td>Reinvestment prompts at maturity; the platform already shows upcoming maturities.</td></tr>
+    <tr><td>Market yields fall sharply</td><td>Government paper becomes less attractive against deposits; demand softens</td><td>The product compares net yield against a same-term deposit; if the comparison turns, demand genuinely falls, and the plan does not assume otherwise.</td></tr>
+  </table>
+
+  <h2>11. Risks and mitigations</h2>
+  <table>
+    <tr><th>Risk</th><th>Mitigation</th></tr>
+    <tr><td><strong>No licensed broker partner</strong> — the model does not function without one</td><td>Primary focus of commercial effort; FRA engagement intended partly to make these conversations easier. Honestly, this is the risk that determines whether the business exists.</td></tr>
+    <tr><td>Bank connectivity not granted</td><td>Multiple banks approached; the platform is bank-agnostic and a single refusal is not fatal.</td></tr>
+    <tr><td>Regulatory status unresolved</td><td>The reason for seeking the Authority's guidance; the business is structured to need no licence of its own, and that assumption is being tested rather than assumed.</td></tr>
+    <tr><td>Key-person dependency on the founder</td><td>Real and currently unmitigated. Documentation, automated tests and infrastructure-as-code reduce the loss; <span class="fill">[state any succession or continuity arrangement]</span>.</td></tr>
+    <tr><td>Security or data breach</td><td>Least-privilege access, audited data access, encryption, tested backups; Law 151/2020 processor obligations in the broker agreement.</td></tr>
+    <tr><td>Platform defect causing client loss</td><td>Automated end-to-end test suite; maker-checker on money movements; a ledger that must net to zero; remediation position per section 9.</td></tr>
+    <tr><td>Concentration on one broker</td><td>Accepted in early years and stated plainly; mitigated only by adding brokers.</td></tr>
+  </table>
+
+  <h2>12. Management and governance</h2>
+  <p><span class="fill">[Founder name, background and relevant capital-markets and technology experience; any advisers or non-executives; shareholding and ultimate beneficial owners; who holds responsibility for compliance, security and finance; how decisions are recorded.]</span></p>
+  <p>Operational governance is documented rather than informal: an operations SOP sets out the full client lifecycle with the checks and second approvals at each step; money movements require maker-checker approval; every data change and sign-in is written to an immutable audit log available to the broker's compliance function and to the Authority on request. Service levels, audit rights, business continuity, data return and exit terms sit in the technology agreement with each broker.</p>
+  <p class="muted">As a single-founder company, governance depends on written process and automated control rather than on separation of duties within Agyal. The separation that matters most — between the party that holds client money and the party that operates the software — exists by design, because those are different companies.</p>
+
+  <p class="footer-note">Draft business plan. Figures marked as placeholders are to be completed with real values before the plan is relied upon. Projections are illustrative of the model's mechanics at the stated assumptions and are not a forecast or a guarantee of outcome.</p>
+</div>
+</body>
+</html>

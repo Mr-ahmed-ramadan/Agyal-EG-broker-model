@@ -78,6 +78,22 @@ export const DOCUMENTS: DocumentDef[] = [
     internal: false,
   },
   {
+    key: 'business-plan',
+    title: 'Business plan (FRA)',
+    file: 'business-plan.html',
+    blurb:
+      'The business plan prepared for the FRA: the model and who pays, market opportunity with an honest statement of what is not known, unit economics from the platform’s own margin defaults, a full assumptions table, the bootstrapped cost base, break-even (revenue ≈ 1% of assets, so break-even assets are 100× annual cost — reachable with one modest broker), a conservative three-year projection, funding the guided phase, sensitivities, risks and governance. Contains placeholders to complete.',
+    internal: false,
+  },
+  {
+    key: 'business-plan-investor',
+    title: 'Business plan (investors)',
+    file: 'business-plan-investor.html',
+    blurb:
+      'The long-form plan behind the investor pack: why the gap exists, the white-label model and what it means for an investor (no licence, no client money on the balance sheet, no retail acquisition cost), unit economics, the Pilot → Early → Scale path, why bootstrapped-to-break-even means capital buys growth rather than runway, sensitivities including margin compression, risks stated plainly, and the ask with use of funds tied to milestones.',
+    internal: false,
+  },
+  {
     key: 'fra-sandbox-application',
     title: 'FRA sandbox — application for Regulatory Guidance',
     file: 'fra-sandbox-application.html',

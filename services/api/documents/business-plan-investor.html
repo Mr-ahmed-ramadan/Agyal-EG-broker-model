@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="robots" content="noindex, nofollow" />
+<title>Agyal · Investor business plan</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>{{STYLE}}
+.fill { background: #fdf6e3; border-bottom: 1px solid var(--bronze); padding: 0 4px; font-weight: 600; }
+td.who { white-space: nowrap; font-weight: 600; color: var(--forest-deep); }
+td.num, th.num { text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
+tr.total td { font-weight: 700; border-top: 2px solid var(--forest-tint); }
+.keyline { background: var(--white); border: 1px solid var(--border); border-left: 3px solid var(--forest-tint); border-radius: 10px; padding: 12px 18px; margin: 12px 0; }
+.stage { background: var(--white); border: 1px solid var(--border); border-radius: 14px; padding: 14px 20px; margin: 12px 0; }
+.stage h3 { margin-top: 0; }
+</style>
+</head>
+<body>
+<button class="print-btn" onclick="window.print()">Print / Save as PDF</button>
+<div class="wrap">
+  <div class="doc-head">
+    <div class="brand"><span class="mark">A</span> Agyal <em>Egypt</em></div>
+    <div class="meta"><span class="tag">Investor business plan · draft</span><br />Version 1 · {{TODAY}}</div>
+  </div>
+  <h1>Investor business plan</h1>
+  <p class="muted">The long-form plan behind the investor pack: the opportunity, the economics, the path from one broker to many, what we are raising and what it buys. Figures are illustrative of the model at the stated assumptions, not a forecast.</p>
+
+  <div class="callout"><strong>The case in one line.</strong> Agyal earns 1% a year on every pound of retail money it puts into Egyptian government paper, through brokers who already hold the licences and the clients — and the company reaches break-even on a single broker, so capital buys growth rather than survival.</div>
+
+  <h2>1. Why this exists</h2>
+  <p>Egyptian retail savers hold most of their savings in bank deposits. Government treasury bills and bonds frequently pay more than a same-term deposit, but retail access runs through bank branches with high minimums and manual paperwork — so the better instrument stays out of reach for ordinary savers.</p>
+  <p>Brokerage firms already hold the licences and the client relationships needed to close that gap. What they lack is the technology: a digital onboarding flow, a connection to bank liquidity, a ledger, and a client app. Building it is slow and expensive, which is why most have not.</p>
+  <p><strong>We built it so they do not have to</strong> — and we are paid out of the trades it enables.</p>
+
+  <h2>2. The model</h2>
+  <p>A white-label platform. The broker's brand faces the client; the broker keeps the licence, holds all client money in its own segregated account, and owns the books and records. Agyal provides the software and is paid by the broker — never by the end client, never out of client money.</p>
+  <p>For an investor the consequences are the ones that matter:</p>
+  <ul>
+    <li><strong>No regulatory licence required</strong> on our side — the business is structured so the licensed party is the broker. We are seeking the FRA's confirmation of exactly this.</li>
+    <li><strong>No client money or client assets on our balance sheet</strong>, so no client-money risk, no capital adequacy burden, and a clean balance sheet.</li>
+    <li><strong>No retail acquisition cost.</strong> We sell to brokers; they bring the clients. There is no paid-marketing line in this plan.</li>
+    <li><strong>Each additional broker is configuration, not a new build.</strong> The platform is multi-tenant by design, with per-tenant isolation enforced in the database itself.</li>
+  </ul>
+
+  <h2>3. Unit economics</h2>
+  <p>The margin sits inside the yield and is disclosed to the client. Platform defaults as configured in the product today:</p>
+  <table>
+    <tr><th>Component</th><th class="num">Basis points</th><th>To whom</th></tr>
+    <tr><td>Custody and operations</td><td class="num">5</td><td>Custodian / operations</td></tr>
+    <tr><td>Broker margin</td><td class="num">50</td><td>The licensed broker</td></tr>
+    <tr><td><strong>Platform margin</strong></td><td class="num"><strong>100</strong></td><td><strong>Agyal</strong></td></tr>
+    <tr class="total"><td>Total deduction from gross yield</td><td class="num">155</td><td>Against a 300 bps cap enforced in software</td></tr>
+  </table>
+  <div class="keyline"><strong>Agyal revenue ≈ assets on platform × 1.00% × time held.</strong> Every EGP 1 million held for a year earns roughly EGP 10,000 — and the client still beats a same-term deposit. Revenue recurs as clients roll maturing paper, so a client acquired once pays for as long as they stay invested.</div>
+  <p>The revenue line behaves like an asset-based fee rather than transactional brokerage: it compounds with balances rather than depending on trading frequency. Margins are agreed per broker and will compress as brokers gain leverage — section 7 models that rather than ignoring it.</p>
+
+  <h2>4. Go-to-market</h2>
+  <ul>
+    <li><strong>Win brokers, not clients.</strong> Each firm brings an already-licensed client base and its own brand.</li>
+    <li><strong>Branded demo in a day.</strong> The admin console spins up a prospect demo with the broker's logo and colours; materials go out as tracked links.</li>
+    <li><strong>Pilot in 8–12 weeks</strong> — one or two partner banks over FIX, the broker's client-money and custody accounts, an invited first group of clients.</li>
+    <li><strong>Then expand</strong> — more banks and instruments per broker, then more brokers on the same platform.</li>
+  </ul>
+  <p class="muted">Being candid about what is hard: reaching and signing brokers is the binding constraint on this business, not building the product. The plan treats broker acquisition as the primary activity and the main use of any capital raised.</p>
+
+  <h2>5. The path</h2>
+  <div class="stage">
+    <div class="eyebrow">Stage 1 · Pilot</div>
+    <h3>One broker, prove the loop</h3>
+    <table>
+      <tr><td class="who">Brokers</td><td class="num">1</td><td class="who">Active clients</td><td class="num">500</td></tr>
+      <tr><td class="who">Avg. holding</td><td class="num">EGP 100,000</td><td class="who">Assets</td><td class="num">EGP 50m</td></tr>
+      <tr><td class="who">Revenue / year</td><td class="num">≈ EGP 0.5m</td><td class="who">Status</td><td class="num">At or near break-even</td></tr>
+    </table>
+  </div>
+  <div class="stage">
+    <div class="eyebrow">Stage 2 · Early</div>
+    <h3>Five brokers, repeatable onboarding</h3>
+    <table>
+      <tr><td class="who">Brokers</td><td class="num">5</td><td class="who">Active clients</td><td class="num">5,000</td></tr>
+      <tr><td class="who">Avg. holding</td><td class="num">EGP 150,000</td><td class="who">Assets</td><td class="num">EGP 750m</td></tr>
+      <tr><td class="who">Revenue / year</td><td class="num">≈ EGP 7.5m</td><td class="who">Status</td><td class="num">Profitable, hiring from revenue</td></tr>
+    </table>
+  </div>
+  <div class="stage">
+    <div class="eyebrow">Stage 3 · Scale</div>
+    <h3>Fifteen brokers, category position</h3>
+    <table>
+      <tr><td class="who">Brokers</td><td class="num">15</td><td class="who">Active clients</td><td class="num">40,000</td></tr>
+      <tr><td class="who">Avg. holding</td><td class="num">EGP 200,000</td><td class="who">Assets</td><td class="num">EGP 8bn</td></tr>
+      <tr><td class="who">Revenue / year</td><td class="num">≈ EGP 80m</td><td class="who">Status</td><td class="num">Platform economics</td></tr>
+    </table>
+  </div>
+  <p class="muted">Illustrative, not a forecast. Assumes a 1.00% margin over a full year of holding; actual revenue depends on margins agreed per broker, holding periods and market yields. These rows are consistent with the investor pack.</p>
+
+  <h2>6. Why bootstrapped-to-break-even matters</h2>
+  <p>The company is founder-run with no external funding. Because revenue is roughly 1% of assets per year, break-even assets equal one hundred times annual cost — a level a single modest broker relationship can reach.</p>
+  <table>
+    <tr><th class="num">Annual cost (EGP)</th><th class="num">Break-even assets (EGP)</th><th class="num">Clients at EGP 100k</th></tr>
+    <tr><td class="num">300,000</td><td class="num">30,000,000</td><td class="num">300</td></tr>
+    <tr><td class="num">600,000</td><td class="num">60,000,000</td><td class="num">600</td></tr>
+    <tr><td class="num">1,200,000</td><td class="num">120,000,000</td><td class="num">1,200</td></tr>
+  </table>
+  <p>The investment consequence: <strong>capital is not required to keep this business alive.</strong> It buys speed — more brokers signed per year, and the operational depth to support them. An investor is funding growth, not runway, and the downside is a slower business rather than a dead one.</p>
+
+  <h2>7. Sensitivities</h2>
+  <table>
+    <tr><th>If this moves</th><th>Effect on the plan</th></tr>
+    <tr><td><strong>Broker signing rate</strong></td><td>The dominant variable. Everything else is second order — revenue is roughly linear in brokers live.</td></tr>
+    <tr><td>Margin compression to 75 bps</td><td>Revenue falls by a quarter; break-even assets rise by a third. Expected as brokers gain leverage, and survivable.</td></tr>
+    <tr><td>Margin compression to 50 bps</td><td>Break-even assets double. Still reachable with one active broker.</td></tr>
+    <tr><td>Activation below assumption</td><td>Fewer clients per broker; revenue falls proportionally. Mitigated by working the funnel — onboarding completion and time to first trade are already measured in the product.</td></tr>
+    <tr><td>Market yields fall sharply</td><td>Government paper becomes less compelling against deposits and demand genuinely softens. The plan does not assume otherwise.</td></tr>
+  </table>
+
+  <h2>8. Risks, stated plainly</h2>
+  <table>
+    <tr><th>Risk</th><th>Position</th></tr>
+    <tr><td><strong>Broker distribution</strong></td><td>The business does not function without at least one licensed broker. Reaching them has been harder than building the product. This is the risk that determines the outcome, and capital is aimed squarely at it.</td></tr>
+    <tr><td>Regulatory status</td><td>Structured to need no licence of our own; confirmation is being sought from the FRA rather than assumed.</td></tr>
+    <tr><td>Integrations not yet live</td><td>Bank FIX, eKYC, AML and custody currently run against simulators. Connecting them is well-understood work, but it is work, and first live connection carries execution risk.</td></tr>
+    <tr><td>Key-person dependency</td><td>Single founder. Mitigated by documentation, automated tests and infrastructure-as-code; not eliminated.</td></tr>
+    <tr><td>Broker concentration</td><td>Early revenue will concentrate in one or two relationships.</td></tr>
+    <tr><td>Incumbent response</td><td>A large broker or bank could build or buy equivalent technology. Our advantage is being built already, and being neutral across banks.</td></tr>
+  </table>
+
+  <h2>9. The ask and use of funds</h2>
+  <p><span class="fill">[Amount sought, instrument and valuation expectation.]</span></p>
+  <table>
+    <tr><th>Use</th><th>What it buys</th><th class="num">Share</th></tr>
+    <tr><td>Broker acquisition and partnerships</td><td>The binding constraint — dedicated commercial effort, travel, pilot support</td><td class="num"><span class="fill">[__%]</span></td></tr>
+    <tr><td>Live integrations</td><td>eKYC, AML, SMS and bank FIX certification moved from simulated to live</td><td class="num"><span class="fill">[__%]</span></td></tr>
+    <tr><td>Engineering depth</td><td>First hires; reduces key-person risk and supports multiple brokers in parallel</td><td class="num"><span class="fill">[__%]</span></td></tr>
+    <tr><td>Compliance, legal and regulatory</td><td>Counsel, the FRA process, broker agreements, data protection</td><td class="num"><span class="fill">[__%]</span></td></tr>
+    <tr><td>Operating reserve</td><td>Runway independent of broker timing</td><td class="num"><span class="fill">[__%]</span></td></tr>
+  </table>
+  <p><strong>Milestones this buys:</strong> <span class="fill">[e.g. FRA guidance concluded; first broker live with real clients; two banks FIX-certified; EGP ___ assets on platform; break-even.]</span> Tie each tranche to a milestone rather than to elapsed time.</p>
+
+  <h2>10. What exists today</h2>
+  <ul>
+    <li>A functionally complete platform: four web apps (client, broker console, admin console, landing), a FIX 4.4 gateway with transactional outbox and inbox, and a double-entry ledger whose trial balance must net to zero.</li>
+    <li>Full client lifecycle working end to end: onboarding with eKYC and AML screening, unified-code and custody linkage, deposits, buying and selling over FIX, settlement, coupons and maturity with tax withholding, and withdrawals with maker-checker approval.</li>
+    <li>Multi-tenant from the ground up, with isolation enforced by PostgreSQL row-level security — each additional broker is configuration.</li>
+    <li>Automated unit tests plus an end-to-end trading test that exercises the whole flow against real processes.</li>
+    <li>A live hosted demo with simulated banks, and the ability to produce a branded demo for a prospect in a day.</li>
+  </ul>
+  <p><strong>Not yet live:</strong> partner-bank FIX, eKYC, AML screening, MCDR custody confirmations and SMS all run against simulators today. We state this plainly here for the same reason we state it to the regulator — the plan is better served by an accurate picture than a flattering one.</p>
+
+  <h2>11. Team</h2>
+  <p><span class="fill">[Founder name, background, relevant capital-markets and technology experience; advisers; shareholding and cap table; any planned hires and when revenue supports them.]</span></p>
+
+  <p class="footer-note">Draft. Illustrative figures demonstrate the mechanics of the model at the stated assumptions; they are not a forecast, a projection of actual results, or an offer of securities. Placeholders are to be completed before the plan is shared.</p>
+</div>
+</body>
+</html>

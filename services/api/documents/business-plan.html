@@ -80,39 +80,43 @@ tr.total td { font-weight: 700; border-top: 2px solid var(--forest-tint); }
     <tr><td>Client attrition</td><td class="num"><span class="fill">[15% p.a.]</span></td><td>Assumption; no observed data yet</td></tr>
     <tr><td>Time to onboard a broker</td><td class="num"><span class="fill">[3–6 months]</span></td><td>From first contact to first live trade</td></tr>
     <tr><td>Brokers signed, year 1 / 2 / 3</td><td class="num"><span class="fill">[1 / 2 / 4]</span></td><td>Conservative case, section 8</td></tr>
-    <tr><td>Annual operating cost</td><td class="num"><span class="fill">[EGP ___]</span></td><td>Section 6 — complete with real figures</td></tr>
-    <tr><td>Founder compensation</td><td class="num"><span class="fill">[EGP ___]</span></td><td>Currently nil or minimal draw; state the policy</td></tr>
+    <tr><td><strong>Annual operating cost</strong></td><td class="num"><strong>≈ USD 12,000</strong></td><td>USD 1,000 per month — section 6</td></tr>
+    <tr><td>Founder compensation</td><td class="num">Nil</td><td>No draw is taken; founder time is contributed and not charged to the business</td></tr>
+    <tr><td><strong>EGP / USD rate</strong></td><td class="num"><span class="fill">[__ EGP]</span></td><td>Costs are incurred in USD; set the rate here and every EGP figure below follows from it</td></tr>
   </table>
 
   <h2>6. Cost base</h2>
-  <p>The company is founder-run and bootstrapped. There are no employees today, and the plan does not assume hiring ahead of revenue — the first hires in section 8 are funded from margin already being earned, not from a raise.</p>
+  <p>The company is founder-run and bootstrapped. There are no employees, no office and no debt. The founder takes <strong>no draw</strong>: time is contributed and is not charged to the business, so the figures below are the full cash cost of operating.</p>
+  <p>Costs are incurred largely in USD. The total today is <strong>approximately USD 1,000 per month — about USD 12,000 a year.</strong></p>
   <table>
-    <tr><th>Cost</th><th>Behaviour</th><th class="num">Annual <span class="fill">[EGP]</span></th></tr>
-    <tr><td>Cloud hosting and database</td><td>Mostly fixed, steps with load</td><td class="num"><span class="fill">[___]</span></td></tr>
-    <tr><td>Domains, email, monitoring tooling</td><td>Fixed, small</td><td class="num"><span class="fill">[___]</span></td></tr>
-    <tr><td>eKYC and identity checks</td><td>Variable, per onboarded client</td><td class="num"><span class="fill">[___]</span></td></tr>
-    <tr><td>AML screening and ongoing monitoring</td><td>Variable, per client per period</td><td class="num"><span class="fill">[___]</span></td></tr>
-    <tr><td>SMS delivery</td><td>Variable, per message</td><td class="num"><span class="fill">[___]</span></td></tr>
-    <tr><td>Legal and accounting</td><td>Fixed, with project spikes</td><td class="num"><span class="fill">[___]</span></td></tr>
-    <tr><td>Regulatory and filing fees</td><td>As applicable</td><td class="num"><span class="fill">[___]</span></td></tr>
-    <tr><td>Insurance</td><td>If taken</td><td class="num"><span class="fill">[___]</span></td></tr>
-    <tr><td>Founder draw</td><td><span class="fill">[Nil / minimal — state policy]</span></td><td class="num"><span class="fill">[___]</span></td></tr>
-    <tr class="total"><td>Total annual operating cost</td><td></td><td class="num"><span class="fill">[___]</span></td></tr>
+    <tr><th>Cost</th><th>Behaviour</th><th class="num">Monthly (USD)</th></tr>
+    <tr><td>Cloud hosting, database, domains, monitoring</td><td>Mostly fixed; steps with load</td><td class="num"><span class="fill">[___]</span></td></tr>
+    <tr><td>Development tooling</td><td>Fixed subscription</td><td class="num"><span class="fill">[___]</span></td></tr>
+    <tr><td>eKYC, AML screening and onboarding services</td><td>Partly fixed, partly per client</td><td class="num"><span class="fill">[___]</span></td></tr>
+    <tr><td>Marketing and business development</td><td>Discretionary; broker-facing only, no retail advertising</td><td class="num"><span class="fill">[___]</span></td></tr>
+    <tr><td>Founder draw</td><td>Nil — time contributed, not charged</td><td class="num">0</td></tr>
+    <tr class="total"><td>Total</td><td>≈ USD 12,000 per year</td><td class="num">≈ 1,000</td></tr>
   </table>
-  <p class="muted">The variable lines are genuinely variable: they are incurred per client onboarded or per message sent, so they arrive alongside the revenue that justifies them rather than ahead of it.</p>
+  <p>In local currency, at the rate set in section 5:</p>
+  <table>
+    <tr><th class="num">EGP / USD</th><th class="num">45</th><th class="num">50</th><th class="num">55</th></tr>
+    <tr><td class="who">Annual operating cost (EGP)</td><td class="num">540,000</td><td class="num">600,000</td><td class="num">660,000</td></tr>
+  </table>
+  <div class="keyline"><strong>A note on eKYC and AML, stated plainly.</strong> These services run against simulators today. When live licensed providers are connected, screening becomes a <em>per-client</em> cost that grows with onboarding volume rather than a flat subscription. At a few hundred clients this is immaterial against the base above; at several thousand it becomes a real line. Section 8 therefore shows cost rising with client numbers rather than holding flat, and the per-check fee is to be confirmed with the chosen provider.</div>
+  <p class="muted">The structure matters as much as the total: almost nothing in this cost base steps up ahead of revenue. There is no office lease, no payroll commitment and no minimum-volume contract, so a slower year costs less rather than consuming reserves.</p>
 
   <h2>7. Break-even</h2>
   <p>Because revenue is approximately 1.00% of assets on the platform per year, break-even depends on one number only:</p>
-  <div class="keyline"><strong>Break-even assets on platform = annual operating cost ÷ 1.00%</strong> — that is, one hundred times annual cost.</div>
-  <p>The table shows what that means at a range of cost levels, and how many clients it implies at an average holding of EGP 100,000:</p>
+  <div class="keyline"><strong>Break-even assets on platform = annual operating cost ÷ 1.00%</strong> — that is, one hundred times annual cost. At USD 12,000 a year, that is <strong>assets equivalent to about USD 1.2 million</strong>, whatever the exchange rate does.</div>
+  <p>Read off the rate you use:</p>
   <table>
-    <tr><th class="num">Annual cost (EGP)</th><th class="num">Break-even assets (EGP)</th><th class="num">Clients at EGP 100k</th><th>Reachable with</th></tr>
-    <tr><td class="num">300,000</td><td class="num">30,000,000</td><td class="num">300</td><td>One small broker</td></tr>
-    <tr><td class="num">600,000</td><td class="num">60,000,000</td><td class="num">600</td><td>One modest broker</td></tr>
-    <tr><td class="num">1,200,000</td><td class="num">120,000,000</td><td class="num">1,200</td><td>One active broker</td></tr>
-    <tr><td class="num">2,400,000</td><td class="num">240,000,000</td><td class="num">2,400</td><td>Two brokers</td></tr>
+    <tr><th class="num">EGP / USD</th><th class="num">Annual cost (EGP)</th><th class="num">Break-even assets (EGP)</th><th class="num">Clients at EGP 100k</th></tr>
+    <tr><td class="num">45</td><td class="num">540,000</td><td class="num">54,000,000</td><td class="num">540</td></tr>
+    <tr><td class="num">50</td><td class="num">600,000</td><td class="num">60,000,000</td><td class="num">600</td></tr>
+    <tr><td class="num">55</td><td class="num">660,000</td><td class="num">66,000,000</td><td class="num">660</td></tr>
   </table>
-  <p>This is the core of the plan's prudence argument. <strong>Break-even does not require scale, a second product, or a funding round</strong> — it requires one broker relationship working properly. Everything beyond that is growth rather than survival.</p>
+  <p>So the business covers its costs at roughly <strong>EGP 55–66 million of client assets, or about 550–660 clients holding EGP 100,000 each.</strong> That is well within the reach of a single brokerage firm's existing client base — the pilot cohort in the investor materials assumes 500 clients at one broker.</p>
+  <p>This is the core of the plan's prudence argument. <strong>Break-even does not require scale, a second product, or a funding round</strong> — it requires one broker relationship working properly. Everything beyond that is growth rather than survival. Equally, because the cost base is small and largely variable, a year in which no broker signs is a year of modest cash cost, not an existential event.</p>
 
   <h2>8. Projections — conservative case</h2>
   <p>A deliberately slow ramp: one broker in year one, reaching live trading mid-year after the guided phase; a second in year two; four by year three. Assets build as clients are activated in waves and as holdings roll.</p>
@@ -123,16 +127,20 @@ tr.total td { font-weight: 700; border-top: 2px solid var(--forest-tint); }
     <tr><td class="who">Average holding (EGP)</td><td class="num"><span class="fill">100,000</span></td><td class="num"><span class="fill">120,000</span></td><td class="num"><span class="fill">140,000</span></td></tr>
     <tr><td class="who">Assets on platform (EGP)</td><td class="num"><span class="fill">30m</span></td><td class="num"><span class="fill">180m</span></td><td class="num"><span class="fill">700m</span></td></tr>
     <tr><td class="who">Revenue at 1.00% (EGP)</td><td class="num"><span class="fill">~150k</span></td><td class="num"><span class="fill">~1.4m</span></td><td class="num"><span class="fill">~6.0m</span></td></tr>
-    <tr><td class="who">Operating cost (EGP)</td><td class="num"><span class="fill">[___]</span></td><td class="num"><span class="fill">[___]</span></td><td class="num"><span class="fill">[___]</span></td></tr>
-    <tr class="total"><td>Operating result (EGP)</td><td class="num"><span class="fill">[___]</span></td><td class="num"><span class="fill">[___]</span></td><td class="num"><span class="fill">[___]</span></td></tr>
+    <tr><td class="who">Operating cost (USD)</td><td class="num">~12,000</td><td class="num">~15,000</td><td class="num">~22,000</td></tr>
+    <tr><td class="who">Operating cost (EGP at 50)</td><td class="num">600,000</td><td class="num">750,000</td><td class="num">1,100,000</td></tr>
+    <tr class="total"><td>Operating result (EGP at 50)</td><td class="num">(450,000)</td><td class="num">+650,000</td><td class="num">+4,900,000</td></tr>
   </table>
-  <p class="muted">Year-1 revenue is part-year and assumes assets build through the year rather than sitting at the closing balance from day one. Year 1 is not expected to cover costs; the plan funds it from existing resources, as section 9 sets out.</p>
+  <p>Cost grows from USD 12,000 to about USD 22,000 across the three years. That rise is almost entirely the per-client eKYC and AML screening described in section 6, plus modest hosting growth — it arrives with the clients that generate the revenue, not ahead of them.</p>
+  <p class="muted">Year-1 revenue is part-year and assumes assets build through the year rather than sitting at the closing balance from day one. <strong>Year 1 does not cover its costs — a shortfall of roughly EGP 450,000, about USD 9,000.</strong> The plan funds that from existing resources rather than from revenue not yet earned, as section 9 sets out. The business crosses into surplus during year 2, at the point assets pass roughly EGP 60 million.</p>
   <p><strong>Hiring.</strong> The first hire is assumed only once recurring revenue covers it — <span class="fill">[role, and the revenue level that triggers it]</span>. Operations and support remain with the broker, whose staff perform client-facing and money-moving steps; Agyal's own headcount therefore grows with the number of brokers, not with the number of clients.</p>
   <p>A more ambitious case, and the funding that would accelerate it, is set out separately in the investor business plan so that this document is not read as a growth forecast.</p>
 
   <h2>9. Funding the guided phase</h2>
   <p>A guided phase imposes real obligations: connecting live eKYC and AML providers, FIX certification with partner banks, reporting to the Authority, and making good any client loss caused by platform defect or operational error. The plan meets these from existing resources rather than from revenue that has not yet been earned.</p>
-  <p><span class="fill">[State the position plainly: cash available, the founder's commitment, and how remediation would be funded — insurance, an indemnity in the technology agreement, or a set-aside. A regulator will ask, and a precise answer is far better than a confident vague one.]</span></p>
+  <p><strong>The scale of the commitment is modest and known.</strong> Running the business costs about USD 1,000 a month with no draw taken, so a full year of operation through a guided phase — including the year-1 shortfall in section 8 — is on the order of <strong>USD 12,000, with a funding gap of roughly USD 9,000</strong> after expected revenue. There is no payroll, lease or minimum-volume contract that could escalate that figure.</p>
+  <p><span class="fill">[Complete with the precise position: cash currently available and how many months it covers; the founder's committed contribution; and how client remediation would be funded if a platform defect caused loss — professional indemnity insurance, an indemnity clause in the technology agreement with the broker, a ring-fenced set-aside, or a combination.]</span></p>
+  <p class="muted">A regulator's concern with a bootstrapped applicant is whether it can meet its obligations for the duration of the test. The honest answer here is that the obligations are small, the cost base cannot escalate unexpectedly, and the figure that matters is a four-figure sum in USD rather than a funding round. A precise answer on the remediation question above is worth more than any amount of reassurance.</p>
 
   <h2>10. Sensitivities — what would break this plan</h2>
   <table>

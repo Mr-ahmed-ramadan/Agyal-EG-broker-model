@@ -86,6 +86,14 @@ export const DOCUMENTS: DocumentDef[] = [
     internal: false,
   },
   {
+    key: 'fra-sandbox-form-answers',
+    title: 'FRA sandbox — online form answers',
+    file: 'fra-sandbox-form-answers.html',
+    blurb:
+      'Paste-ready answers for the FRA Regulatory Guidance online form, written to field length rather than document length: the innovation, benefit to customers and market, the roadmap (launch, regulatory alignment, management, global experience), the specific assistance areas, the sector targeted, and why the solution addresses the non-banking financial sector. Each long answer has a short version for character-limited fields, plus the supporting-document list to attach.',
+    internal: false,
+  },
+  {
     key: 'fra-sandbox-testing-plan',
     title: 'FRA sandbox — testing plan, KPIs and exit',
     file: 'fra-sandbox-testing-plan.html',

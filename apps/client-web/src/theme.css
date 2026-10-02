@@ -45,6 +45,9 @@ h3 { font-size: 1rem; margin-top: 16px; }
   display: flex; align-items: center; justify-content: space-between; gap: 12px;
   padding: 12px 16px; background: var(--brand); color: var(--brand-contrast);
 }
+/* Bar stays full-bleed; its contents line up with .container below it. */
+@media (min-width: 1280px) { .topbar { padding-inline: max(16px, calc((100% - 1240px) / 2 + 16px)); } }
+@media (min-width: 1700px) { .topbar { padding-inline: max(16px, calc((100% - 1440px) / 2 + 16px)); } }
 .topbar .brand { display: flex; align-items: center; gap: 8px; font-weight: 600; }
 .topbar .brand img { height: 28px; }
 .topbar nav { display: flex; gap: 4px; flex-wrap: wrap; }
@@ -53,6 +56,9 @@ h3 { font-size: 1rem; margin-top: 16px; }
 .tab.on { background: rgb(255 255 255 / 0.18); }
 
 .container { max-width: 1040px; margin: 0 auto; padding: 16px; }
+/* Use the screen on larger displays, capped so text lines stay readable. */
+@media (min-width: 1280px) { .container, .footer { max-width: 1240px; } }
+@media (min-width: 1700px) { .container, .footer { max-width: 1440px; } }
 .grid { display: grid; gap: 20px; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); align-items: start; }
 .card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px; }
 .card.narrow { max-width: 440px; margin: 24px auto; }
@@ -223,13 +229,21 @@ details.htm summary { cursor: pointer; font-weight: 600; }
   .table.stack td.lead-cell[data-label]::before { content: none; }
 }
 
-/* Money figures in small cards: shrink rather than wrap or clip */
-.summary > div, .stats > div { min-width: 0; }
-.summary > div strong, .stats strong { white-space: nowrap; overflow-wrap: normal; font-size: clamp(0.85rem, 3.9vw, 1.15rem); }
+/* Money figures in small cards: shrink rather than wrap or clip.
+   Sized in cqi (the tile's own width), not vw: the tile is set by the card grid
+   and stays narrow however wide the screen is, so a viewport-based size clamps
+   to its maximum on desktop and overflows. */
+.summary > div, .stats > div { min-width: 0; container-type: inline-size; }
+.summary > div strong, .stats strong { overflow-wrap: break-word; font-size: clamp(0.7rem, 10.5cqi, 1.15rem); }
 @media (max-width: 380px) {
   .summary { grid-template-columns: minmax(0, 1fr); }
 }
-details.htm .summary > div strong { font-size: clamp(0.8rem, 3.5vw, 1.1rem); }
+details.htm .summary > div strong { font-size: clamp(0.68rem, 10cqi, 1.1rem); }
+
+/* Without container queries, wrap rather than clip: ugly beats wrong. */
+@supports not (container-type: inline-size) {
+  .summary > div strong, .stats strong { white-space: normal; overflow-wrap: anywhere; font-size: 1rem; }
+}
 
 /* Return breakdown (waterfall) */
 .breakdown { margin: 12px 0; border: 1px solid var(--border); border-radius: 10px; padding: 12px; }

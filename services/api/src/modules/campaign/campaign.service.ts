@@ -1,12 +1,30 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException, ServiceUnavailableException } from '@nestjs/common';
+import { randomBytes } from 'node:crypto';
+import type { Tenant } from '@prisma/client';
 import Decimal from 'decimal.js';
+import { hashPassword } from '../../common/crypto.util';
 import { DbService } from '../../common/db.service';
 import { EconomicsService } from '../../common/economics.service';
-import { bandFor, bandMidpoint, type AmountBand, type SavesIn } from '../../domain/campaign';
+import {
+  DEMO_OPENING_CASH, PUBLIC_DEMO_SLUG, bandFor, bandMidpoint,
+  type AmountBand, type SavesIn,
+} from '../../domain/campaign';
+import { depositEntry } from '../../domain/ledger-rules';
+import { OtpService } from '../identity/otp.service';
+import { LedgerService } from '../ledger/ledger.service';
+import { ONBOARDING_STEPS } from '../onboarding/onboarding.service';
 import { clientWaterfall, pricingRuleFor } from '../../domain/economics';
 import { addBusinessDays, daysBetween } from '../../domain/fixed-income';
 import { clientPricePer100, nominalForAmount, projectHolding } from '../../domain/projection';
 import { pricingInstrument } from '../instruments/instruments.service';
+
+export interface DemoSignupInput {
+  name: string;
+  email: string;
+  locale: string;
+  source?: string;
+  campaign?: string;
+}
 
 export interface WaitlistInput {
   name: string;
@@ -23,6 +41,12 @@ export interface WaitlistInput {
 /** Settlement for the public calculator: the platform default, not a broker's. */
 const SETTLEMENT_DAYS = 2;
 
+/** Whose name the sign-in code is sent under. */
+function brandName(tenant: Tenant): string {
+  const branding = tenant.branding as { displayName?: { en?: string } } | null;
+  return branding?.displayName?.en ?? 'Agyal';
+}
+
 /**
  * The public face of the awareness campaign: an educational calculator that
  * needs no account, and a waitlist that records intent rather than identity.
@@ -36,6 +60,8 @@ export class CampaignService {
   constructor(
     private readonly db: DbService,
     private readonly economics: EconomicsService,
+    private readonly otp: OtpService,
+    private readonly ledger: LedgerService,
   ) {}
 
   /**
@@ -93,6 +119,124 @@ export class CampaignService {
       returnBreakdown: breakdown,
       ...projection,
     };
+  }
+
+  /** The tenant demo accounts belong to; created by the seed. */
+  private async publicDemoTenant() {
+    const tenant = await this.db.asSystem((tx) => tx.tenant.findUnique({ where: { slug: PUBLIC_DEMO_SLUG } }));
+    if (!tenant) throw new ServiceUnavailableException('The demo is not available right now');
+    return tenant;
+  }
+
+  /**
+   * Opens a demo account from the landing page and emails a sign-in code.
+   *
+   * Builds the same account state the seed's demo investor has — active,
+   * approved, with custody accounts and opening cash posted through the real
+   * double-entry path — so the visitor lands on a funded home and can place a
+   * simulated trade immediately.
+   *
+   * It collects a name and an email and nothing else: no national ID, no
+   * documents, no mobile and no screening. The eKYC and AML records it writes
+   * are marked simulated so they can never be mistaken for checks that really
+   * ran. Real KYC belongs to a licensed broker, later.
+   */
+  async demoSignup(input: DemoSignupInput) {
+    const tenant = await this.publicDemoTenant();
+    const email = input.email.toLowerCase();
+
+    const existing = await this.db.asSystem((tx) =>
+      tx.user.findUnique({ where: { tenantId_email: { tenantId: tenant.id, email } } }),
+    );
+    // Already has a demo account: send a sign-in code rather than a second one.
+    if (existing) {
+      const challenge = await this.otp.issue(existing, 'LOGIN', brandName(tenant));
+      return { ...challenge, created: false };
+    }
+
+    const now = new Date();
+    const user = await this.db.asSystem(async (inner) => {
+      await inner.$executeRaw`SELECT set_config('app.tenant_id', ${tenant.id}, true)`;
+      {
+        const created = await inner.user.create({
+          data: {
+            tenantId: tenant.id,
+            email,
+            // No mobile: a demo needs no SMS, and it is personal data we do not need.
+            mobile: null,
+            // Set so sign-in asks for a LOGIN code rather than mobile verification.
+            mobileVerifiedAt: now,
+            // Sign-in is by emailed code only; this hash is never usable.
+            passwordHash: hashPassword(randomBytes(32).toString('hex')),
+            roles: ['CLIENT'],
+          },
+        });
+        const client = await inner.client.create({
+          data: {
+            tenantId: tenant.id,
+            userId: created.id,
+            depositReference: `DEMO-${randomBytes(4).toString('hex').toUpperCase()}`,
+            status: 'ACTIVE',
+            fullNameEn: input.name,
+            // No national ID, encrypted or otherwise: this is a demo.
+            riskRating: 'MEDIUM',
+            riskProfile: 'BALANCED',
+            kycApprovedAt: now,
+            kycReviewDueAt: new Date(now.getTime() + 365 * 86_400_000),
+          },
+        });
+        await inner.onboardingApplication.create({
+          data: {
+            tenantId: tenant.id,
+            clientId: client.id,
+            // From the source of truth, so a renamed step cannot silently leave
+            // demo accounts with an onboarding step outstanding.
+            completed: [...ONBOARDING_STEPS],
+            // Marked simulated: no check was run, and this must never read as one that passed.
+            ekycResult: { simulated: true, source: 'public-demo', passed: null },
+            amlResult: { simulated: true, source: 'public-demo', flag: 'NOT_SCREENED' },
+            suitability: { simulated: true, source: 'public-demo' },
+            submittedAt: now,
+            decisionBy: 'public-demo:auto',
+            decisionNote: 'Demo account opened from the campaign page. No KYC performed.',
+            decidedAt: now,
+          },
+        });
+        await inner.investorCode.create({
+          data: { tenantId: tenant.id, clientId: client.id, code: `D${randomBytes(4).toString('hex').slice(0, 7)}`, status: 'VERIFIED', source: 'EXISTING_DECLARED' },
+        });
+        await inner.custodyAccount.createMany({
+          data: [
+            { tenantId: tenant.id, clientId: client.id, custodian: 'Demo Custodian (MCDR)', accountNumber: 'MCDR-DEMO', depository: 'MCDR' },
+            { tenantId: tenant.id, clientId: client.id, custodian: 'Simulated Bank A (CBE)', accountNumber: 'CBE-DEMO', depository: 'CBE' },
+          ],
+        });
+        // Simulated opening cash, posted through the same double-entry path a real deposit uses.
+        await this.ledger.post(inner, tenant.id, 'DEPOSIT', `demo-${client.id}`, depositEntry(client.id, DEMO_OPENING_CASH));
+        return created;
+      }
+    });
+
+    const challenge = await this.otp.issue(user, 'LOGIN', brandName(tenant));
+    return { ...challenge, created: true };
+  }
+
+  /**
+   * Passwordless return for demo accounts: emails a sign-in code.
+   *
+   * Scoped strictly to the public-demo tenant. Issuing a code for any other
+   * tenant's user would be an authentication bypass, since it would hand out a
+   * sign-in factor without a password. The reply is the same whether or not the
+   * address exists, so the endpoint cannot be used to discover who signed up.
+   */
+  async demoSignin(email: string) {
+    const tenant = await this.publicDemoTenant();
+    const user = await this.db.asSystem((tx) =>
+      tx.user.findUnique({ where: { tenantId_email: { tenantId: tenant.id, email: email.toLowerCase() } } }),
+    );
+    if (!user || user.tenantId !== tenant.id) return { sent: true };
+    const challenge = await this.otp.issue(user, 'LOGIN', brandName(tenant));
+    return { ...challenge, sent: true };
   }
 
   /** Someone asking to be told when the service opens. Intent only. */
@@ -156,7 +300,33 @@ export class CampaignService {
     const banded = signups.map((s) => s.amountBand as AmountBand | null).filter(Boolean) as AmountBand[];
     const intended = banded.reduce((sum, b) => sum + bandMidpoint(b), 0);
 
+    // What people actually did, which is stronger evidence than what they said
+    // they would do: demo accounts opened, and how many went on to trade.
+    const demoTenant = await this.db.asSystem((tx) => tx.tenant.findUnique({ where: { slug: PUBLIC_DEMO_SLUG } }));
+    const demo = demoTenant
+      ? await this.db.asSystem(async (tx) => {
+          const [accounts, orders] = await Promise.all([
+            tx.client.count({ where: { tenantId: demoTenant.id } }),
+            tx.order.findMany({
+              where: { tenantId: demoTenant.id },
+              select: { clientId: true, side: true, orderQty: true, isin: true },
+            }),
+          ]);
+          const traders = new Set(orders.map((o) => o.clientId));
+          const nominal = orders.reduce((sum, o) => sum.plus(new Decimal(o.orderQty.toString())), new Decimal(0));
+          return {
+            accounts,
+            placedAnOrder: traders.size,
+            /** Share of demo accounts that went on to place a simulated order */
+            conversion: accounts > 0 ? Math.round((traders.size / accounts) * 100) / 100 : 0,
+            orders: orders.length,
+            simulatedNominalEgp: nominal.toFixed(2),
+          };
+        })
+      : { accounts: 0, placedAnOrder: 0, conversion: 0, orders: 0, simulatedNominalEgp: '0.00' };
+
     return {
+      demo,
       signups: {
         total: signups.length,
         withAmountBand: banded.length,

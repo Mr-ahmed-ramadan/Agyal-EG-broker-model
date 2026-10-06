@@ -171,3 +171,10 @@
 @media (min-width: 820px) {
   .lp-demo { grid-template-columns: 1.3fr 1fr; gap: 24px; }
 }
+
+/* Inline text button (switching between opening an account and signing in). */
+.lp-link {
+  background: none; border: 0; padding: 0; font: inherit; color: var(--lp-forest);
+  font-weight: 600; text-decoration: underline; cursor: pointer;
+}
+.lp-form h3 { margin: 0; }

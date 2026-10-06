@@ -28,6 +28,23 @@ const WaitlistSchema = z.object({
   website: z.string().optional(),
 });
 
+const DemoSignupSchema = z.object({
+  name: z.string().trim().min(2).max(100),
+  email: z.string().trim().email(),
+  locale: z.enum(['ar', 'en']).default('ar'),
+  source: z.string().trim().max(60).optional(),
+  campaign: z.string().trim().max(60).optional(),
+  /** Honeypot: hidden in the form; bots fill it */
+  website: z.string().optional(),
+});
+
+const DemoSigninSchema = z.object({ email: z.string().trim().email() });
+
+/** 3 demo accounts per IP per hour. */
+const demoLimiter = new RateLimiter(3, 3_600_000);
+/** 5 sign-in codes per IP per hour. */
+const signinLimiter = new RateLimiter(5, 3_600_000);
+
 /** 30 calculations per IP per hour: generous for a visitor, dull for a scraper. */
 const calcLimiter = new RateLimiter(30, 3_600_000);
 /** 3 waitlist submissions per IP per hour. */
@@ -79,6 +96,34 @@ export class CampaignController {
       { ...rest, email: email || undefined, mobile: mobile || undefined },
       req.ip,
     );
+  }
+
+  /**
+   * Public: open a demo account and get a sign-in code by email.
+   * Name and email only — no password, no mobile, no national ID, no screening.
+   */
+  @Post('public/campaign/demo-signup')
+  @HttpCode(201)
+  async demoSignup(@Req() req: AppRequest, @Body() body: unknown) {
+    const input = parseBody(DemoSignupSchema, body);
+    // Bot: look successful, create nothing. The challengeId is not a real one.
+    if (input.website) return { created: false, sentTo: null, challengeId: null };
+    if (!demoLimiter.allow(req.ip ?? 'unknown')) {
+      throw new HttpException('Too many demo accounts from here; please try again later', HttpStatus.TOO_MANY_REQUESTS);
+    }
+    const { website: _honeypot, ...rest } = input;
+    return this.campaign.demoSignup(rest);
+  }
+
+  /** Public: send a sign-in code to an existing demo account. */
+  @Post('public/campaign/demo-signin')
+  @HttpCode(200)
+  async demoSignin(@Req() req: AppRequest, @Body() body: unknown) {
+    const input = parseBody(DemoSigninSchema, body);
+    if (!signinLimiter.allow(req.ip ?? 'unknown')) {
+      throw new HttpException('Too many codes requested; please try again later', HttpStatus.TOO_MANY_REQUESTS);
+    }
+    return this.campaign.demoSignin(input.email);
   }
 
   /** Agyal: the demand picture, for broker conversations and the FRA file. */

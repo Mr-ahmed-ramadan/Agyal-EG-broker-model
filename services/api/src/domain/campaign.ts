@@ -8,6 +8,19 @@
  * field — see the guard in the e2e suite.
  */
 
+/**
+ * The tenant that accounts opened from the campaign landing page belong to.
+ *
+ * Deliberately NOT `demo-broker`: that tenant's broker-console credentials are
+ * printed on the public proposal page so prospects can try the console, which
+ * would let anyone sign in and read the name and email of everyone who signed
+ * up. This tenant's staff logins are published nowhere.
+ */
+export const PUBLIC_DEMO_SLUG = 'agyal-demo';
+
+/** Simulated opening balance for a demo account, in EGP. */
+export const DEMO_OPENING_CASH = '500000';
+
 /** How much someone intends to start with. Bands, never an exact figure. */
 export const AMOUNT_BANDS = [
   'UNDER_10K',

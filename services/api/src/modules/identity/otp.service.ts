@@ -56,7 +56,14 @@ export class OtpService {
     senderName: string,
     payload?: Prisma.InputJsonValue,
   ): Promise<IssuedChallenge> {
-    if (!user.mobile) throw new UnauthorizedException('No mobile number on this account');
+    // Verifying a mobile obviously needs one. Otherwise all that is required is
+    // somewhere to send the code: delivery already falls back to email when
+    // there is no mobile, which is how demo accounts (deliberately without one)
+    // sign in.
+    if (purpose === 'VERIFY_MOBILE' && !user.mobile) {
+      throw new UnauthorizedException('No mobile number on this account');
+    }
+    if (!user.mobile && !user.email) throw new UnauthorizedException('No way to send a code to this account');
     const recent = await this.db.otpChallenge.findMany({
       where: { userId: user.id, createdAt: { gt: new Date(Date.now() - 3_600_000) } },
       select: { createdAt: true, purpose: true, payload: true },

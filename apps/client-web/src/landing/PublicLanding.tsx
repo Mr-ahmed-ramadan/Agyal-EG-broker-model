@@ -17,10 +17,13 @@ interface CalcResult {
   returnBreakdown: { netYield?: string; depositRate?: string; vsDeposit?: string; belowDeposit?: boolean };
 }
 
-async function post<T>(path: string, body: unknown): Promise<T> {
+/** The tenant demo accounts belong to; must match PUBLIC_DEMO_SLUG on the API. */
+const DEMO_TENANT = 'agyal-demo';
+
+async function post<T>(path: string, body: unknown, tenant?: string): Promise<T> {
   const res = await fetch(`${API_URL}/${path}`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', ...(tenant ? { 'X-Tenant': tenant } : {}) },
     body: JSON.stringify(body),
   });
   const json = await res.json().catch(() => ({}));
@@ -88,6 +91,67 @@ export function PublicLanding() {
     }
   }
 
+  // --- demo account ---------------------------------------------------------
+  // Two steps: open the account (name + email), then the emailed code. On
+  // success the session token is stored under the key the app reads, and we
+  // hand over to /app already signed in.
+  const [demo, setDemo] = useState({ name: '', email: '', website: '' });
+  const [step, setStep] = useState<'form' | 'code'>('form');
+  const [sentTo, setSentTo] = useState('');
+  const [challengeId, setChallengeId] = useState('');
+  const [code, setCode] = useState('');
+  const [demoBusy, setDemoBusy] = useState(false);
+  const [demoErr, setDemoErr] = useState<string | null>(null);
+  const [signinMode, setSigninMode] = useState(false);
+
+  async function openDemo(e: React.FormEvent) {
+    e.preventDefault();
+    setDemoErr(null);
+    setDemoBusy(true);
+    try {
+      const path = signinMode ? 'public/campaign/demo-signin' : 'public/campaign/demo-signup';
+      const body = signinMode
+        ? { email: demo.email }
+        : { name: demo.name, email: demo.email, locale, website: demo.website || undefined, ...attribution() };
+      const r = await post<{ challengeId?: string; sentTo?: string }>(path, body);
+      if (!r.challengeId) {
+        // Unknown address on sign-in, or a bot: say nothing more.
+        setDemoErr(t.fErrorContact);
+        return;
+      }
+      setChallengeId(r.challengeId);
+      setSentTo(r.sentTo ?? demo.email);
+      setStep('code');
+    } catch (err) {
+      setDemoErr(err instanceof Error ? err.message : 'Error');
+    } finally {
+      setDemoBusy(false);
+    }
+  }
+
+  async function enterCode(e: React.FormEvent) {
+    e.preventDefault();
+    setDemoErr(null);
+    setDemoBusy(true);
+    try {
+      const r = await post<{ accessToken: string }>('auth/verify-otp', { challengeId, code }, DEMO_TENANT);
+      // Hand over to the app already signed in. These keys are written out
+      // literally rather than imported from lib/api, because that module fixes
+      // its broker at load time from the URL — on this page that would resolve
+      // to VITE_TENANT and write the token under the wrong broker's key.
+      // Storage can throw (private windows); the app survives without it by
+      // asking for a sign-in, so a failure here is not worth blocking on.
+      try {
+        sessionStorage.setItem('agyal.broker', DEMO_TENANT);
+        localStorage.setItem(`agyal.client.token.${DEMO_TENANT}`, r.accessToken);
+      } catch { /* fall through: the app will ask them to sign in */ }
+      window.location.href = `/app?broker=${DEMO_TENANT}`;
+    } catch (err) {
+      setDemoErr(err instanceof Error ? err.message : 'Error');
+      setDemoBusy(false);
+    }
+  }
+
   // --- waitlist -------------------------------------------------------------
   const [form, setForm] = useState({
     name: '', email: '', mobile: '', governorate: '', amountBand: '', savesIn: '', consent: false, website: '',
@@ -134,7 +198,7 @@ export function PublicLanding() {
             <a href="#how">{t.navHow}</a>
             {/* Existing clients and the demo reach the product from here. */}
             <a href="/app" className="lp-nav-signin">{t.navSignIn}</a>
-            <a href="#join" className="lp-nav-cta">{t.navJoin}</a>
+            <a href="#join" className="lp-nav-cta">{t.signupCta}</a>
             <button type="button" onClick={() => setLocale(locale === 'ar' ? 'en' : 'ar')}>{t.switch}</button>
           </nav>
         </div>
@@ -146,7 +210,7 @@ export function PublicLanding() {
           <h1>{t.heroTitle}</h1>
           <p className="lp-lead">{t.heroLead}</p>
           <p className="lp-note">{t.heroNote}</p>
-          <a className="lp-cta" href="#join">{t.navJoin}</a>
+          <a className="lp-cta" href="#join">{t.signupCta}</a>
         </div>
       </section>
 
@@ -226,7 +290,53 @@ export function PublicLanding() {
         </div>
       </section>
 
-      <section className="lp-sec" id="join">
+      <section className="lp-sec lp-alt" id="join">
+        <div className="lp-in lp-narrow">
+          <h2>{t.signupTitle}</h2>
+          <p className="lp-lead">{t.signupLead}</p>
+
+          {step === 'form' ? (
+            <form className="lp-form" onSubmit={openDemo}>
+              {!signinMode ? (
+                <label><span>{t.fName}</span>
+                  <input required minLength={2} value={demo.name}
+                    onChange={(e) => setDemo((d) => ({ ...d, name: e.target.value }))} />
+                </label>
+              ) : null}
+              <label><span>{t.fEmail}</span>
+                <input type="email" required value={demo.email}
+                  onChange={(e) => setDemo((d) => ({ ...d, email: e.target.value }))} />
+              </label>
+              <input className="lp-hp" tabIndex={-1} autoComplete="off" aria-hidden="true"
+                value={demo.website} onChange={(e) => setDemo((d) => ({ ...d, website: e.target.value }))} />
+              <p className="lp-demo-warn">{t.signupWarning}</p>
+              {demoErr ? <p className="lp-err">{demoErr}</p> : null}
+              <button type="submit" disabled={demoBusy}>
+                {demoBusy ? t.signupSending : signinMode ? t.signinHere : t.signupCta}
+              </button>
+              <p className="lp-fine">
+                {signinMode ? '' : t.haveAccount}{' '}
+                <button type="button" className="lp-link" onClick={() => { setSigninMode(!signinMode); setDemoErr(null); }}>
+                  {signinMode ? t.signupCta : t.signinHere}
+                </button>
+              </p>
+            </form>
+          ) : (
+            <form className="lp-form" onSubmit={enterCode}>
+              <h3>{t.codeTitle}</h3>
+              <p className="lp-fine">{t.codeLead(sentTo)}</p>
+              <label><span>{t.codeField}</span>
+                <input required inputMode="numeric" pattern="[0-9]{6}" maxLength={6}
+                  value={code} onChange={(e) => setCode(e.target.value.replace(/\D/g, ''))} />
+              </label>
+              {demoErr ? <p className="lp-err">{demoErr}</p> : null}
+              <button type="submit" disabled={demoBusy}>{demoBusy ? t.codeSending : t.codeCta}</button>
+            </form>
+          )}
+        </div>
+      </section>
+
+      <section className="lp-sec" id="waitlist">
         <div className="lp-in lp-narrow">
           <h2>{t.joinTitle}</h2>
           <p className="lp-lead">{t.joinLead}</p>

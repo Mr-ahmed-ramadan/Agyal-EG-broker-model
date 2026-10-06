@@ -297,3 +297,9 @@ button.secondary { border-radius: 999px; }
 .receive-banner { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin: 14px 0 4px; padding: 14px 16px; border-radius: var(--radius-md); background: color-mix(in srgb, var(--ok) 12%, var(--surface)); border: 1px solid color-mix(in srgb, var(--ok) 45%, var(--border)); }
 .receive-banner span { font-weight: 600; }
 .receive-banner strong { font-size: 1.35rem; color: var(--ok); font-variant-numeric: tabular-nums; }
+
+/* Demo accounts: simulated money, said on every screen and not dismissible. */
+.demo-bar {
+  background: #a8823a; color: #fff; font-weight: 600; font-size: 0.88rem;
+  text-align: center; padding: 9px 16px; line-height: 1.45;
+}

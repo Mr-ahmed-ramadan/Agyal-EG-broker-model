@@ -13,6 +13,7 @@
 import { Prisma, PrismaClient } from '@prisma/client';
 import { hashPassword } from '../src/common/crypto.util';
 import { DEFAULT_TENANT_CONFIG } from '../src/common/tenant-config';
+import { PUBLIC_DEMO_SLUG } from '../src/domain/campaign';
 import { withCheckDigit as isin } from '../src/domain/isin';
 import { depositEntry } from '../src/domain/ledger-rules';
 import { LedgerService } from '../src/modules/ledger/ledger.service';
@@ -258,7 +259,44 @@ async function main() {
     });
   });
 
+  // --- Public demo tenant ---------------------------------------------------------------
+  // Where accounts opened from the campaign landing page live. Deliberately NOT
+  // `demo-broker`: that tenant's console credentials are printed on the public
+  // proposal page, so anyone could sign in and read the names and emails of
+  // everyone who signed up. This one's staff logins are published nowhere.
+  const publicDemo = await prisma.tenant.upsert({
+    where: { slug: PUBLIC_DEMO_SLUG },
+    create: {
+      slug: PUBLIC_DEMO_SLUG,
+      legalNameEn: 'Agyal Demo (simulated)',
+      legalNameAr: 'أجيال — نسخة تجريبية',
+      branding: {
+        tenantSlug: PUBLIC_DEMO_SLUG,
+        displayName: { en: 'Agyal Demo', ar: 'أجيال التجريبية' },
+        logoUrl: '',
+        colors: { primary: '#2f5a45', primaryContrast: '#ffffff', accent: '#a8823a' },
+        supportEmail: 'hello@agyal.net',
+        legalDocuments: { termsUrl: '#', riskDisclosureUrl: '#', privacyUrl: '#' },
+      },
+      config: DEFAULT_TENANT_CONFIG as unknown as Prisma.InputJsonValue,
+    },
+    update: {},
+  });
+  // Same bank links as the demo broker, so pricing and RFQ work for demo accounts.
+  await prisma.$transaction(async (tx) => {
+    await tx.$executeRaw`SELECT set_config('app.tenant_id', ${publicDemo.id}, true)`;
+    for (const code of banks.map((x) => x.code)) {
+      const bank = await tx.bank.findUniqueOrThrow({ where: { code } });
+      await tx.brokerBankRelationship.upsert({
+        where: { tenantId_bankId: { tenantId: publicDemo.id, bankId: bank.id } },
+        create: { tenantId: publicDemo.id, bankId: bank.id, brokerAccountAtBank: `PUBLICDEMO-${code}` },
+        update: {},
+      });
+    }
+  });
+
   console.log(`Seeded tenant ${tenant.slug}, ${banks.length} banks, ${instruments.length} instruments.`);
+  console.log(`Public demo tenant: ${publicDemo.slug} (campaign signups; no published logins)`);
   console.log(`Platform admin: ${ADMIN_EMAIL}`);
   if (SEED_DEMO_STAFF) console.log(`Demo staff${SEED_DEMO_CLIENT ? ` + investor (${DEMO_CLIENT_EMAIL})` : ''} seeded; demo password: ${DEMO_PASSWORD}`);
 }

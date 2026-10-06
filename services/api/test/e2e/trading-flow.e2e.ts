@@ -661,7 +661,59 @@ async function main() {
   for (const f of forbidden) {
     assert.ok(!signupKeys.includes(f.toLowerCase()), `waitlist must not carry "${f}": KYC belongs to the licensed broker`);
   }
+  // 15. Demo accounts opened from the campaign page: intent to try, still no identity
+  const demoEmail = `visitor.${run}@example.com`;
+  const opened = await call('POST', '/public/campaign/demo-signup', { body: { name: 'Demo Visitor', email: demoEmail, locale: 'ar', source: 'facebook' } });
+  assert.equal(opened.created, true);
+  assert.ok(opened.challengeId && opened.devCode, 'a sign-in code is issued by email');
+  const demoTok = (await call('POST', '/auth/verify-otp', { tenant: 'agyal-demo', body: { challengeId: opened.challengeId, code: opened.devCode } })).accessToken;
+  assert.ok(demoTok, 'the code signs the visitor in');
+
+  // The account is usable immediately and holds no identity data.
+  const demoHome = await call('GET', '/home', { tenant: 'agyal-demo', token: demoTok });
+  assert.equal(demoHome.cash.available, '500000.00', 'the demo account opens funded');
+  const demoOnb = await call('GET', '/onboarding', { tenant: 'agyal-demo', token: demoTok });
+  assert.equal(demoOnb.clientStatus, 'ACTIVE', 'no eKYC wall: the visitor can trade at once');
+  assert.equal(demoOnb.remainingSteps.length, 0, 'no onboarding steps are left to complete');
+  assert.ok(demoOnb.custodyReady, 'custody is ready, so the demo can buy immediately');
+
+  // Opening again with the same address never creates a second account. Within
+  // the code cooldown it is refused outright, which is the OTP service doing its
+  // job; either way the account count must not move.
+  const demoAccountsBefore = (await call('GET', '/admin/campaign/demand', { token: admin })).demo.accounts;
+  const reopen = await fetch(`${API}/public/campaign/demo-signup`, {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ name: 'Demo Visitor', email: demoEmail, locale: 'ar' }),
+  });
+  assert.ok([201, 429].includes(reopen.status), `repeat signup is a code or a cooldown, got ${reopen.status}`);
+  if (reopen.status === 201) assert.equal((await reopen.json()).created, false, 'repeat signup creates no second account');
+  const demoAccountsAfter = (await call('GET', '/admin/campaign/demand', { token: admin })).demo.accounts;
+  assert.equal(demoAccountsAfter, demoAccountsBefore, 'a second signup with the same address adds no account');
+  await call('POST', '/public/campaign/demo-signup', { body: { name: 'Bot', email: `bot.${run}@example.com`, locale: 'ar', website: 'http://spam' } });
+
+  // Passwordless sign-in is scoped to the demo tenant. Issuing a code for a real
+  // tenant's user would hand out a sign-in factor without a password, so this is
+  // an authentication bypass if it ever regresses.
+  const leak = await call('POST', '/public/campaign/demo-signin', { body: { email: 'investor@demo-broker.example' }, expect: 200 });
+  assert.equal(leak.challengeId, undefined, 'no code is issued for a user outside the demo tenant');
+  const staffLeak = await call('POST', '/public/campaign/demo-signin', { body: { email: 'admin@demo-broker.example' }, expect: 200 });
+  assert.equal(staffLeak.challengeId, undefined, 'no code is issued for broker staff');
+  const unknown = await call('POST', '/public/campaign/demo-signin', { body: { email: `nobody.${run}@example.com` }, expect: 200 });
+  assert.deepEqual(Object.keys(unknown), Object.keys(leak), 'unknown and foreign addresses are indistinguishable (no enumeration)');
+  // A code was issued to this account moments ago, so the cooldown may answer
+  // first; either way it must not be silently refused like a foreign address.
+  const back = await fetch(`${API}/public/campaign/demo-signin`, {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email: demoEmail }),
+  });
+  assert.ok([200, 429].includes(back.status), `demo sign-in is a code or a cooldown, got ${back.status}`);
+  if (back.status === 200) assert.ok((await back.json()).challengeId, 'the demo account can sign back in');
+
+  const demand2 = await call('GET', '/admin/campaign/demand', { token: admin });
+  assert.ok(demand2.demo.accounts >= 1, 'demo accounts are reported');
+  assert.ok(!demand2.signups.recent.some((s: Json) => s.email === `bot.${run}@example.com`), 'honeypot signups are not stored');
   console.log('✓ campaign: public calculator indicative and bounded, waitlist deduped, bot ignored, consent required, demand visible to Agyal only, no identity fields');
+  console.log('✓ demo accounts: opened funded with no KYC and no identity, deduped, code signs in, passwordless sign-in scoped to the demo tenant and non-enumerable');
 
   console.log('\nAll end-to-end checks passed.');
 }

@@ -111,6 +111,12 @@ export function App() {
           ) : null}
         </nav>
       </header>
+      {/* Demo accounts opened from the campaign page run on simulated money.
+          Says so on every screen, and cannot be dismissed: nobody may come away
+          believing they hold real money. */}
+      {tenant?.slug === 'agyal-demo' ? (
+        <div className="demo-bar" role="status">{t('demoAccountBar')}</div>
+      ) : null}
       <main className="container">
         {!token ? (
           <AuthPage onSignedIn={signIn} />

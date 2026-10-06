@@ -709,8 +709,21 @@ async function main() {
   assert.ok([200, 429].includes(back.status), `demo sign-in is a code or a cooldown, got ${back.status}`);
   if (back.status === 200) assert.ok((await back.json()).challengeId, 'the demo account can sign back in');
 
+  // An optional contact number, stored as a contact detail and never as the
+  // authentication factor: the sign-in code must still go to the email, and
+  // nothing may claim a mobile was verified when no SMS was sent.
+  const phoneEmail = `phoned.${run}@example.com`;
+  const withPhone = await call('POST', '/public/campaign/demo-signup', { body: { name: 'Phoned Visitor', email: phoneEmail, phone: '01012345678', locale: 'ar' } });
+  assert.equal(withPhone.created, true);
+  assert.ok(String(withPhone.sentTo).includes('@'), 'the code goes to the email even when a number is given');
+  await call('POST', '/public/campaign/demo-signup', { body: { name: 'Bad Number', email: `badnum.${run}@example.com`, phone: '12345', locale: 'ar' }, expect: 400 });
+
   const demand2 = await call('GET', '/admin/campaign/demand', { token: admin });
   assert.ok(demand2.demo.accounts >= 1, 'demo accounts are reported');
+  const phoned = demand2.demo.recent.find((c: Json) => c.email === phoneEmail);
+  assert.equal(phoned?.phone, '01012345678', 'the number is there to call them on');
+  const plain = demand2.demo.recent.find((c: Json) => c.email === demoEmail);
+  assert.equal(plain?.phone, null, 'signing up without a number still works');
   assert.ok(!demand2.signups.recent.some((s: Json) => s.email === `bot.${run}@example.com`), 'honeypot signups are not stored');
   console.log('✓ campaign: public calculator indicative and bounded, waitlist deduped, bot ignored, consent required, demand visible to Agyal only, no identity fields');
   console.log('✓ demo accounts: opened funded with no KYC and no identity, deduped, code signs in, passwordless sign-in scoped to the demo tenant and non-enumerable');

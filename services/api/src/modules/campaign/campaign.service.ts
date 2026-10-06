@@ -21,6 +21,8 @@ import { pricingInstrument } from '../instruments/instruments.service';
 export interface DemoSignupInput {
   name: string;
   email: string;
+  /** Optional contact number. Stored on the client, never as an auth factor. */
+  phone?: string;
   locale: string;
   source?: string;
   campaign?: string;
@@ -178,6 +180,9 @@ export class CampaignService {
             depositReference: `DEMO-${randomBytes(4).toString('hex').toUpperCase()}`,
             status: 'ACTIVE',
             fullNameEn: input.name,
+            // A number to call them on, if they left one. Unverified, and kept
+            // off User.mobile so nothing claims an SMS was ever sent.
+            phone: input.phone ?? null,
             // No national ID, encrypted or otherwise: this is a demo.
             riskRating: 'MEDIUM',
             riskProfile: 'BALANCED',
@@ -305,13 +310,27 @@ export class CampaignService {
     const demoTenant = await this.db.asSystem((tx) => tx.tenant.findUnique({ where: { slug: PUBLIC_DEMO_SLUG } }));
     const demo = demoTenant
       ? await this.db.asSystem(async (tx) => {
-          const [accounts, orders] = await Promise.all([
+          const [accounts, orders, recent] = await Promise.all([
             tx.client.count({ where: { tenantId: demoTenant.id } }),
             tx.order.findMany({
               where: { tenantId: demoTenant.id },
               select: { clientId: true, side: true, orderQty: true, isin: true },
             }),
+            // Who signed up, so they can be followed up by email or phone.
+            tx.client.findMany({
+              where: { tenantId: demoTenant.id },
+              orderBy: { createdAt: 'desc' },
+              take: 50,
+              select: { id: true, userId: true, fullNameEn: true, phone: true, createdAt: true },
+            }),
           ]);
+          // Client has no `user` relation, so the emails come separately.
+          const emails = new Map(
+            (await tx.user.findMany({
+              where: { id: { in: recent.map((c) => c.userId) } },
+              select: { id: true, email: true },
+            })).map((u) => [u.id, u.email]),
+          );
           const traders = new Set(orders.map((o) => o.clientId));
           const nominal = orders.reduce((sum, o) => sum.plus(new Decimal(o.orderQty.toString())), new Decimal(0));
           return {
@@ -321,9 +340,17 @@ export class CampaignService {
             conversion: accounts > 0 ? Math.round((traders.size / accounts) * 100) / 100 : 0,
             orders: orders.length,
             simulatedNominalEgp: nominal.toFixed(2),
+            withPhone: recent.filter((c) => c.phone).length,
+            recent: recent.map((c) => ({
+              name: c.fullNameEn,
+              email: emails.get(c.userId) ?? null,
+              phone: c.phone,
+              tradedSimulated: traders.has(c.id),
+              createdAt: c.createdAt,
+            })),
           };
         })
-      : { accounts: 0, placedAnOrder: 0, conversion: 0, orders: 0, simulatedNominalEgp: '0.00' };
+      : { accounts: 0, placedAnOrder: 0, conversion: 0, orders: 0, simulatedNominalEgp: '0.00', withPhone: 0, recent: [] };
 
     return {
       demo,

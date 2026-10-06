@@ -95,7 +95,7 @@ export function PublicLanding() {
   // Two steps: open the account (name + email), then the emailed code. On
   // success the session token is stored under the key the app reads, and we
   // hand over to /app already signed in.
-  const [demo, setDemo] = useState({ name: '', email: '', website: '' });
+  const [demo, setDemo] = useState({ name: '', email: '', phone: '', website: '' });
   const [step, setStep] = useState<'form' | 'code'>('form');
   const [sentTo, setSentTo] = useState('');
   const [challengeId, setChallengeId] = useState('');
@@ -112,7 +112,7 @@ export function PublicLanding() {
       const path = signinMode ? 'public/campaign/demo-signin' : 'public/campaign/demo-signup';
       const body = signinMode
         ? { email: demo.email }
-        : { name: demo.name, email: demo.email, locale, website: demo.website || undefined, ...attribution() };
+        : { name: demo.name, email: demo.email, phone: demo.phone || undefined, locale, website: demo.website || undefined, ...attribution() };
       const r = await post<{ challengeId?: string; sentTo?: string }>(path, body);
       if (!r.challengeId) {
         // Unknown address on sign-in, or a bot: say nothing more.
@@ -209,8 +209,33 @@ export function PublicLanding() {
           <p className="lp-eyebrow">{t.heroEyebrow}</p>
           <h1>{t.heroTitle}</h1>
           <p className="lp-lead">{t.heroLead}</p>
-          <p className="lp-note">{t.heroNote}</p>
           <a className="lp-cta" href="#join">{t.signupCta}</a>
+        </div>
+      </section>
+
+      {/* The point of the page: a deposit and a treasury bill both hold cash for
+          a term, and this is how they differ. Tax is included rather than
+          glossed, since deposit interest is exempt for individuals and treasury
+          interest is not, which the gross rates alone would hide. */}
+      <section className="lp-sec lp-alt" id="how-diff">
+        <div className="lp-in">
+          <h2>{t.diffTitle}</h2>
+          <p className="lp-lead">{t.diffLead}</p>
+          <table className="lp-diff">
+            <thead>
+              <tr><th /><th>{t.diffColDeposit}</th><th>{t.diffColBill}</th></tr>
+            </thead>
+            <tbody>
+              {t.diff.map((r) => (
+                <tr key={r.k}>
+                  <th scope="row">{r.k}</th>
+                  <td>{r.deposit}</td>
+                  <td className="lp-diff-ours">{r.bill}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          <p className="lp-fine">{t.diffNote}</p>
         </div>
       </section>
 
@@ -276,6 +301,7 @@ export function PublicLanding() {
         </div>
       </section>
 
+
       <section className="lp-sec lp-alt" id="join">
         <div className="lp-in lp-narrow">
           <h2>{t.signupTitle}</h2>
@@ -293,6 +319,13 @@ export function PublicLanding() {
                 <input type="email" required value={demo.email}
                   onChange={(e) => setDemo((d) => ({ ...d, email: e.target.value }))} />
               </label>
+              {!signinMode ? (
+                <label><span>{t.fPhone}</span>
+                  <input type="tel" inputMode="tel" placeholder="01012345678" value={demo.phone}
+                    onChange={(e) => setDemo((d) => ({ ...d, phone: e.target.value }))} />
+                  <small className="lp-fine">{t.fPhoneHint}</small>
+                </label>
+              ) : null}
               <input className="lp-hp" tabIndex={-1} autoComplete="off" aria-hidden="true"
                 value={demo.website} onChange={(e) => setDemo((d) => ({ ...d, website: e.target.value }))} />
               <p className="lp-demo-warn">{t.signupWarning}</p>
@@ -381,6 +414,18 @@ export function PublicLanding() {
               </button>
             </form>
           )}
+        </div>
+      </section>
+
+      {/* Brokers and banks are a different audience with a different page.
+          Kept quiet and near the end so it does not compete with the retail call. */}
+      <section className="lp-pro">
+        <div className="lp-in">
+          <div>
+            <h3>{t.proTitle}</h3>
+            <p>{t.proLead}</p>
+          </div>
+          <a href="https://egypt.agyal.net" target="_blank" rel="noopener noreferrer">{t.proCta}</a>
         </div>
       </section>
 

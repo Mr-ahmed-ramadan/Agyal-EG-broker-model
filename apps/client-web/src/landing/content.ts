@@ -19,15 +19,26 @@ export const LANDING = {
     switch: 'English',
     brand: 'أجيال',
     navCalc: 'احسب عائدك',
-    navHow: 'بيشتغل إزاي',
+    navHow: 'الفرق',
     navJoin: 'ابدأ',
     navSignIn: 'تسجيل الدخول',
 
-    heroEyebrow: 'أذون وسندات الحكومة المصرية',
-    heroTitle: 'فلوسك تستاهل عائد أحسن',
+    heroEyebrow: 'أذون الخزانة المصرية',
+    heroTitle: 'طريقة تانية تحطّ فيها فلوسك',
     heroLead:
-      'أذون الخزانة بتدي عائد أعلى من الشهادة في أغلب الأوقات، بس الوصول ليها لسه محتاج فرع وورق. إحنا بنخلّيها من موبايلك وبأقل مبلغ.',
-    heroNote: 'جرّبها دلوقتي على حساب تجريبي، من غير أي مستندات.',
+      'بدل ما فلوسك قاعدة في وديعة، تسلّفها للحكومة المصرية لمدة محدّدة بعائد معروف من أول يوم. من موبايلك.',
+
+    diffTitle: 'الوديعة والأذون: إيه الفرق؟',
+    diffLead: 'الاتنين بتحطّ فيهم فلوسك لمدة. الفرق في مين بتسلّفه، والعائد، والضريبة.',
+    diffColDeposit: 'وديعة بنكية',
+    diffColBill: 'أذون خزانة',
+    diff: [
+      { k: 'بتسلّف مين؟', deposit: 'البنك', bill: 'الحكومة المصرية' },
+      { k: 'العائد', deposit: 'البنك بيحدّده', bill: 'السوق بيحدّده، وغالبًا أعلى' },
+      { k: 'الضريبة', deposit: 'معفي للأفراد', bill: '٢٠٪ على العائد' },
+      { k: 'تحتاج تخرج بدري؟', deposit: 'بتكسر الوديعة وبتخسر عائد', bill: 'تقدر تبيع بسعر السوق' },
+    ],
+    diffNote: 'عشان المقارنة تبقى عادلة، الحاسبة تحت بتوريك العائد بعد الضريبة والمصاريف.',
 
     calcTitle: 'اعرف هتاخد كام',
     calcLead: 'جرّب بأي مبلغ ومدة. الأرقام استرشادية وبتتغير مع السوق.',
@@ -47,23 +58,15 @@ export const LANDING = {
     resWorse: (x: string) => `أقل من الوديعة بـ ${x}`,
     calcDisclaimer: 'أرقام استرشادية على أسعار السوق الحالية وبتتغير. مش عرض ولا وعد بعائد.',
 
-    howTitle: 'بيشتغل إزاي',
+    howTitle: 'حاجتين يهمّك تعرفهم',
     how: [
       {
-        h: 'إيه هي أذون الخزانة؟',
-        p: 'دين قصير الأجل على الحكومة المصرية. بتشتريه بأقل من قيمته، وفي الميعاد بتاخد القيمة كاملة. الفرق ده ربحك.',
-      },
-      {
         h: 'السعر بييجي منين؟',
-        p: 'بنطلب سعر من أكتر من بنك شريك في نفس اللحظة، وبنوريك أحسن سعر رجعلنا. مش سعر واحد تاخده أو تسيبه.',
+        p: 'بنطلب سعر من أكتر من بنك شريك في نفس اللحظة، وبنوريك أحسن سعر رجعلنا.',
       },
       {
         h: 'الورق بيتسجّل باسم مين؟',
         p: 'باسمك إنت، بكودك الموحد في مصر للمقاصة أو البنك المركزي. مش باسم المنصّة.',
-      },
-      {
-        h: 'الضرايب؟',
-        p: 'بتتخصم من العائد وبنوريهالك قبل ما تبدأ، مش مفاجأة في الآخر.',
       },
     ],
 
@@ -82,6 +85,12 @@ export const LANDING = {
     haveAccount: 'عندك حساب قبل كده؟',
     signinHere: 'ادخل من هنا',
     signupWarning: 'الفلوس في الحساب ده وهمية وللتجربة بس. مش حساب استثمار حقيقي.',
+    fPhone: 'الموبايل (اختياري)',
+    fPhoneHint: 'لو حابب نتواصل معاك.',
+
+    proTitle: 'شركة سمسرة أو بنك؟',
+    proLead: 'لو إنت جاي من جهة مرخّصة وعايز تشوف المنصّة من ناحية المؤسسات، الصفحة بتاعتك هنا.',
+    proCta: 'egypt.agyal.net',
 
     joinTitle: 'مش عايز تفتح حساب؟',
     joinLead: 'سيب إيميلك وهنبلّغك أول ما نفتح رسمي.',
@@ -128,15 +137,26 @@ export const LANDING = {
     switch: 'العربية',
     brand: 'Agyal',
     navCalc: 'Calculate',
-    navHow: 'How it works',
+    navHow: 'The difference',
     navJoin: 'Start',
     navSignIn: 'Sign in',
 
-    heroEyebrow: 'Egyptian government treasury bills and bonds',
-    heroTitle: 'Your savings deserve a better return',
+    heroEyebrow: 'Egyptian treasury bills',
+    heroTitle: 'Another place to put your cash',
     heroLead:
-      'Treasury bills usually pay more than a bank certificate, but reaching them still takes a branch visit and paperwork. We are making them available from your phone, at a smaller minimum.',
-    heroNote: 'Try it now on a demo account, with no documents.',
+      'Instead of leaving it in a deposit, you lend it to the Egyptian government for a set term at a return you know from day one. From your phone.',
+
+    diffTitle: 'Deposit or treasury bills?',
+    diffLead: 'Both hold your cash for a term. The difference is who you lend to, the return, and tax.',
+    diffColDeposit: 'Bank deposit',
+    diffColBill: 'Treasury bills',
+    diff: [
+      { k: 'Who you lend to', deposit: 'The bank', bill: 'The Egyptian government' },
+      { k: 'The return', deposit: 'Set by the bank', bill: 'Set by the market, usually higher' },
+      { k: 'Tax', deposit: 'Exempt for individuals', bill: '20% on the return' },
+      { k: 'Getting out early', deposit: 'Breaking it costs you return', bill: 'You can sell at the market price' },
+    ],
+    diffNote: 'To compare them fairly, the calculator below shows the return after tax and fees.',
 
     calcTitle: 'See what you would earn',
     calcLead: 'Try any amount and term. Figures are indicative and move with the market.',
@@ -155,23 +175,15 @@ export const LANDING = {
     resWorse: (x: string) => `${x} behind a deposit`,
     calcDisclaimer: 'Indicative, based on current market rates, and subject to change. Not an offer.',
 
-    howTitle: 'How it works',
+    howTitle: 'Two things worth knowing',
     how: [
       {
-        h: 'What is a treasury bill?',
-        p: 'Short-term debt of the Egyptian government. You buy below face value and are repaid the full value at maturity. The difference is your return.',
-      },
-      {
         h: 'Where does the price come from?',
-        p: 'We ask several partner banks at the same moment and show you the best quote that comes back, rather than a single take-it-or-leave-it price.',
+        p: 'We ask several partner banks at the same moment and show you the best quote that comes back.',
       },
       {
         h: 'Whose name is the paper in?',
         p: 'Yours, under your own unified code at MCDR or the Central Bank. Never in the platform’s name.',
-      },
-      {
-        h: 'What about tax?',
-        p: 'It is deducted from the return, and we show it before you commit rather than as a surprise at the end.',
       },
     ],
 
@@ -190,6 +202,12 @@ export const LANDING = {
     haveAccount: 'Already have an account?',
     signinHere: 'Sign in here',
     signupWarning: 'The money in this account is simulated, for trying things out. Not a real investment account.',
+    fPhone: 'Mobile (optional)',
+    fPhoneHint: 'If you would like us to get in touch.',
+
+    proTitle: 'A brokerage firm or a bank?',
+    proLead: 'If you are here from a licensed institution and want the institutional view of the platform, your page is here.',
+    proCta: 'egypt.agyal.net',
 
     joinTitle: 'Not ready to open one?',
     joinLead: 'Leave your email and we will tell you when we open.',

@@ -4,6 +4,7 @@ import { Auth, type AppRequest } from '../../common/auth';
 import { parseBody } from '../../common/validation';
 import { AMOUNT_BANDS, CALCULATOR_TENORS, GOVERNORATES, SAVES_IN } from '../../domain/campaign';
 import { RateLimiter } from '../../domain/showcase';
+import { EGYPT_MOBILE } from '../identity/identity.controller';
 import { CampaignService } from './campaign.service';
 
 const CalculateSchema = z.object({
@@ -31,6 +32,7 @@ const WaitlistSchema = z.object({
 const DemoSignupSchema = z.object({
   name: z.string().trim().min(2).max(100),
   email: z.string().trim().email(),
+  phone: z.string().trim().regex(EGYPT_MOBILE, 'Egyptian mobile number, e.g. 01012345678').optional().or(z.literal('')),
   locale: z.enum(['ar', 'en']).default('ar'),
   source: z.string().trim().max(60).optional(),
   campaign: z.string().trim().max(60).optional(),
@@ -111,8 +113,8 @@ export class CampaignController {
     if (!demoLimiter.allow(req.ip ?? 'unknown')) {
       throw new HttpException('Too many demo accounts from here; please try again later', HttpStatus.TOO_MANY_REQUESTS);
     }
-    const { website: _honeypot, ...rest } = input;
-    return this.campaign.demoSignup(rest);
+    const { website: _honeypot, phone, ...rest } = input;
+    return this.campaign.demoSignup({ ...rest, phone: phone || undefined });
   }
 
   /** Public: send a sign-in code to an existing demo account. */

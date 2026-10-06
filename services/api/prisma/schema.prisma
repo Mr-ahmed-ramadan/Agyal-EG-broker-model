@@ -118,6 +118,9 @@ model Client {
   fullNameAr          String?
   nationalIdEncrypted String?
   nationalIdLast4     String?
+  /// Unverified contact number. Not an authentication factor: sign-in codes go
+  /// to the user's email, and User.mobile stays null unless a mobile was proved.
+  phone               String?
   dateOfBirth         DateTime?
   riskRating          RiskRating?
   riskProfile         RiskProfile?

@@ -625,6 +625,44 @@ async function main() {
   }
   console.log('✓ documents: tracked link opened twice (2 opens, lang and device logged), revoked and unknown links refused, no direct access');
 
+  // 14. Awareness campaign: a public calculator and a waitlist that holds intent, never identity
+  const opts = await call('GET', '/public/campaign/options');
+  assert.ok(opts.amountBands.length > 0 && opts.governorates.includes('CAIRO'));
+
+  const quote = await call('POST', '/public/campaign/calculate', { body: { amount: 50_000, tenorDays: 91, locale: 'ar' }, expect: 200 });
+  assert.equal(quote.indicative, true, 'every public figure is flagged indicative');
+  assert.ok(Number(quote.totalCost) > 0 && Number(quote.totalReceivedNet) > Number(quote.totalCost), 'the projection returns more than it costs');
+  // The margin the client never sees twice: net yield is below the market yield it came from.
+  assert.ok(Number(quote.returnBreakdown.netYield) < Number(quote.returnBreakdown.marketYield));
+  await call('POST', '/public/campaign/calculate', { body: { amount: -1, tenorDays: 91 }, expect: 400 });
+  await call('POST', '/public/campaign/calculate', { body: { amount: 50_000, tenorDays: 45 }, expect: 400 });
+
+  const joiner = { name: 'Nour Hassan', email: `nour.${run}@example.com`, governorate: 'CAIRO', amountBand: 'FROM_50K_TO_250K', savesIn: 'DEPOSIT', locale: 'ar', consent: true, source: 'facebook' };
+  const joined = await call('POST', '/public/campaign/waitlist', { body: joiner, expect: 202 });
+  assert.equal(joined.alreadyOn, false);
+  const rejoined = await call('POST', '/public/campaign/waitlist', { body: joiner, expect: 202 });
+  assert.equal(rejoined.alreadyOn, true, 'signing up twice does not store a second row');
+  await call('POST', '/public/campaign/waitlist', { body: { ...joiner, email: `bot.${run}@example.com`, website: 'http://spam' }, expect: 202 });
+  await call('POST', '/public/campaign/waitlist', { body: { ...joiner, consent: false }, expect: 400 });
+  await call('POST', '/public/campaign/waitlist', { body: { name: 'No Contact', locale: 'ar', consent: true }, expect: 400 });
+
+  await call('GET', '/admin/campaign/demand', { expect: 401 });
+  const demand = await call('GET', '/admin/campaign/demand', { token: admin });
+  assert.ok(demand.signups.total >= 1);
+  assert.equal(demand.signups.byGovernorate.CAIRO >= 1, true);
+  assert.ok(demand.signups.estimatedIntendedEgp > 0, 'the list reports the demand it represents');
+  assert.ok(demand.calculator.total >= 1 && demand.calculator.byAmountBand.FROM_50K_TO_250K >= 1);
+  assert.ok(!demand.signups.recent.some((s: Json) => s.email === `bot.${run}@example.com`), 'honeypot submissions are not stored');
+
+  // The campaign collects intent, not identity. If someone ever adds an identity
+  // field to the waitlist, this fails and they have to justify it deliberately.
+  const forbidden = ['nationalId', 'national_id', 'passport', 'idNumber', 'document', 'selfie', 'liveness', 'iban', 'bankAccount'];
+  const signupKeys = Object.keys(demand.signups.recent[0] ?? {}).map((k) => k.toLowerCase());
+  for (const f of forbidden) {
+    assert.ok(!signupKeys.includes(f.toLowerCase()), `waitlist must not carry "${f}": KYC belongs to the licensed broker`);
+  }
+  console.log('✓ campaign: public calculator indicative and bounded, waitlist deduped, bot ignored, consent required, demand visible to Agyal only, no identity fields');
+
   console.log('\nAll end-to-end checks passed.');
 }
 

@@ -22,6 +22,7 @@ import { NotificationsModule } from './modules/notifications/notifications.modul
 import { FixInboxModule } from './modules/fix-inbox/fix-inbox.module';
 import { CashModule } from './modules/cash/cash.module';
 import { IncomeModule } from './modules/income/income.module';
+import { CampaignModule } from './modules/campaign/campaign.module';
 import { ShowcaseModule } from './modules/showcase/showcase.module';
 import { ExperienceModule } from './modules/experience/experience.module';
 import { MonitoringModule } from './modules/monitoring/monitoring.module';
@@ -49,6 +50,7 @@ import { DocumentsModule } from './modules/documents/documents.module';
     CashModule,
     IncomeModule,
     ShowcaseModule,
+    CampaignModule,
     ExperienceModule,
     MonitoringModule,
     PlatformDataModule,

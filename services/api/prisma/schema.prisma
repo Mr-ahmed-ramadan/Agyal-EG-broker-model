@@ -66,9 +66,9 @@ model Lead {
 // ---------------------------------------------------------------------------
 
 model User {
-  id           String   @id @default(uuid())
+  id               String    @id @default(uuid())
   /// null for Agyal platform operators
-  tenantId     String?
+  tenantId         String?
   email            String
   mobile           String?
   /// Set when the user first proves possession of the mobile with an OTP
@@ -180,13 +180,13 @@ model OnboardingApplication {
 }
 
 model Consent {
-  id           String   @id @default(uuid())
-  tenantId     String
-  clientId     String
-  type         String
-  version      String
-  ip           String?
-  acceptedAt   DateTime @default(now())
+  id         String   @id @default(uuid())
+  tenantId   String
+  clientId   String
+  type       String
+  version    String
+  ip         String?
+  acceptedAt DateTime @default(now())
 
   client Client @relation(fields: [clientId], references: [id])
 }
@@ -210,14 +210,14 @@ model ClientBankAccount {
 
 /// Client withdrawal to their own bank account, with maker-checker payout (ADR 0007).
 model Withdrawal {
-  id            String   @id @default(uuid())
+  id            String    @id @default(uuid())
   tenantId      String
   clientId      String
   bankAccountId String
-  amount        Decimal  @db.Decimal(20, 2)
+  amount        Decimal   @db.Decimal(20, 2)
   /// REQUESTED, APPROVED, PAID or REJECTED
-  status        String   @default("REQUESTED")
-  requestedAt   DateTime @default(now())
+  status        String    @default("REQUESTED")
+  requestedAt   DateTime  @default(now())
   approvedById  String?
   approvedAt    DateTime?
   paidById      String?
@@ -233,20 +233,20 @@ model Withdrawal {
 
 /// A coupon or redemption received from the issuer and paid to clients (ADR 0007).
 model IncomeEvent {
-  id          String   @id @default(uuid())
-  tenantId    String
-  isin        String
+  id            String   @id @default(uuid())
+  tenantId      String
+  isin          String
   /// COUPON or REDEMPTION
-  type        String
-  paymentDate DateTime
+  type          String
+  paymentDate   DateTime
   /// Cash per 100 of face value
-  per100      Decimal  @db.Decimal(18, 8)
-  totalGross  Decimal  @db.Decimal(20, 2)
-  totalTax    Decimal  @db.Decimal(20, 2)
+  per100        Decimal  @db.Decimal(18, 8)
+  totalGross    Decimal  @db.Decimal(20, 2)
+  totalTax      Decimal  @db.Decimal(20, 2)
   /// Custodian / CBE payment reference
-  reference   String
+  reference     String
   confirmedById String
-  confirmedAt DateTime @default(now())
+  confirmedAt   DateTime @default(now())
 
   entitlements IncomeEntitlement[]
 
@@ -320,15 +320,15 @@ enum Depository {
 // ---------------------------------------------------------------------------
 
 model Bank {
-  id             String             @id @default(uuid())
-  code           String             @unique
-  nameEn         String
-  nameAr         String
-  connectionMode BankConnectionMode
+  id              String             @id @default(uuid())
+  code            String             @unique
+  nameEn          String
+  nameAr          String
+  connectionMode  BankConnectionMode
   /// Our SenderCompID and the bank's TargetCompID for FIX-mode banks
   fixSenderCompId String?
   fixTargetCompId String?
-  active         Boolean            @default(true)
+  active          Boolean            @default(true)
 
   relations BrokerBankRelationship[]
 }
@@ -423,35 +423,35 @@ model Quote {
 }
 
 model Order {
-  id              String   @id @default(uuid())
+  id              String    @id @default(uuid())
   tenantId        String
   /// ClOrdID(11)
-  clOrdId         String   @unique
+  clOrdId         String    @unique
   /// OrderID(37), from the bank
   orderId         String?
   clientId        String
   bankId          String
   /// Quote (row id) this order accepts; one order per quote
-  quoteId         String   @unique
+  quoteId         String    @unique
   isin            String
   side            String
   ordType         String
-  orderQty        Decimal  @db.Decimal(20, 2)
+  orderQty        Decimal   @db.Decimal(20, 2)
   /// OrdStatus(39), current-state projection of the executions
   ordStatus       String
-  cumQty          Decimal  @default(0) @db.Decimal(20, 2)
+  cumQty          Decimal   @default(0) @db.Decimal(20, 2)
   /// Buy: client cash reserved when the order was accepted
-  reservedAmount  Decimal  @default(0) @db.Decimal(20, 2)
+  reservedAmount  Decimal   @default(0) @db.Decimal(20, 2)
   /// Sell: client nominal reserved when the order was accepted
-  reservedQty     Decimal  @default(0) @db.Decimal(20, 2)
-  priceSnapshotId String   @unique
+  reservedQty     Decimal   @default(0) @db.Decimal(20, 2)
+  priceSnapshotId String    @unique
   text            String?
   /// Set when broker ops confirm the bank settled this order (ADR 0007)
   settledAt       DateTime?
   /// Bank statement / payment reference of the settlement
   settlementRef   String?
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
 
   client        Client        @relation(fields: [clientId], references: [id])
   priceSnapshot PriceSnapshot @relation(fields: [priceSnapshotId], references: [id])
@@ -519,17 +519,17 @@ model PriceSnapshot {
 
 /// Messages from the API to banks. The FIX gateway polls PENDING rows.
 model FixOutbox {
-  id            BigInt    @id @default(autoincrement())
-  bankId        String
-  senderCompId  String
-  targetCompId  String
-  msgType       String
+  id           BigInt    @id @default(autoincrement())
+  bankId       String
+  senderCompId String
+  targetCompId String
+  msgType      String
   /// FIX-shaped JSON (field names as in @agyal/shared-types)
-  payload       Json
-  status        String    @default("PENDING")
-  error         String?
-  createdAt     DateTime  @default(now())
-  sentAt        DateTime?
+  payload      Json
+  status       String    @default("PENDING")
+  error        String?
+  createdAt    DateTime  @default(now())
+  sentAt       DateTime?
 }
 
 /// Messages from banks to the API, written by the FIX gateway.
@@ -545,13 +545,13 @@ model FixInbox {
 
 /// Raw FIX message store (every application message, in and out).
 model FixMessage {
-  id         BigInt   @id @default(autoincrement())
-  sessionId  String
-  direction  String
-  msgType    String
-  seqNum     Int
-  raw        String
-  createdAt  DateTime @default(now())
+  id        BigInt   @id @default(autoincrement())
+  sessionId String
+  direction String
+  msgType   String
+  seqNum    Int
+  raw       String
+  createdAt DateTime @default(now())
 }
 
 // ---------------------------------------------------------------------------
@@ -743,4 +743,48 @@ model DocumentOpen {
 
   @@index([docKey, openedAt])
   @@index([linkId])
+}
+
+// ---------------------------------------------------------------------------
+// Awareness campaign: intent, never identity (platform-level, no RLS)
+// ---------------------------------------------------------------------------
+
+/// Someone who asked to be told when the service opens. Deliberately holds
+/// INTENT ONLY: no national ID, no documents, no bank details, no AML
+/// screening. KYC belongs to the licensed broker and happens later, in the
+/// broker's own tenant. Do not add identity fields to this model.
+model WaitlistSignup {
+  id          String   @id @default(uuid())
+  name        String
+  /// At least one of email/mobile is required (enforced when parsing input)
+  email       String?
+  mobile      String?
+  governorate String?
+  /// Intended first amount as a band, never an exact figure
+  amountBand  String?
+  /// Where they save today: DEPOSIT | CERTIFICATE | GOLD | NONE | OTHER
+  savesIn     String?
+  locale      String   @default("ar")
+  /// Explicit consent to be contacted (Law 151/2020)
+  consent     Boolean
+  consentAt   DateTime
+  /// Campaign attribution
+  source      String?
+  campaign    String?
+  ip          String?
+  createdAt   DateTime @default(now())
+
+  @@index([createdAt])
+}
+
+/// Anonymous use of the public calculator: a demand signal only. Holds no
+/// personal data and is never joined to a person.
+model CalculatorUse {
+  id         BigInt   @id @default(autoincrement())
+  amountBand String
+  tenorDays  Int
+  locale     String   @default("ar")
+  createdAt  DateTime @default(now())
+
+  @@index([createdAt])
 }

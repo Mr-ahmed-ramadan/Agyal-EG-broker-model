@@ -132,6 +132,8 @@ export function PublicLanding() {
           <nav>
             <a href="#calc">{t.navCalc}</a>
             <a href="#how">{t.navHow}</a>
+            {/* Existing clients and the demo reach the product from here. */}
+            <a href="/app" className="lp-nav-signin">{t.navSignIn}</a>
             <a href="#join" className="lp-nav-cta">{t.navJoin}</a>
             <button type="button" onClick={() => setLocale(locale === 'ar' ? 'en' : 'ar')}>{t.switch}</button>
           </nav>
@@ -206,6 +208,20 @@ export function PublicLanding() {
             {t.how.map((c) => (
               <article key={c.h}><h3>{c.h}</h3><p>{c.p}</p></article>
             ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="lp-sec" id="demo">
+        <div className="lp-in">
+          <div className="lp-demo">
+            <div>
+              <h2>{t.demoTitle}</h2>
+              <p className="lp-lead">{t.demoLead}</p>
+              {/* Same link the broker showcase uses, so the demo tenant resolves. */}
+              <a className="lp-cta" href="/app?broker=demo-broker&login=1">{t.demoCta}</a>
+            </div>
+            <p className="lp-demo-warn">{t.demoWarning}</p>
           </div>
         </div>
       </section>

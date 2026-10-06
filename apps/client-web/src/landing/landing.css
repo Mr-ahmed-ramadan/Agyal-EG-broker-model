@@ -149,3 +149,25 @@
   .lp-sec { padding: 56px 0; }
 }
 @media (min-width: 1280px) { .lp { --lp-measure: 1200px; } }
+
+/* --- sign in + demo ------------------------------------------------------- */
+/* Quiet, so it does not compete with the waitlist call-to-action beside it. */
+.lp-nav-signin { border: 1px solid rgb(255 255 255 / 0.35); }
+.lp-nav-signin:hover { background: rgb(255 255 255 / 0.18); }
+
+.lp-demo {
+  display: grid; gap: 16px; align-items: center;
+  background: #fff; border: 1px solid var(--lp-border); border-radius: 14px; padding: 20px;
+}
+.lp-demo h2 { margin-bottom: 6px; }
+.lp-demo .lp-lead { margin-bottom: 14px; }
+/* The demo is simulated money; the warning travels with the button, never away from it. */
+.lp-demo-warn {
+  margin: 0; font-size: 0.86rem; line-height: 1.55; color: #7a5a14;
+  background: color-mix(in srgb, var(--lp-bronze) 14%, #fff);
+  border: 1px solid color-mix(in srgb, var(--lp-bronze) 45%, #fff);
+  border-radius: 10px; padding: 12px 14px;
+}
+@media (min-width: 820px) {
+  .lp-demo { grid-template-columns: 1.3fr 1fr; gap: 24px; }
+}

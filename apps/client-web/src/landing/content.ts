@@ -19,6 +19,13 @@ export const LANDING = {
     navCalc: 'احسب عائدك',
     navHow: 'بيشتغل إزاي',
     navJoin: 'احجز مكانك',
+    navSignIn: 'تسجيل الدخول',
+
+    demoTitle: 'جرّب التطبيق دلوقتي',
+    demoLead: 'افتح النسخة التجريبية وشوف شكل التطبيق بنفسك — من غير ما تسجّل ولا تدفع حاجة.',
+    demoCta: 'افتح النسخة التجريبية',
+    demoWarning:
+      'دي نسخة تجريبية بفلوس وهمية، مش حساب حقيقي ومش ممتلكات حقيقية. أي أرقام فيها للعرض بس.',
 
     heroEyebrow: 'أذون وسندات الحكومة المصرية',
     heroTitle: 'فلوسك تستاهل عائد أحسن',
@@ -111,6 +118,13 @@ export const LANDING = {
     navCalc: 'Calculate',
     navHow: 'How it works',
     navJoin: 'Join',
+    navSignIn: 'Sign in',
+
+    demoTitle: 'Try the app now',
+    demoLead: 'Open the demo and see the product for yourself — no sign-up, nothing to pay.',
+    demoCta: 'Open the demo',
+    demoWarning:
+      'This is a demo running on simulated money. It is not a real account and not a real holding; every figure in it is for illustration only.',
 
     heroEyebrow: 'Egyptian government treasury bills and bonds',
     heroTitle: 'Your savings deserve a better return',

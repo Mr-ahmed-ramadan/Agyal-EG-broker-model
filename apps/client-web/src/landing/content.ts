@@ -2,13 +2,15 @@
  * Copy for the public awareness campaign.
  *
  * Guardrails, because this is consumer-facing and Agyal is not licensed:
- * - never "open an account", "invest now" or "your money" — nobody has an
- *   account yet and nothing here is an offer;
- * - every figure is indicative and said to be so;
- * - it says plainly that Agyal is a technology provider and that investing
- *   happens through an FRA-licensed brokerage firm;
- * - Arabic is the default and is written in Egyptian dialect, as on the
- *   broker-facing showcase.
+ * - the only account offered here is a demo one, and the page says its money
+ *   is simulated. Never imply a real investment account or a real holding.
+ * - every figure is indicative and said to be so.
+ * - the footer carries one line stating that Agyal is a technology company,
+ *   that real investing is through an FRA-licensed entity holding client
+ *   money, and that Agyal holds neither money nor securities. Said once:
+ *   repeating it through the body was the main source of duplication.
+ * - Arabic is the default, in Egyptian dialect, as on the broker showcase.
+ * - keep sentences short and avoid dashes; both were asked for by name.
  */
 
 export const LANDING = {
@@ -18,20 +20,14 @@ export const LANDING = {
     brand: 'أجيال',
     navCalc: 'احسب عائدك',
     navHow: 'بيشتغل إزاي',
-    navJoin: 'احجز مكانك',
+    navJoin: 'ابدأ',
     navSignIn: 'تسجيل الدخول',
-
-    demoTitle: 'جرّب التطبيق دلوقتي',
-    demoLead: 'افتح النسخة التجريبية وشوف شكل التطبيق بنفسك — من غير ما تسجّل ولا تدفع حاجة.',
-    demoCta: 'افتح النسخة التجريبية',
-    demoWarning:
-      'دي نسخة تجريبية بفلوس وهمية، مش حساب حقيقي ومش ممتلكات حقيقية. أي أرقام فيها للعرض بس.',
 
     heroEyebrow: 'أذون وسندات الحكومة المصرية',
     heroTitle: 'فلوسك تستاهل عائد أحسن',
     heroLead:
-      'أذون الخزانة بتدي عائد أعلى من الشهادة في أغلب الأوقات، بس الوصول ليها لسه صعب ومحتاج تروح الفرع. إحنا بنخلّيها من موبايلك، بأقل مبلغ، ومن غير ورق.',
-    heroNote: 'لسه مفتحناش. سيب بياناتك وهنبلّغك أول ما نفتح.',
+      'أذون الخزانة بتدي عائد أعلى من الشهادة في أغلب الأوقات، بس الوصول ليها لسه محتاج فرع وورق. إحنا بنخلّيها من موبايلك وبأقل مبلغ.',
+    heroNote: 'جرّبها دلوقتي على حساب تجريبي، من غير أي مستندات.',
 
     calcTitle: 'اعرف هتاخد كام',
     calcLead: 'جرّب بأي مبلغ ومدة. الأرقام استرشادية وبتتغير مع السوق.',
@@ -49,22 +45,21 @@ export const LANDING = {
     resAfterTax: 'بعد الضريبة والمصاريف',
     resBetter: (x: string) => `أعلى من الوديعة بـ ${x}`,
     resWorse: (x: string) => `أقل من الوديعة بـ ${x}`,
-    calcDisclaimer:
-      'الأرقام دي استرشادية، محسوبة على أسعار السوق الحالية، وبتتغير. مش عرض ولا وعد بعائد.',
+    calcDisclaimer: 'أرقام استرشادية على أسعار السوق الحالية وبتتغير. مش عرض ولا وعد بعائد.',
 
     howTitle: 'بيشتغل إزاي',
     how: [
       {
         h: 'إيه هي أذون الخزانة؟',
-        p: 'دين قصير الأجل على الحكومة المصرية. بتشتريه بأقل من قيمته، وفي الميعاد بتاخد القيمة كاملة. الفرق ده هو ربحك.',
+        p: 'دين قصير الأجل على الحكومة المصرية. بتشتريه بأقل من قيمته، وفي الميعاد بتاخد القيمة كاملة. الفرق ده ربحك.',
       },
       {
-        h: 'الفلوس بتبقى فين؟',
-        p: 'في حساب العملاء المنفصل عند شركة السمسرة المرخّصة — مش عند أجيال. والورق بيتسجّل باسمك أنت بكودك في مصر للمقاصة.',
+        h: 'السعر بييجي منين؟',
+        p: 'بنطلب سعر من أكتر من بنك شريك في نفس اللحظة، وبنوريك أحسن سعر رجعلنا. مش سعر واحد تاخده أو تسيبه.',
       },
       {
-        h: 'ليه من خلال شركة سمسرة؟',
-        p: 'لأن دي الجهة المرخّصة من الهيئة العامة للرقابة المالية. أجيال بتوفّر التكنولوجيا بس، وشركة السمسرة هي اللي بتتعامل معاك.',
+        h: 'الورق بيتسجّل باسم مين؟',
+        p: 'باسمك إنت، بكودك الموحد في مصر للمقاصة أو البنك المركزي. مش باسم المنصّة.',
       },
       {
         h: 'الضرايب؟',
@@ -74,22 +69,22 @@ export const LANDING = {
 
     signupTitle: 'افتح حساب تجريبي',
     signupLead:
-      'هنفتحلك حساب تجريبي بفلوس وهمية علشان تجرّب كل حاجة بنفسك — تشوف الأسعار، تشتري، وتتابع عائدك. مش هنطلب رقم قومي ولا مستندات ولا كلمة سر.',
-    signupCta: 'افتح حسابي التجريبي',
+      'اسمك وإيميلك بس. هتشوف الأسعار، تشتري، وتتابع عائدك بنفسك. من غير رقم قومي ولا مستندات ولا كلمة سر.',
+    signupCta: 'افتح حساب تجريبي',
+    signupSubmit: 'افتح حسابي',
     signupSending: 'بنجهّز حسابك…',
     codeTitle: 'اكتب الكود',
-    codeLead: (where: string) => `بعتنا كود من ٦ أرقام على ${where}. اكتبه هنا وهتدخل على طول.`,
+    codeLead: (where: string) => `بعتنا كود من ٦ أرقام على ${where}.`,
     codeField: 'الكود',
     codeCta: 'ادخل',
     codeSending: 'بنتأكد…',
     codeResend: 'ابعت الكود تاني',
-    haveAccount: 'عندك حساب تجريبي قبل كده؟',
+    haveAccount: 'عندك حساب قبل كده؟',
     signinHere: 'ادخل من هنا',
-    signupWarning:
-      'الحساب ده تجريبي بفلوس وهمية — مش حساب استثمار حقيقي. لما نفتح رسمي، الاستثمار الحقيقي هيكون من خلال شركة سمسرة مرخّصة.',
+    signupWarning: 'الفلوس في الحساب ده وهمية وللتجربة بس. مش حساب استثمار حقيقي.',
 
-    joinTitle: 'مش عايز تفتح حساب دلوقتي؟',
-    joinLead: 'سيب إيميلك وهنبلّغك أول ما نفتح رسمي. مش هنطلب منك رقم قومي ولا أي مستندات.',
+    joinTitle: 'مش عايز تفتح حساب؟',
+    joinLead: 'سيب إيميلك وهنبلّغك أول ما نفتح رسمي.',
     joinToggle: 'بلّغني بس لما تفتحوا',
     fName: 'اسمك',
     fEmail: 'الإيميل',
@@ -100,9 +95,9 @@ export const LANDING = {
     fSaves: 'فلوسك دلوقتي فين؟',
     fChoose: 'اختر',
     fConsent: 'موافق إن أجيال تتواصل معايا بخصوص الخدمة دي.',
-    fSubmit: 'احجز مكاني',
+    fSubmit: 'بلّغوني',
     fSending: 'بنبعت…',
-    fDone: 'تمام، مكانك اتحجز. هنبلّغك أول ما نفتح.',
+    fDone: 'تمام. هنبلّغك أول ما نفتح.',
     fDoneAgain: 'إنت بالفعل على القايمة. هنبلّغك أول ما نفتح.',
     fErrorConsent: 'لازم توافق الأول.',
     fErrorContact: 'سيب إيميل أو رقم موبايل.',
@@ -123,9 +118,9 @@ export const LANDING = {
     } as Record<string, string>,
 
     footerLegal:
-      'أجيال شركة تكنولوجيا، مش شركة سمسرة. الاستثمار هيتم من خلال شركة سمسرة مرخّصة من الهيئة العامة للرقابة المالية، وهي اللي بتحتفظ بفلوس العملاء. أجيال عمرها ما بتحتفظ بفلوسك ولا بأوراقك. كل الأرقام في الصفحة دي استرشادية ومش عرض.',
+      'أجيال شركة تكنولوجيا. الاستثمار الحقيقي بيتم من خلال جهة مرخّصة من الهيئة العامة للرقابة المالية، وهي اللي بتحتفظ بفلوس العملاء. أجيال عمرها ما بتحتفظ بفلوسك ولا بأوراقك.',
     footerPrivacy:
-      'البيانات اللي بتسيبها بنستخدمها علشان نبلّغك بس، وبنحتفظ بيها لحد ما تطلب مسحها. مش بنطلب رقم قومي ولا مستندات ولا بيانات بنكية.',
+      'بياناتك بنستخدمها علشان نتواصل معاك بس، وبنمسحها أول ما تطلب. مش بنطلب رقم قومي ولا مستندات ولا بيانات بنكية.',
   },
 
   en: {
@@ -134,20 +129,14 @@ export const LANDING = {
     brand: 'Agyal',
     navCalc: 'Calculate',
     navHow: 'How it works',
-    navJoin: 'Join',
+    navJoin: 'Start',
     navSignIn: 'Sign in',
-
-    demoTitle: 'Try the app now',
-    demoLead: 'Open the demo and see the product for yourself — no sign-up, nothing to pay.',
-    demoCta: 'Open the demo',
-    demoWarning:
-      'This is a demo running on simulated money. It is not a real account and not a real holding; every figure in it is for illustration only.',
 
     heroEyebrow: 'Egyptian government treasury bills and bonds',
     heroTitle: 'Your savings deserve a better return',
     heroLead:
-      'Treasury bills usually pay more than a bank certificate, but reaching them still means a branch visit and paperwork. We are making them available from your phone, at a smaller minimum, with no forms.',
-    heroNote: 'We have not opened yet. Leave your details and we will tell you when we do.',
+      'Treasury bills usually pay more than a bank certificate, but reaching them still takes a branch visit and paperwork. We are making them available from your phone, at a smaller minimum.',
+    heroNote: 'Try it now on a demo account, with no documents.',
 
     calcTitle: 'See what you would earn',
     calcLead: 'Try any amount and term. Figures are indicative and move with the market.',
@@ -164,8 +153,7 @@ export const LANDING = {
     resAfterTax: 'after tax and fees',
     resBetter: (x: string) => `${x} ahead of a deposit`,
     resWorse: (x: string) => `${x} behind a deposit`,
-    calcDisclaimer:
-      'Indicative only, based on current market rates, and subject to change. Not an offer and not a promise of return.',
+    calcDisclaimer: 'Indicative, based on current market rates, and subject to change. Not an offer.',
 
     howTitle: 'How it works',
     how: [
@@ -174,50 +162,50 @@ export const LANDING = {
         p: 'Short-term debt of the Egyptian government. You buy below face value and are repaid the full value at maturity. The difference is your return.',
       },
       {
-        h: 'Where does the money sit?',
-        p: "In the segregated client account at a licensed brokerage firm — never with Agyal. Each security is registered under your own code at MCDR.",
+        h: 'Where does the price come from?',
+        p: 'We ask several partner banks at the same moment and show you the best quote that comes back, rather than a single take-it-or-leave-it price.',
       },
       {
-        h: 'Why through a brokerage firm?',
-        p: 'Because that is the party licensed by the Financial Regulatory Authority. Agyal provides the technology; the brokerage firm is who you contract with.',
+        h: 'Whose name is the paper in?',
+        p: 'Yours, under your own unified code at MCDR or the Central Bank. Never in the platform’s name.',
       },
       {
         h: 'What about tax?',
-        p: 'It is deducted from the return, and we show it to you before you commit rather than as a surprise at the end.',
+        p: 'It is deducted from the return, and we show it before you commit rather than as a surprise at the end.',
       },
     ],
 
     signupTitle: 'Open a demo account',
     signupLead:
-      'We will set you up with a demo account on simulated money so you can try everything yourself — see live prices, buy, and follow your return. No national ID, no documents, no password.',
-    signupCta: 'Open my demo account',
+      'Just your name and email. See live prices, buy, and follow your return yourself. No national ID, no documents, no password.',
+    signupCta: 'Open a demo account',
+    signupSubmit: 'Open my account',
     signupSending: 'Setting up your account…',
     codeTitle: 'Enter the code',
-    codeLead: (where: string) => `We sent a 6-digit code to ${where}. Enter it here and you are in.`,
+    codeLead: (where: string) => `We sent a 6-digit code to ${where}.`,
     codeField: 'Code',
     codeCta: 'Enter',
     codeSending: 'Checking…',
     codeResend: 'Send the code again',
-    haveAccount: 'Already have a demo account?',
+    haveAccount: 'Already have an account?',
     signinHere: 'Sign in here',
-    signupWarning:
-      'This is a demo account on simulated money — not a real investment account. When we open properly, real investing will be through a licensed brokerage firm.',
+    signupWarning: 'The money in this account is simulated, for trying things out. Not a real investment account.',
 
-    joinTitle: 'Not ready to open an account?',
-    joinLead: 'Leave your email and we will tell you when we open. No national ID, no documents.',
+    joinTitle: 'Not ready to open one?',
+    joinLead: 'Leave your email and we will tell you when we open.',
     joinToggle: 'Just tell me when you launch',
     fName: 'Your name',
     fEmail: 'Email',
     fMobile: 'Mobile',
-    fOneOf: 'An email or a mobile number — either is enough.',
+    fOneOf: 'An email or a mobile number. Either is enough.',
     fGovernorate: 'Governorate',
     fAmount: 'How much would you start with?',
     fSaves: 'Where are your savings today?',
     fChoose: 'Choose',
     fConsent: 'I agree that Agyal may contact me about this service.',
-    fSubmit: 'Reserve my place',
+    fSubmit: 'Tell me when you open',
     fSending: 'Sending…',
-    fDone: 'Done — your place is reserved. We will tell you when we open.',
+    fDone: 'Done. We will tell you when we open.',
     fDoneAgain: 'You are already on the list. We will tell you when we open.',
     fErrorConsent: 'Please agree first.',
     fErrorContact: 'Leave an email or a mobile number.',
@@ -238,9 +226,9 @@ export const LANDING = {
     } as Record<string, string>,
 
     footerLegal:
-      'Agyal is a technology company, not a brokerage firm. Investing will be through a brokerage firm licensed by the Financial Regulatory Authority, which holds all client money. Agyal never holds your money or your securities. Every figure on this page is indicative and is not an offer.',
+      'Agyal is a technology company. Real investing happens through an entity licensed by the Financial Regulatory Authority, which holds all client money. Agyal never holds your money or your securities.',
     footerPrivacy:
-      'We use the details you leave only to tell you when we open, and we keep them until you ask us to delete them. We do not ask for a national ID, documents or bank details.',
+      'We use your details only to contact you, and delete them as soon as you ask. We do not ask for a national ID, documents or bank details.',
   },
 };
 

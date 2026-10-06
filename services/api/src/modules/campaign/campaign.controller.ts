@@ -42,6 +42,19 @@ const DemoSignupSchema = z.object({
 
 const DemoSigninSchema = z.object({ email: z.string().trim().email() });
 
+const FeedbackSchema = z.object({
+  message: z.string().trim().min(3).max(2000),
+  /** Only if they want a reply. */
+  email: z.string().trim().email().optional().or(z.literal('')),
+  locale: z.enum(['ar', 'en']).default('ar'),
+  source: z.string().trim().max(60).optional(),
+  /** Honeypot: hidden in the form; bots fill it */
+  website: z.string().optional(),
+});
+
+/** 5 notes per IP per hour. */
+const feedbackLimiter = new RateLimiter(5, 3_600_000);
+
 /** 3 demo accounts per IP per hour. */
 const demoLimiter = new RateLimiter(3, 3_600_000);
 /** 5 sign-in codes per IP per hour. */
@@ -126,6 +139,19 @@ export class CampaignController {
       throw new HttpException('Too many codes requested; please try again later', HttpStatus.TOO_MANY_REQUESTS);
     }
     return this.campaign.demoSignin(input.email);
+  }
+
+  /** Public: tell us what is wrong with the beta. */
+  @Post('public/campaign/feedback')
+  @HttpCode(202)
+  async feedback(@Req() req: AppRequest, @Body() body: unknown) {
+    const input = parseBody(FeedbackSchema, body);
+    if (input.website) return { received: true }; // bot: accept silently, store nothing
+    if (!feedbackLimiter.allow(req.ip ?? 'unknown')) {
+      throw new HttpException('Thanks, we have your notes; please try again later', HttpStatus.TOO_MANY_REQUESTS);
+    }
+    const { website: _honeypot, email, ...rest } = input;
+    return this.campaign.feedback({ ...rest, email: email || undefined }, req.ip);
   }
 
   /** Agyal: the demand picture, for broker conversations and the FRA file. */

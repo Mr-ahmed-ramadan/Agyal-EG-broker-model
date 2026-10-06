@@ -152,6 +152,29 @@ export function PublicLanding() {
     }
   }
 
+  // --- feedback on the beta --------------------------------------------------
+  const [fb, setFb] = useState({ message: '', email: '', website: '' });
+  const [fbState, setFbState] = useState<'idle' | 'sending' | 'done'>('idle');
+
+  async function sendFeedback(e: React.FormEvent) {
+    e.preventDefault();
+    setFbState('sending');
+    try {
+      await post('public/campaign/feedback', {
+        message: fb.message,
+        email: fb.email || undefined,
+        locale,
+        website: fb.website || undefined,
+        ...attribution(),
+      });
+      setFbState('done');
+    } catch {
+      // Feedback is not worth an error message in the reader's face; it is
+      // already a favour. Treat it as sent and move on.
+      setFbState('done');
+    }
+  }
+
   // --- waitlist -------------------------------------------------------------
   const [form, setForm] = useState({
     name: '', email: '', mobile: '', governorate: '', amountBand: '', savesIn: '', consent: false, website: '',
@@ -193,6 +216,7 @@ export function PublicLanding() {
       <header className="lp-bar">
         <div className="lp-bar-in">
           <span className="lp-brand">{t.brand}</span>
+            <span className="lp-beta">{t.beta}</span>
           <nav>
             <a href="#calc">{t.navCalc}</a>
             <a href="#how">{t.navHow}</a>
@@ -236,6 +260,34 @@ export function PublicLanding() {
             </tbody>
           </table>
           <p className="lp-fine">{t.diffNote}</p>
+        </div>
+      </section>
+
+      <section className="lp-sec" id="why">
+        <div className="lp-in">
+          <h2>{t.whyTitle}</h2>
+          <p className="lp-lead">{t.whyLead}</p>
+          <div className="lp-how">
+            {t.why.map((c) => (
+              <article key={c.h}><h3>{c.h}</h3><p>{c.p}</p></article>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="lp-sec lp-alt" id="assets">
+        <div className="lp-in">
+          <h2>{t.assetsTitle}</h2>
+          <p className="lp-lead">{t.assetsLead}</p>
+          <div className="lp-assets">
+            {t.assets.map((a) => (
+              <article key={a.h}><h3>{a.h}</h3><p>{a.p}</p></article>
+            ))}
+          </div>
+          {/* Government and company paper are not the same risk; say so rather
+              than let the broader range imply they are. */}
+          <p className="lp-fine">{t.assetsRisk}</p>
+          <p className="lp-soon">{t.assetsFx}</p>
         </div>
       </section>
 
@@ -412,6 +464,33 @@ export function PublicLanding() {
               <button type="submit" disabled={joinState === 'sending'}>
                 {joinState === 'sending' ? t.fSending : t.fSubmit}
               </button>
+            </form>
+          )}
+        </div>
+      </section>
+
+      <section className="lp-sec lp-alt" id="feedback">
+        <div className="lp-in lp-narrow">
+          <h2>{t.fbTitle}</h2>
+          <p className="lp-lead">{t.fbLead}</p>
+          {fbState === 'done' ? (
+            <p className="lp-ok">{t.fbDone}</p>
+          ) : (
+            <form className="lp-form" onSubmit={sendFeedback}>
+              <label><span>{t.fbMessage}</span>
+                <textarea required minLength={3} maxLength={2000} rows={4} value={fb.message}
+                  onChange={(e) => setFb((f) => ({ ...f, message: e.target.value }))} />
+              </label>
+              <label><span>{t.fbEmail}</span>
+                <input type="email" value={fb.email}
+                  onChange={(e) => setFb((f) => ({ ...f, email: e.target.value }))} />
+              </label>
+              <input className="lp-hp" tabIndex={-1} autoComplete="off" aria-hidden="true"
+                value={fb.website} onChange={(e) => setFb((f) => ({ ...f, website: e.target.value }))} />
+              <button type="submit" disabled={fbState === 'sending'}>
+                {fbState === 'sending' ? t.fbSending : t.fbSubmit}
+              </button>
+              <p className="lp-fine">{t.fbOrEmail} <a href="mailto:hello@agyal.net">hello@agyal.net</a></p>
             </form>
           )}
         </div>

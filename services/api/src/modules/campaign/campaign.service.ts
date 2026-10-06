@@ -244,6 +244,22 @@ export class CampaignService {
     return { ...challenge, sent: true };
   }
 
+  /** A visitor's note about the beta. Nothing is required but the message. */
+  async feedback(input: { message: string; email?: string; locale: string; source?: string }, ip?: string) {
+    await this.db.asSystem((tx) =>
+      tx.feedback.create({
+        data: {
+          message: input.message,
+          email: input.email ?? null,
+          locale: input.locale,
+          source: input.source ?? null,
+          ip: ip ?? null,
+        },
+      }),
+    );
+    return { received: true };
+  }
+
   /** Someone asking to be told when the service opens. Intent only. */
   async joinWaitlist(input: WaitlistInput, ip?: string) {
     if (!input.email && !input.mobile) {
@@ -352,8 +368,16 @@ export class CampaignService {
         })
       : { accounts: 0, placedAnOrder: 0, conversion: 0, orders: 0, simulatedNominalEgp: '0.00', withPhone: 0, recent: [] };
 
+    const notes = await this.db.asSystem((tx) =>
+      tx.feedback.findMany({ orderBy: { createdAt: 'desc' }, take: 50 }),
+    );
+
     return {
       demo,
+      feedback: {
+        total: notes.length,
+        recent: notes.map((f) => ({ message: f.message, email: f.email, locale: f.locale, source: f.source, createdAt: f.createdAt })),
+      },
       signups: {
         total: signups.length,
         withAmountBand: banded.length,

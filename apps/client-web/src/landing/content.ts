@@ -23,7 +23,8 @@ export const LANDING = {
     navJoin: 'ابدأ',
     navSignIn: 'تسجيل الدخول',
 
-    heroEyebrow: 'أذون الخزانة المصرية',
+    heroEyebrow: 'أدوات الدخل الثابت في مصر',
+    beta: 'نسخة تجريبية',
     heroTitle: 'طريقة تانية تحطّ فيها فلوسك',
     heroLead:
       'بدل ما فلوسك قاعدة في وديعة، تسلّفها للحكومة المصرية لمدة محدّدة بعائد معروف من أول يوم. من موبايلك.',
@@ -57,6 +58,34 @@ export const LANDING = {
     resBetter: (x: string) => `أعلى من الوديعة بـ ${x}`,
     resWorse: (x: string) => `أقل من الوديعة بـ ${x}`,
     calcDisclaimer: 'أرقام استرشادية على أسعار السوق الحالية وبتتغير. مش عرض ولا وعد بعائد.',
+
+    whyTitle: 'ليه من هنا، مش من سمسار عادي؟',
+    whyLead: 'الخدمة متبنية رقمية من الأساس، مش فرع بيتعمله موقع.',
+    why: [
+      {
+        h: 'من غير ما تروح فرع',
+        p: 'فتح الحساب والتحقق من هويتك بيتمّوا من التطبيق. مش هتضيّع يوم إجازة في طابور.',
+      },
+      {
+        h: 'كل حاجة إلكترونية',
+        p: 'كشف الحساب، إشعارات التنفيذ، وأوراقك كلها في مكان واحد وقدّامك في أي وقت.',
+      },
+      {
+        h: 'ولو عايز ورق',
+        p: 'لو محتاج مستندات مطبوعة لأي غرض، اطلبها وإحنا نظبّطهالك.',
+      },
+    ],
+
+    assetsTitle: 'بتشتري إيه بالظبط؟',
+    assetsLead: 'دخل ثابت بالجنيه المصري، مش أذون خزانة بس.',
+    assets: [
+      { h: 'أذون خزانة', p: 'من ٣ لـ ١٢ شهر. على الحكومة المصرية.' },
+      { h: 'سندات خزانة', p: 'مدد أطول بكوبون دوري. على الحكومة المصرية كمان.' },
+      { h: 'سندات شركات', p: 'بتدي عائد أعلى، بس المخاطرة أعلى لأنك بتسلّف شركة مش الحكومة.' },
+      { h: 'صكوك', p: 'بديل متوافق مع الشريعة. الإصدار بيحدّد العائد والمخاطرة.' },
+    ],
+    assetsRisk: 'ورق الحكومة وورق الشركات مش نفس المخاطرة. العائد الأعلى دايمًا جاي في مقابل مخاطرة أعلى، وإحنا بنوضّح ده على كل ورقة.',
+    assetsFx: 'شغالين كمان على إتاحة أذون وسندات بعملات تانية. لسه مش متاحة.',
 
     howTitle: 'حاجتين يهمّك تعرفهم',
     how: [
@@ -130,6 +159,15 @@ export const LANDING = {
       'أجيال شركة تكنولوجيا. الاستثمار الحقيقي بيتم من خلال جهة مرخّصة من الهيئة العامة للرقابة المالية، وهي اللي بتحتفظ بفلوس العملاء. أجيال عمرها ما بتحتفظ بفلوسك ولا بأوراقك.',
     footerPrivacy:
       'بياناتك بنستخدمها علشان نتواصل معاك بس، وبنمسحها أول ما تطلب. مش بنطلب رقم قومي ولا مستندات ولا بيانات بنكية.',
+
+    fbTitle: 'إحنا لسه بنبني. قوللنا رأيك.',
+    fbLead: 'أي حاجة مش واضحة أو ناقصة أو مضايقاك، اكتبها هنا. بنقرا كل حاجة.',
+    fbMessage: 'رأيك',
+    fbEmail: 'إيميلك (لو عايز نرد عليك)',
+    fbSubmit: 'ابعت',
+    fbSending: 'بنبعت…',
+    fbDone: 'وصلنا. شكرًا.',
+    fbOrEmail: 'أو ابعتلنا على',
   },
 
   en: {
@@ -141,7 +179,8 @@ export const LANDING = {
     navJoin: 'Start',
     navSignIn: 'Sign in',
 
-    heroEyebrow: 'Egyptian treasury bills',
+    heroEyebrow: 'Fixed income in Egypt',
+    beta: 'Beta',
     heroTitle: 'Another place to put your cash',
     heroLead:
       'Instead of leaving it in a deposit, you lend it to the Egyptian government for a set term at a return you know from day one. From your phone.',
@@ -174,6 +213,34 @@ export const LANDING = {
     resBetter: (x: string) => `${x} ahead of a deposit`,
     resWorse: (x: string) => `${x} behind a deposit`,
     calcDisclaimer: 'Indicative, based on current market rates, and subject to change. Not an offer.',
+
+    whyTitle: 'Why here, and not a typical broker?',
+    whyLead: 'The service is built digital from the start, rather than a branch with a website on top.',
+    why: [
+      {
+        h: 'No branch visit',
+        p: 'Opening the account and checking your identity both happen in the app. No day off spent in a queue.',
+      },
+      {
+        h: 'Everything electronic',
+        p: 'Statements, contract notes and your holdings are all in one place and available whenever you want them.',
+      },
+      {
+        h: 'Paper if you want it',
+        p: 'If you need printed documents for any purpose, ask and we will arrange them.',
+      },
+    ],
+
+    assetsTitle: 'What exactly are you buying?',
+    assetsLead: 'Fixed income in Egyptian pounds, not only treasury bills.',
+    assets: [
+      { h: 'Treasury bills', p: 'Three to twelve months. Lent to the Egyptian government.' },
+      { h: 'Treasury bonds', p: 'Longer terms paying a regular coupon. Also the Egyptian government.' },
+      { h: 'Corporate bonds', p: 'They pay more, and carry more risk, because you are lending to a company rather than the government.' },
+      { h: 'Sukuk', p: 'A sharia-compliant alternative. The issue itself sets the return and the risk.' },
+    ],
+    assetsRisk: 'Government paper and company paper are not the same risk. A higher return always comes with higher risk, and we spell that out on each one.',
+    assetsFx: 'We are also working on bills and bonds in other currencies. Not available yet.',
 
     howTitle: 'Two things worth knowing',
     how: [
@@ -247,6 +314,15 @@ export const LANDING = {
       'Agyal is a technology company. Real investing happens through an entity licensed by the Financial Regulatory Authority, which holds all client money. Agyal never holds your money or your securities.',
     footerPrivacy:
       'We use your details only to contact you, and delete them as soon as you ask. We do not ask for a national ID, documents or bank details.',
+
+    fbTitle: 'We are still building. Tell us what you think.',
+    fbLead: 'Anything unclear, missing or annoying, write it here. We read all of it.',
+    fbMessage: 'Your feedback',
+    fbEmail: 'Your email (if you want a reply)',
+    fbSubmit: 'Send',
+    fbSending: 'Sending…',
+    fbDone: 'Got it. Thank you.',
+    fbOrEmail: 'Or email us at',
   },
 };
 

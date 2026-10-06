@@ -791,3 +791,17 @@ model CalculatorUse {
 
   @@index([createdAt])
 }
+
+/// A visitor's note about the beta. Deliberately asks for nothing: a message is
+/// enough, and an email only if they want a reply.
+model Feedback {
+  id        BigInt   @id @default(autoincrement())
+  message   String
+  email     String?
+  locale    String   @default("ar")
+  source    String?
+  ip        String?
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+}

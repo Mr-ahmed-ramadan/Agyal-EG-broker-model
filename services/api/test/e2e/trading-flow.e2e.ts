@@ -718,7 +718,17 @@ async function main() {
   assert.ok(String(withPhone.sentTo).includes('@'), 'the code goes to the email even when a number is given');
   await call('POST', '/public/campaign/demo-signup', { body: { name: 'Bad Number', email: `badnum.${run}@example.com`, phone: '12345', locale: 'ar' }, expect: 400 });
 
+  // Feedback on the beta: a message is enough, an email only if they want a reply.
+  const note = `the calculator confused me ${run}`;
+  await call('POST', '/public/campaign/feedback', { body: { message: note, email: `fb.${run}@example.com`, locale: 'ar', source: 'facebook' }, expect: 202 });
+  await call('POST', '/public/campaign/feedback', { body: { message: `anonymous ${run}`, locale: 'en' }, expect: 202 });
+  await call('POST', '/public/campaign/feedback', { body: { message: `bot ${run}`, locale: 'en', website: 'http://spam' }, expect: 202 });
+  await call('POST', '/public/campaign/feedback', { body: { message: 'x', locale: 'en' }, expect: 400 });
+
   const demand2 = await call('GET', '/admin/campaign/demand', { token: admin });
+  assert.ok(demand2.feedback.recent.some((f: Json) => f.message === note), 'feedback reaches Agyal');
+  assert.ok(demand2.feedback.recent.some((f: Json) => f.message === `anonymous ${run}` && f.email === null), 'feedback needs no email');
+  assert.ok(!demand2.feedback.recent.some((f: Json) => f.message === `bot ${run}`), 'honeypot feedback is not stored');
   assert.ok(demand2.demo.accounts >= 1, 'demo accounts are reported');
   const phoned = demand2.demo.recent.find((c: Json) => c.email === phoneEmail);
   assert.equal(phoned?.phone, '01012345678', 'the number is there to call them on');

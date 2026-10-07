@@ -1,24 +1,12 @@
 import { useState } from 'react';
 import { download } from '../api';
-import { egp, useLoad, when } from '../useLoad';
+import { useLoad, when } from '../useLoad';
 
 interface DemoPerson {
   name: string | null;
   email: string | null;
   phone: string | null;
   tradedSimulated: boolean;
-  createdAt: string;
-}
-
-interface WaitlistPerson {
-  id: string;
-  name: string;
-  email: string | null;
-  mobile: string | null;
-  governorate: string | null;
-  amountBand: string | null;
-  savesIn: string | null;
-  source: string | null;
   createdAt: string;
 }
 
@@ -38,22 +26,10 @@ interface Demand {
     placedAnOrder: number;
     conversion: number;
     orders: number;
-    simulatedNominalEgp: string;
     withPhone: number;
     recent: DemoPerson[];
   };
   feedback: { total: number; recent: Note[] };
-  signups: {
-    total: number;
-    withAmountBand: number;
-    estimatedIntendedEgp: number;
-    byGovernorate: Tally;
-    byAmountBand: Tally;
-    bySavesIn: Tally;
-    bySource: Tally;
-    byLocale: Tally;
-    recent: WaitlistPerson[];
-  };
   calculator: { total: number; byAmountBand: Tally; byTenor: Tally };
 }
 
@@ -63,15 +39,7 @@ const LABEL: Record<string, string> = {
   FROM_50K_TO_250K: '50k – 250k',
   FROM_250K_TO_1M: '250k – 1m',
   OVER_1M: 'Over 1m',
-  DEPOSIT: 'Bank deposit',
-  CERTIFICATE: 'Certificates',
-  GOLD: 'Gold',
-  NONE: 'Not invested',
-  OTHER: 'Something else',
-  ar: 'Arabic',
-  en: 'English',
 };
-
 /** Enum keys (CAIRO, KAFR_EL_SHEIKH) read as words, not as shouting. */
 const pretty = (k: string) => {
   if (LABEL[k]) return LABEL[k];
@@ -102,27 +70,32 @@ function Counts({ title, tally, label = pretty }: { title: string; tally: Tally;
 }
 
 /**
- * The retail campaign: who opened a demo account, who asked to be told when we
- * open, what people typed into the calculator, and what they told us about the
- * beta. Read-only; the only action is exporting the contacts to follow them up.
+ * The retail campaign: who opened a demo account, whether they traded in it,
+ * what people typed into the calculator, and what they told us about the beta.
+ * Read-only; the only action is exporting the contacts to follow them up.
+ *
+ * There is no waiting list here any more. Interested people open a demo account
+ * instead, so the list has no way to grow and nothing to say. The endpoint still
+ * returns its aggregates and the CSV still carries the people already on it, who
+ * asked to be contacted and should not be lost because a screen changed.
  */
 export function CampaignScreen() {
   const { data, error } = useLoad<Demand>('/admin/campaign/demand');
   const [exportErr, setExportErr] = useState<string | null>(null);
-  const [tab, setTab] = useState<'demo' | 'waitlist'>('demo');
 
   if (error) return <section><h2>Campaign</h2><p className="error">{error}</p></section>;
   if (!data) return <section><h2>Campaign</h2><p className="muted">Loading…</p></section>;
 
-  const { demo, signups, calculator, feedback } = data;
-  const nothingYet = demo.accounts === 0 && signups.total === 0 && calculator.total === 0;
+  const { demo, calculator, feedback } = data;
+  const nothingYet = demo.accounts === 0 && calculator.total === 0;
 
   return (
     <section>
       <h2>Campaign</h2>
       <p className="muted">
-        The retail funnel from the public page: demo accounts opened, people waiting to be told
-        when we open, calculator use and beta feedback. Nobody here is a real client.
+        The retail funnel from the public page: who opened a demo account, whether they went on
+        to trade in it, what people put into the calculator, and what they told us about the
+        beta. Nobody here is a real client.
       </p>
 
       {nothingYet ? (
@@ -137,64 +110,32 @@ export function CampaignScreen() {
         </div>
         <div className="kpi static"><strong>{demo.withPhone}</strong><span>Left a phone number</span></div>
         <div className="kpi static"><strong>{demo.orders}</strong><span>Simulated orders</span></div>
-        <div className="kpi static">
-          <strong>{egp(demo.simulatedNominalEgp)}</strong><span>Simulated nominal</span>
-        </div>
         <div className="kpi static"><strong>{calculator.total}</strong><span>Calculator runs</span></div>
-        <div className="kpi static"><strong>{signups.total}</strong><span>On the waiting list</span></div>
       </div>
 
+      <h3>Who opened one ({demo.recent.length})</h3>
       <div className="filters">
-        <button type="button" className={tab === 'demo' ? 'on' : ''} onClick={() => setTab('demo')}>
-          Demo accounts ({demo.recent.length})
-        </button>
-        <button type="button" className={tab === 'waitlist' ? 'on' : ''} onClick={() => setTab('waitlist')}>
-          Waiting list ({signups.recent.length})
-        </button>
         <button type="button" onClick={() => download('/admin/campaign/export').catch((e) => setExportErr((e as Error).message))}>
           Export contacts CSV
         </button>
       </div>
       {exportErr ? <p className="error">{exportErr}</p> : null}
 
-      {tab === 'demo' ? (
-        demo.recent.length === 0 ? (
-          <p className="muted">No demo accounts yet.</p>
-        ) : (
-          <table>
-            <thead>
-              <tr><th>Name</th><th>Email</th><th>Phone</th><th>Traded</th><th>Opened</th></tr>
-            </thead>
-            <tbody>
-              {demo.recent.map((p) => (
-                <tr key={`${p.email}-${p.createdAt}`}>
-                  <td>{p.name ?? '—'}</td>
-                  <td>{p.email ? <a href={`mailto:${p.email}`}>{p.email}</a> : '—'}</td>
-                  <td>{p.phone ? <a href={`tel:${p.phone.replace(/\s/g, '')}`}>{p.phone}</a> : '—'}</td>
-                  <td><span className={`badge ${p.tradedSimulated ? 'ok' : 'mute'}`}>{p.tradedSimulated ? 'Yes' : 'No'}</span></td>
-                  <td>{when(p.createdAt)}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        )
-      ) : signups.recent.length === 0 ? (
-        <p className="muted">Nobody on the waiting list.</p>
+      {demo.recent.length === 0 ? (
+        <p className="muted">No demo accounts yet.</p>
       ) : (
         <table>
           <thead>
-            <tr><th>Name</th><th>Email</th><th>Mobile</th><th>Governorate</th><th>Would start with</th><th>Saves in</th><th>Joined</th></tr>
+            <tr><th>Name</th><th>Email</th><th>Phone</th><th>Traded</th><th>Opened</th></tr>
           </thead>
           <tbody>
-            {signups.recent.map((s) => (
-              <tr key={s.id}>
-                <td>{s.name}</td>
-                <td>{s.email ? <a href={`mailto:${s.email}`}>{s.email}</a> : '—'}</td>
-                <td>{s.mobile ? <a href={`tel:${s.mobile.replace(/\s/g, '')}`}>{s.mobile}</a> : '—'}</td>
-                <td>{s.governorate ? pretty(s.governorate) : '—'}</td>
-                <td>{s.amountBand ? pretty(s.amountBand) : '—'}</td>
-                <td>{s.savesIn ? pretty(s.savesIn) : '—'}</td>
-                <td>{when(s.createdAt)}</td>
+            {demo.recent.map((p) => (
+              <tr key={`${p.email}-${p.createdAt}`}>
+                <td>{p.name ?? '—'}</td>
+                <td>{p.email ? <a href={`mailto:${p.email}`}>{p.email}</a> : '—'}</td>
+                <td>{p.phone ? <a href={`tel:${p.phone.replace(/\s/g, '')}`}>{p.phone}</a> : '—'}</td>
+                <td><span className={`badge ${p.tradedSimulated ? 'ok' : 'mute'}`}>{p.tradedSimulated ? 'Yes' : 'No'}</span></td>
+                <td>{when(p.createdAt)}</td>
               </tr>
             ))}
           </tbody>
@@ -220,18 +161,13 @@ export function CampaignScreen() {
         ))
       )}
 
-      <h3>Demand</h3>
+      <h3>What the calculator says</h3>
       <p className="muted">
-        What the waiting list and the calculator say about size and where people are. The
-        estimate comes from band midpoints, so treat it as an order of magnitude.
-        {signups.withAmountBand > 0 ? ` Based on ${signups.withAmountBand} of ${signups.total} who gave a band: ${egp(signups.estimatedIntendedEgp)}.` : ''}
+        What people actually typed in before they signed up, which is the closest thing to a
+        statement of how much they would put in. The term is the paper they were quoted, not the
+        one they picked.
       </p>
       <div className="tiles">
-        <Counts title="Would start with" tally={signups.byAmountBand} />
-        <Counts title="Saves in" tally={signups.bySavesIn} />
-        <Counts title="Governorate" tally={signups.byGovernorate} />
-        <Counts title="Came from" tally={signups.bySource} />
-        <Counts title="Language" tally={signups.byLocale} />
         <Counts title="Calculator: amount" tally={calculator.byAmountBand} />
         <Counts title="Calculator: term quoted" tally={calculator.byTenor} label={(d) => `${d} days`} />
       </div>

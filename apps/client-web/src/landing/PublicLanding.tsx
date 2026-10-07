@@ -213,6 +213,7 @@ export function PublicLanding() {
         <div className="lp-in">
           <h2>{t.cmpTitle}</h2>
           <p className="lp-lead">{t.cmpLead}</p>
+          <h3 className="lp-cmp-head">{t.cmpChars}</h3>
           <div className="lp-cmp">
             {t.cmp.map((c, i) => (
               <article key={c.h} className={i === 0 ? 'lp-cmp-base' : undefined}>
@@ -229,7 +230,7 @@ export function PublicLanding() {
               likely to, and that is why its paper offers more. Said in those
               terms rather than as a bare word, and never left out: the broader
               instrument range must not inherit the safety of government paper. */}
-          <p className="lp-fine">{t.cmpRisk}</p>
+          <p className="lp-fine">{t.cmpNote}</p>
           <p className="lp-soon">{t.cmpFx}</p>
           <p className="lp-fine">{t.cmpToCalc}</p>
         </div>

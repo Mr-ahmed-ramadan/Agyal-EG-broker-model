@@ -34,7 +34,8 @@ export const LANDING = {
       'بدل ما فلوسك قاعدة في وديعة، تسلّفها للحكومة المصرية أو لشركة لمدة محدّدة بعائد معروف من أول يوم. من موبايلك.',
 
     cmpTitle: 'إيه الفرق بين ده وبين الوديعة؟',
-    cmpLead: 'كلهم بيحطّوا فلوسك لمدة بعائد. الفرق في مين بتسلّفه، وإمتى تقدر تخرج، والضريبة.',
+    cmpLead: 'كلهم بيحطّوا فلوسك لمدة بعائد. اللي بيختلف هو الخصائص: بتسلّف مين، وإمتى تقدر تخرج، والضريبة.',
+    cmpChars: 'الخصائص',
     cmpWho: 'بتسلّف مين',
     cmpTerm: 'المدة والخروج',
     cmpYield: 'العائد والضريبة',
@@ -64,7 +65,7 @@ export const LANDING = {
         yield: 'بيدي عائد أعلى من ورق الحكومة، لأن الشركة ممكن تتعثر في السداد. الصكوك بديل متوافق مع الشريعة.',
       },
     ],
-    cmpRisk: 'ورق الحكومة وورق الشركات مش نفس الحاجة. الحكومة هي الجهة الأأمن في السداد، والشركة ممكن تتعثر، وعشان كده ورقها بيدي أعلى. إحنا بنوضّح خصائص كل ورقة قبل ما تشتري.',
+    cmpNote: 'ورق الحكومة وورق الشركات مالهمش نفس الخصائص. الحكومة هي الجهة الأأمن في السداد، والشركة ممكن تتعثر، وعشان كده ورقها بيدي أعلى. إحنا بنوضّح خصائص كل ورقة قبل ما تشتري.',
     cmpFx: 'كله بالجنيه المصري دلوقتي. شغالين على إتاحة أذون وسندات بعملات تانية، ولسه مش متاحة.',
     cmpToCalc: 'عشان المقارنة تبقى عادلة، الحاسبة تحت بتوريك العائد بعد الضريبة والمصاريف.',
 
@@ -171,7 +172,8 @@ export const LANDING = {
       'Instead of leaving it in a deposit, you lend it to the Egyptian government, or to a company, for a set term at a return you know from day one. From your phone.',
 
     cmpTitle: 'How is this different from a deposit?',
-    cmpLead: 'All of them hold your cash for a term at a return. They differ in who you lend to, when you can get out, and tax.',
+    cmpLead: 'All of them hold your cash for a term at a return. What differs is their characteristics: who you lend to, when you can get out, and tax.',
+    cmpChars: 'Characteristics',
     cmpWho: 'Who you lend to',
     cmpTerm: 'Term and getting out',
     cmpYield: 'Return and tax',
@@ -201,7 +203,7 @@ export const LANDING = {
         yield: 'Pays more than government paper, because a company can fail to pay. Sukuk are the sharia-compliant option.',
       },
     ],
-    cmpRisk: 'Government paper and company paper are not the same thing. The government is the safer borrower; a company can fail to pay, which is why its paper offers more. We spell out the characteristics of each one before you buy.',
+    cmpNote: 'Government paper and company paper do not have the same characteristics. The government is the safer borrower; a company can fail to pay, which is why its paper offers more. We set them out on each paper before you buy.',
     cmpFx: 'Everything is in Egyptian pounds today. We are working on bills and bonds in other currencies, which are not available yet.',
     cmpToCalc: 'To compare them fairly, the calculator below shows the return after tax and fees.',
 

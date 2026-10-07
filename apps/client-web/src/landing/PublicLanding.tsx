@@ -1,12 +1,10 @@
-import { useEffect, useMemo, useState } from 'react';
-import { GOVERNORATE_LABEL, LANDING, type LandingLocale } from './content';
+import { useEffect, useState } from 'react';
+import { LANDING, type LandingLocale } from './content';
 import './landing.css';
 
 const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:3000';
 
 const TENORS = [91, 182, 273, 364] as const;
-const AMOUNT_BANDS = ['UNDER_10K', 'FROM_10K_TO_50K', 'FROM_50K_TO_250K', 'FROM_250K_TO_1M', 'OVER_1M'];
-const SAVES_IN = ['DEPOSIT', 'CERTIFICATE', 'GOLD', 'NONE', 'OTHER'];
 
 interface CalcResult {
   totalCost: string;
@@ -54,9 +52,13 @@ const pct = (locale: LandingLocale, v?: string) =>
   }).format(Number(v));
 
 /**
- * The campaign landing page: educate, let people see the number for themselves,
- * and capture intent. Deliberately asks for no identity — see landing/content.ts
- * for the copy guardrails and the reasons behind them.
+ * The campaign landing page. It reads in one order and nothing is allowed
+ * between the steps: what this is, how the instruments differ from the deposit
+ * or certificate the reader already holds, the calculator on their own number,
+ * then the demo account. Everything else sits below that call to action.
+ *
+ * The only account offered is a demo one, and the page says so. See
+ * landing/content.ts for the copy guardrails and the reasons behind them.
  */
 export function PublicLanding() {
   const [locale, setLocale] = useState<LandingLocale>('ar');
@@ -65,7 +67,7 @@ export function PublicLanding() {
   useEffect(() => {
     document.documentElement.lang = locale;
     document.documentElement.dir = t.dir;
-    document.title = locale === 'ar' ? 'أجيال · استثمر في أذون الخزانة' : 'Agyal · Invest in treasury bills';
+    document.title = locale === 'ar' ? 'أجيال · الدخل الثابت في مصر' : 'Agyal · Fixed income in Egypt';
   }, [locale, t.dir]);
 
   // --- calculator -----------------------------------------------------------
@@ -175,51 +177,15 @@ export function PublicLanding() {
     }
   }
 
-  // --- waitlist -------------------------------------------------------------
-  const [form, setForm] = useState({
-    name: '', email: '', mobile: '', governorate: '', amountBand: '', savesIn: '', consent: false, website: '',
-  });
-  const [joinState, setJoinState] = useState<'idle' | 'sending' | 'done' | 'again'>('idle');
-  const [joinErr, setJoinErr] = useState<string | null>(null);
-  const set = <K extends keyof typeof form>(k: K, v: (typeof form)[K]) => setForm((f) => ({ ...f, [k]: v }));
-
-  async function join(e: React.FormEvent) {
-    e.preventDefault();
-    setJoinErr(null);
-    if (!form.consent) return setJoinErr(t.fErrorConsent);
-    if (!form.email && !form.mobile) return setJoinErr(t.fErrorContact);
-    setJoinState('sending');
-    try {
-      const r = await post<{ alreadyOn: boolean }>('public/campaign/waitlist', {
-        name: form.name,
-        email: form.email || undefined,
-        mobile: form.mobile || undefined,
-        governorate: form.governorate || undefined,
-        amountBand: form.amountBand || undefined,
-        savesIn: form.savesIn || undefined,
-        locale,
-        consent: true,
-        website: form.website || undefined,
-        ...attribution(),
-      });
-      setJoinState(r.alreadyOn ? 'again' : 'done');
-    } catch (err) {
-      setJoinState('idle');
-      setJoinErr(err instanceof Error ? err.message : 'Error');
-    }
-  }
-
-  const govs = useMemo(() => Object.keys(GOVERNORATE_LABEL), []);
-
   return (
     <div className="lp">
       <header className="lp-bar">
         <div className="lp-bar-in">
           <span className="lp-brand">{t.brand}</span>
-            <span className="lp-beta">{t.beta}</span>
+          <span className="lp-beta">{t.beta}</span>
           <nav>
+            <a href="#compare">{t.navDiff}</a>
             <a href="#calc">{t.navCalc}</a>
-            <a href="#how">{t.navHow}</a>
             {/* Existing clients and the demo reach the product from here. */}
             <a href="/app" className="lp-nav-signin">{t.navSignIn}</a>
             <a href="#join" className="lp-nav-cta">{t.navJoin}</a>
@@ -228,6 +194,7 @@ export function PublicLanding() {
         </div>
       </header>
 
+      {/* 1. What is this? */}
       <section className="lp-hero">
         <div className="lp-in">
           <p className="lp-eyebrow">{t.heroEyebrow}</p>
@@ -237,60 +204,36 @@ export function PublicLanding() {
         </div>
       </section>
 
-      {/* The point of the page: a deposit and a treasury bill both hold cash for
-          a term, and this is how they differ. Tax is included rather than
-          glossed, since deposit interest is exempt for individuals and treasury
-          interest is not, which the gross rates alone would hide. */}
-      <section className="lp-sec lp-alt" id="how-diff">
+      {/* 2. The four instruments side by side, each answering the same three
+          questions, so a reader holding a deposit or a certificate can place
+          the rest against what they already have. Tax is one of the three
+          because deposit interest is exempt for individuals and treasury
+          interest is not, which the headline rates alone would hide. */}
+      <section className="lp-sec lp-alt" id="compare">
         <div className="lp-in">
-          <h2>{t.diffTitle}</h2>
-          <p className="lp-lead">{t.diffLead}</p>
-          <table className="lp-diff">
-            <thead>
-              <tr><th /><th>{t.diffColDeposit}</th><th>{t.diffColBill}</th></tr>
-            </thead>
-            <tbody>
-              {t.diff.map((r) => (
-                <tr key={r.k}>
-                  <th scope="row">{r.k}</th>
-                  <td>{r.deposit}</td>
-                  <td className="lp-diff-ours">{r.bill}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-          <p className="lp-fine">{t.diffNote}</p>
-        </div>
-      </section>
-
-      <section className="lp-sec" id="why">
-        <div className="lp-in">
-          <h2>{t.whyTitle}</h2>
-          <p className="lp-lead">{t.whyLead}</p>
-          <div className="lp-how">
-            {t.why.map((c) => (
-              <article key={c.h}><h3>{c.h}</h3><p>{c.p}</p></article>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      <section className="lp-sec lp-alt" id="assets">
-        <div className="lp-in">
-          <h2>{t.assetsTitle}</h2>
-          <p className="lp-lead">{t.assetsLead}</p>
-          <div className="lp-assets">
-            {t.assets.map((a) => (
-              <article key={a.h}><h3>{a.h}</h3><p>{a.p}</p></article>
+          <h2>{t.cmpTitle}</h2>
+          <p className="lp-lead">{t.cmpLead}</p>
+          <div className="lp-cmp">
+            {t.cmp.map((c, i) => (
+              <article key={c.h} className={i === 0 ? 'lp-cmp-base' : undefined}>
+                <h3>{c.h}</h3>
+                <dl>
+                  <dt>{t.cmpWho}</dt><dd>{c.who}</dd>
+                  <dt>{t.cmpTerm}</dt><dd>{c.term}</dd>
+                  <dt>{t.cmpYield}</dt><dd>{c.yield}</dd>
+                </dl>
+              </article>
             ))}
           </div>
           {/* Government and company paper are not the same risk; say so rather
               than let the broader range imply they are. */}
-          <p className="lp-fine">{t.assetsRisk}</p>
-          <p className="lp-soon">{t.assetsFx}</p>
+          <p className="lp-fine">{t.cmpRisk}</p>
+          <p className="lp-soon">{t.cmpFx}</p>
+          <p className="lp-fine">{t.cmpToCalc}</p>
         </div>
       </section>
 
+      {/* 3. Their own number. */}
       <section className="lp-sec" id="calc">
         <div className="lp-in">
           <h2>{t.calcTitle}</h2>
@@ -342,18 +285,8 @@ export function PublicLanding() {
         </div>
       </section>
 
-      <section className="lp-sec lp-alt" id="how">
-        <div className="lp-in">
-          <h2>{t.howTitle}</h2>
-          <div className="lp-how">
-            {t.how.map((c) => (
-              <article key={c.h}><h3>{c.h}</h3><p>{c.p}</p></article>
-            ))}
-          </div>
-        </div>
-      </section>
-
-
+      {/* 4. The only account on offer: a demo one, while the platform is
+          being finished. The one call to action on the page. */}
       <section className="lp-sec lp-alt" id="join">
         <div className="lp-in lp-narrow">
           <h2>{t.signupTitle}</h2>
@@ -378,6 +311,7 @@ export function PublicLanding() {
                   <small className="lp-fine">{t.fPhoneHint}</small>
                 </label>
               ) : null}
+              {/* Honeypot: hidden from people, filled by bots */}
               <input className="lp-hp" tabIndex={-1} autoComplete="off" aria-hidden="true"
                 value={demo.website} onChange={(e) => setDemo((d) => ({ ...d, website: e.target.value }))} />
               <p className="lp-demo-warn">{t.signupWarning}</p>
@@ -407,69 +341,31 @@ export function PublicLanding() {
         </div>
       </section>
 
-      <section className="lp-sec" id="waitlist">
-        <div className="lp-in lp-narrow">
-          <h2>{t.joinTitle}</h2>
-          <p className="lp-lead">{t.joinLead}</p>
-
-          {joinState === 'done' || joinState === 'again' ? (
-            <p className="lp-ok">{joinState === 'done' ? t.fDone : t.fDoneAgain}</p>
-          ) : (
-            <form className="lp-form" onSubmit={join}>
-              <label><span>{t.fName}</span>
-                <input required minLength={2} value={form.name} onChange={(e) => set('name', e.target.value)} />
-              </label>
-              <div className="lp-two">
-                <label><span>{t.fEmail}</span>
-                  <input type="email" value={form.email} onChange={(e) => set('email', e.target.value)} />
-                </label>
-                <label><span>{t.fMobile}</span>
-                  <input type="tel" inputMode="tel" value={form.mobile} onChange={(e) => set('mobile', e.target.value)} />
-                </label>
-              </div>
-              <p className="lp-fine">{t.fOneOf}</p>
-              <div className="lp-two">
-                <label><span>{t.fGovernorate}</span>
-                  <select value={form.governorate} onChange={(e) => set('governorate', e.target.value)}>
-                    <option value="">{t.fChoose}</option>
-                    {govs.map((g) => <option key={g} value={g}>{GOVERNORATE_LABEL[g][locale]}</option>)}
-                  </select>
-                </label>
-                <label><span>{t.fAmount}</span>
-                  <select value={form.amountBand} onChange={(e) => set('amountBand', e.target.value)}>
-                    <option value="">{t.fChoose}</option>
-                    {AMOUNT_BANDS.map((b) => <option key={b} value={b}>{t.amountBands[b]}</option>)}
-                  </select>
-                </label>
-              </div>
-              <label><span>{t.fSaves}</span>
-                <select value={form.savesIn} onChange={(e) => set('savesIn', e.target.value)}>
-                  <option value="">{t.fChoose}</option>
-                  {SAVES_IN.map((s) => <option key={s} value={s}>{t.savesIn[s]}</option>)}
-                </select>
-              </label>
-
-              {/* Honeypot: hidden from people, filled by bots */}
-              <input
-                className="lp-hp" tabIndex={-1} autoComplete="off" aria-hidden="true"
-                value={form.website} onChange={(e) => set('website', e.target.value)}
-              />
-
-              <label className="lp-check">
-                <input type="checkbox" checked={form.consent} onChange={(e) => set('consent', e.target.checked)} />
-                <span>{t.fConsent}</span>
-              </label>
-
-              {joinErr ? <p className="lp-err">{joinErr}</p> : null}
-              <button type="submit" disabled={joinState === 'sending'}>
-                {joinState === 'sending' ? t.fSending : t.fSubmit}
-              </button>
-            </form>
-          )}
+      {/* Below the call to action: for the reader who is still deciding. */}
+      <section className="lp-sec" id="why">
+        <div className="lp-in">
+          <h2>{t.whyTitle}</h2>
+          <p className="lp-lead">{t.whyLead}</p>
+          <div className="lp-how">
+            {t.why.map((c) => (
+              <article key={c.h}><h3>{c.h}</h3><p>{c.p}</p></article>
+            ))}
+          </div>
         </div>
       </section>
 
-      <section className="lp-sec lp-alt" id="feedback">
+      <section className="lp-sec lp-alt" id="how">
+        <div className="lp-in">
+          <h2>{t.howTitle}</h2>
+          <div className="lp-how">
+            {t.how.map((c) => (
+              <article key={c.h}><h3>{c.h}</h3><p>{c.p}</p></article>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="lp-sec" id="feedback">
         <div className="lp-in lp-narrow">
           <h2>{t.fbTitle}</h2>
           <p className="lp-lead">{t.fbLead}</p>
@@ -490,7 +386,6 @@ export function PublicLanding() {
               <button type="submit" disabled={fbState === 'sending'}>
                 {fbState === 'sending' ? t.fbSending : t.fbSubmit}
               </button>
-              <p className="lp-fine">{t.fbOrEmail} <a href="mailto:hello@agyal.net">hello@agyal.net</a></p>
             </form>
           )}
         </div>

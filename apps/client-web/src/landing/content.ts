@@ -1,6 +1,10 @@
 /**
  * Copy for the public awareness campaign.
  *
+ * The page reads in one order, and the copy is written to hold it: what this is,
+ * how the instruments differ from a deposit or certificate, the calculator, then
+ * the demo account. Anything that interrupts that sequence belongs below it.
+ *
  * Guardrails, because this is consumer-facing and Agyal is not licensed:
  * - the only account offered here is a demo one, and the page says its money
  *   is simulated. Never imply a real investment account or a real holding.
@@ -19,27 +23,50 @@ export const LANDING = {
     switch: 'English',
     brand: 'أجيال',
     navCalc: 'احسب عائدك',
-    navHow: 'الفرق',
-    navJoin: 'ابدأ',
+    navDiff: 'الفرق',
+    navJoin: 'حساب تجريبي',
     navSignIn: 'تسجيل الدخول',
 
     heroEyebrow: 'أدوات الدخل الثابت في مصر',
     beta: 'نسخة تجريبية',
     heroTitle: 'طريقة تانية تحطّ فيها فلوسك',
     heroLead:
-      'بدل ما فلوسك قاعدة في وديعة، تسلّفها للحكومة المصرية لمدة محدّدة بعائد معروف من أول يوم. من موبايلك.',
+      'بدل ما فلوسك قاعدة في وديعة، تسلّفها للحكومة المصرية أو لشركة لمدة محدّدة بعائد معروف من أول يوم. من موبايلك.',
 
-    diffTitle: 'الوديعة والأذون: إيه الفرق؟',
-    diffLead: 'الاتنين بتحطّ فيهم فلوسك لمدة. الفرق في مين بتسلّفه، والعائد، والضريبة.',
-    diffColDeposit: 'وديعة بنكية',
-    diffColBill: 'أذون خزانة',
-    diff: [
-      { k: 'بتسلّف مين؟', deposit: 'البنك', bill: 'الحكومة المصرية' },
-      { k: 'العائد', deposit: 'البنك بيحدّده', bill: 'السوق بيحدّده، وغالبًا أعلى' },
-      { k: 'الضريبة', deposit: 'معفي للأفراد', bill: '٢٠٪ على العائد' },
-      { k: 'تحتاج تخرج بدري؟', deposit: 'بتكسر الوديعة وبتخسر عائد', bill: 'تقدر تبيع بسعر السوق' },
+    cmpTitle: 'إيه الفرق بين ده وبين الوديعة؟',
+    cmpLead: 'كلهم بيحطّوا فلوسك لمدة بعائد. الفرق في مين بتسلّفه، وإمتى تقدر تخرج، والضريبة.',
+    cmpWho: 'بتسلّف مين',
+    cmpTerm: 'المدة والخروج',
+    cmpYield: 'العائد والضريبة',
+    cmp: [
+      {
+        h: 'وديعة أو شهادة',
+        who: 'البنك',
+        term: 'مدة محدّدة. لو خرجت بدري بتكسر الوديعة وبتخسر عائد.',
+        yield: 'البنك بيحدّد العائد، ومعفي من الضريبة للأفراد.',
+      },
+      {
+        h: 'أذون خزانة',
+        who: 'الحكومة المصرية',
+        term: 'من ٣ لـ ١٢ شهر. تقدر تبيع في السوق قبل الميعاد.',
+        yield: 'السوق بيحدّد العائد، وعليه ٢٠٪ ضريبة.',
+      },
+      {
+        h: 'سندات خزانة',
+        who: 'الحكومة المصرية',
+        term: 'سنتين أو أكتر. بتبيع في السوق لو احتجت.',
+        yield: 'كوبون بييجي كل فترة، وعليه ٢٠٪ ضريبة.',
+      },
+      {
+        h: 'صكوك وسندات شركات',
+        who: 'شركة، مش الحكومة',
+        term: 'على حسب الإصدار.',
+        yield: 'عائد أعلى في مقابل مخاطرة أعلى. الصكوك بديل متوافق مع الشريعة.',
+      },
     ],
-    diffNote: 'عشان المقارنة تبقى عادلة، الحاسبة تحت بتوريك العائد بعد الضريبة والمصاريف.',
+    cmpRisk: 'ورق الحكومة وورق الشركات مش نفس المخاطرة. العائد الأعلى دايمًا جاي في مقابل مخاطرة أعلى، وإحنا بنوضّح ده على كل ورقة.',
+    cmpFx: 'كله بالجنيه المصري دلوقتي. شغالين على إتاحة أذون وسندات بعملات تانية، ولسه مش متاحة.',
+    cmpToCalc: 'عشان المقارنة تبقى عادلة، الحاسبة تحت بتوريك العائد بعد الضريبة والمصاريف.',
 
     calcTitle: 'اعرف هتاخد كام',
     calcLead: 'جرّب بأي مبلغ ومدة. الأرقام استرشادية وبتتغير مع السوق.',
@@ -76,17 +103,6 @@ export const LANDING = {
       },
     ],
 
-    assetsTitle: 'بتشتري إيه بالظبط؟',
-    assetsLead: 'دخل ثابت بالجنيه المصري، مش أذون خزانة بس.',
-    assets: [
-      { h: 'أذون خزانة', p: 'من ٣ لـ ١٢ شهر. على الحكومة المصرية.' },
-      { h: 'سندات خزانة', p: 'مدد أطول بكوبون دوري. على الحكومة المصرية كمان.' },
-      { h: 'سندات شركات', p: 'بتدي عائد أعلى، بس المخاطرة أعلى لأنك بتسلّف شركة مش الحكومة.' },
-      { h: 'صكوك', p: 'بديل متوافق مع الشريعة. الإصدار بيحدّد العائد والمخاطرة.' },
-    ],
-    assetsRisk: 'ورق الحكومة وورق الشركات مش نفس المخاطرة. العائد الأعلى دايمًا جاي في مقابل مخاطرة أعلى، وإحنا بنوضّح ده على كل ورقة.',
-    assetsFx: 'شغالين كمان على إتاحة أذون وسندات بعملات تانية. لسه مش متاحة.',
-
     howTitle: 'حاجتين يهمّك تعرفهم',
     how: [
       {
@@ -99,9 +115,9 @@ export const LANDING = {
       },
     ],
 
-    signupTitle: 'افتح حساب تجريبي',
+    signupTitle: 'حساب تجريبي لحد ما نخلّص المنصّة',
     signupLead:
-      'اسمك وإيميلك بس. هتشوف الأسعار، تشتري، وتتابع عائدك بنفسك. من غير رقم قومي ولا مستندات ولا كلمة سر.',
+      'المنصّة لسه بنكمّلها، فاللي متاح دلوقتي حساب تجريبي. اسمك وإيميلك بس، وبعدها تشوف الأسعار وتجرّب الشراء وتتابع العائد بنفسك. من غير رقم قومي ولا مستندات ولا كلمة سر.',
     signupCta: 'افتح حساب تجريبي',
     signupSubmit: 'افتح حسابي',
     signupSending: 'بنجهّز حسابك…',
@@ -121,39 +137,9 @@ export const LANDING = {
     proLead: 'لو إنت جاي من جهة مرخّصة وعايز تشوف المنصّة من ناحية المؤسسات، الصفحة بتاعتك هنا.',
     proCta: 'egypt.agyal.net',
 
-    joinTitle: 'مش عايز تفتح حساب؟',
-    joinLead: 'سيب إيميلك وهنبلّغك أول ما نفتح رسمي.',
-    joinToggle: 'بلّغني بس لما تفتحوا',
     fName: 'اسمك',
     fEmail: 'الإيميل',
-    fMobile: 'الموبايل',
-    fOneOf: 'سيب إيميل أو موبايل، واحد منهم يكفي.',
-    fGovernorate: 'المحافظة',
-    fAmount: 'تحب تبدأ بكام؟',
-    fSaves: 'فلوسك دلوقتي فين؟',
-    fChoose: 'اختر',
-    fConsent: 'موافق إن أجيال تتواصل معايا بخصوص الخدمة دي.',
-    fSubmit: 'بلّغوني',
-    fSending: 'بنبعت…',
-    fDone: 'تمام. هنبلّغك أول ما نفتح.',
-    fDoneAgain: 'إنت بالفعل على القايمة. هنبلّغك أول ما نفتح.',
-    fErrorConsent: 'لازم توافق الأول.',
     fErrorContact: 'سيب إيميل أو رقم موبايل.',
-
-    amountBands: {
-      UNDER_10K: 'أقل من ١٠ آلاف',
-      FROM_10K_TO_50K: 'من ١٠ لـ ٥٠ ألف',
-      FROM_50K_TO_250K: 'من ٥٠ لـ ٢٥٠ ألف',
-      FROM_250K_TO_1M: 'من ٢٥٠ ألف لمليون',
-      OVER_1M: 'أكتر من مليون',
-    } as Record<string, string>,
-    savesIn: {
-      DEPOSIT: 'وديعة في البنك',
-      CERTIFICATE: 'شهادات',
-      GOLD: 'دهب',
-      NONE: 'مش مستثمرة',
-      OTHER: 'حاجة تانية',
-    } as Record<string, string>,
 
     footerLegal:
       'أجيال شركة تكنولوجيا. الاستثمار الحقيقي بيتم من خلال جهة مرخّصة من الهيئة العامة للرقابة المالية، وهي اللي بتحتفظ بفلوس العملاء. أجيال عمرها ما بتحتفظ بفلوسك ولا بأوراقك.',
@@ -167,7 +153,6 @@ export const LANDING = {
     fbSubmit: 'ابعت',
     fbSending: 'بنبعت…',
     fbDone: 'وصلنا. شكرًا.',
-    fbOrEmail: 'أو ابعتلنا على',
   },
 
   en: {
@@ -175,27 +160,50 @@ export const LANDING = {
     switch: 'العربية',
     brand: 'Agyal',
     navCalc: 'Calculate',
-    navHow: 'The difference',
-    navJoin: 'Start',
+    navDiff: 'The difference',
+    navJoin: 'Demo account',
     navSignIn: 'Sign in',
 
     heroEyebrow: 'Fixed income in Egypt',
     beta: 'Beta',
     heroTitle: 'Another place to put your cash',
     heroLead:
-      'Instead of leaving it in a deposit, you lend it to the Egyptian government for a set term at a return you know from day one. From your phone.',
+      'Instead of leaving it in a deposit, you lend it to the Egyptian government, or to a company, for a set term at a return you know from day one. From your phone.',
 
-    diffTitle: 'Deposit or treasury bills?',
-    diffLead: 'Both hold your cash for a term. The difference is who you lend to, the return, and tax.',
-    diffColDeposit: 'Bank deposit',
-    diffColBill: 'Treasury bills',
-    diff: [
-      { k: 'Who you lend to', deposit: 'The bank', bill: 'The Egyptian government' },
-      { k: 'The return', deposit: 'Set by the bank', bill: 'Set by the market, usually higher' },
-      { k: 'Tax', deposit: 'Exempt for individuals', bill: '20% on the return' },
-      { k: 'Getting out early', deposit: 'Breaking it costs you return', bill: 'You can sell at the market price' },
+    cmpTitle: 'How is this different from a deposit?',
+    cmpLead: 'All of them hold your cash for a term at a return. They differ in who you lend to, when you can get out, and tax.',
+    cmpWho: 'Who you lend to',
+    cmpTerm: 'Term and getting out',
+    cmpYield: 'Return and tax',
+    cmp: [
+      {
+        h: 'Deposit or certificate',
+        who: 'The bank',
+        term: 'A set term. Breaking it early costs you return.',
+        yield: 'The bank sets the rate, and it is tax-exempt for individuals.',
+      },
+      {
+        h: 'Treasury bills',
+        who: 'The Egyptian government',
+        term: 'Three to twelve months. You can sell in the market before maturity.',
+        yield: 'The market sets the rate, and 20% tax applies.',
+      },
+      {
+        h: 'Treasury bonds',
+        who: 'The Egyptian government',
+        term: 'Two years or more. You can sell in the market if you need to.',
+        yield: 'A coupon at regular intervals, with 20% tax.',
+      },
+      {
+        h: 'Sukuk and corporate bonds',
+        who: 'A company, not the government',
+        term: 'Depends on the issue.',
+        yield: 'More return for more risk. Sukuk are the sharia-compliant option.',
+      },
     ],
-    diffNote: 'To compare them fairly, the calculator below shows the return after tax and fees.',
+    cmpRisk: 'Government paper and company paper are not the same risk. A higher return always comes with higher risk, and we spell that out on each one.',
+    cmpFx: 'Everything is in Egyptian pounds today. We are working on bills and bonds in other currencies, which are not available yet.',
+    cmpToCalc: 'To compare them fairly, the calculator below shows the return after tax and fees.',
 
     calcTitle: 'See what you would earn',
     calcLead: 'Try any amount and term. Figures are indicative and move with the market.',
@@ -231,17 +239,6 @@ export const LANDING = {
       },
     ],
 
-    assetsTitle: 'What exactly are you buying?',
-    assetsLead: 'Fixed income in Egyptian pounds, not only treasury bills.',
-    assets: [
-      { h: 'Treasury bills', p: 'Three to twelve months. Lent to the Egyptian government.' },
-      { h: 'Treasury bonds', p: 'Longer terms paying a regular coupon. Also the Egyptian government.' },
-      { h: 'Corporate bonds', p: 'They pay more, and carry more risk, because you are lending to a company rather than the government.' },
-      { h: 'Sukuk', p: 'A sharia-compliant alternative. The issue itself sets the return and the risk.' },
-    ],
-    assetsRisk: 'Government paper and company paper are not the same risk. A higher return always comes with higher risk, and we spell that out on each one.',
-    assetsFx: 'We are also working on bills and bonds in other currencies. Not available yet.',
-
     howTitle: 'Two things worth knowing',
     how: [
       {
@@ -254,9 +251,9 @@ export const LANDING = {
       },
     ],
 
-    signupTitle: 'Open a demo account',
+    signupTitle: 'A demo account while we finish the platform',
     signupLead:
-      'Just your name and email. See live prices, buy, and follow your return yourself. No national ID, no documents, no password.',
+      'We are still building, so what is open today is a demo account. Your name and email are enough, and then you can see prices, try buying, and follow the return yourself. No national ID, no documents, no password.',
     signupCta: 'Open a demo account',
     signupSubmit: 'Open my account',
     signupSending: 'Setting up your account…',
@@ -276,39 +273,9 @@ export const LANDING = {
     proLead: 'If you are here from a licensed institution and want the institutional view of the platform, your page is here.',
     proCta: 'egypt.agyal.net',
 
-    joinTitle: 'Not ready to open one?',
-    joinLead: 'Leave your email and we will tell you when we open.',
-    joinToggle: 'Just tell me when you launch',
     fName: 'Your name',
     fEmail: 'Email',
-    fMobile: 'Mobile',
-    fOneOf: 'An email or a mobile number. Either is enough.',
-    fGovernorate: 'Governorate',
-    fAmount: 'How much would you start with?',
-    fSaves: 'Where are your savings today?',
-    fChoose: 'Choose',
-    fConsent: 'I agree that Agyal may contact me about this service.',
-    fSubmit: 'Tell me when you open',
-    fSending: 'Sending…',
-    fDone: 'Done. We will tell you when we open.',
-    fDoneAgain: 'You are already on the list. We will tell you when we open.',
-    fErrorConsent: 'Please agree first.',
     fErrorContact: 'Leave an email or a mobile number.',
-
-    amountBands: {
-      UNDER_10K: 'Under 10,000',
-      FROM_10K_TO_50K: '10,000 – 50,000',
-      FROM_50K_TO_250K: '50,000 – 250,000',
-      FROM_250K_TO_1M: '250,000 – 1,000,000',
-      OVER_1M: 'Over 1,000,000',
-    } as Record<string, string>,
-    savesIn: {
-      DEPOSIT: 'A bank deposit',
-      CERTIFICATE: 'Certificates',
-      GOLD: 'Gold',
-      NONE: 'Not invested',
-      OTHER: 'Something else',
-    } as Record<string, string>,
 
     footerLegal:
       'Agyal is a technology company. Real investing happens through an entity licensed by the Financial Regulatory Authority, which holds all client money. Agyal never holds your money or your securities.',
@@ -322,39 +289,7 @@ export const LANDING = {
     fbSubmit: 'Send',
     fbSending: 'Sending…',
     fbDone: 'Got it. Thank you.',
-    fbOrEmail: 'Or email us at',
   },
 };
 
 export type LandingLocale = keyof typeof LANDING;
-
-/** Governorate labels; the API holds the canonical list. */
-export const GOVERNORATE_LABEL: Record<string, { ar: string; en: string }> = {
-  CAIRO: { ar: 'القاهرة', en: 'Cairo' },
-  GIZA: { ar: 'الجيزة', en: 'Giza' },
-  ALEXANDRIA: { ar: 'الإسكندرية', en: 'Alexandria' },
-  QALYUBIA: { ar: 'القليوبية', en: 'Qalyubia' },
-  SHARQIA: { ar: 'الشرقية', en: 'Sharqia' },
-  DAKAHLIA: { ar: 'الدقهلية', en: 'Dakahlia' },
-  BEHEIRA: { ar: 'البحيرة', en: 'Beheira' },
-  MINYA: { ar: 'المنيا', en: 'Minya' },
-  SOHAG: { ar: 'سوهاج', en: 'Sohag' },
-  ASYUT: { ar: 'أسيوط', en: 'Asyut' },
-  GHARBIA: { ar: 'الغربية', en: 'Gharbia' },
-  MONUFIA: { ar: 'المنوفية', en: 'Monufia' },
-  KAFR_EL_SHEIKH: { ar: 'كفر الشيخ', en: 'Kafr El Sheikh' },
-  FAYOUM: { ar: 'الفيوم', en: 'Fayoum' },
-  BENI_SUEF: { ar: 'بني سويف', en: 'Beni Suef' },
-  QENA: { ar: 'قنا', en: 'Qena' },
-  ASWAN: { ar: 'أسوان', en: 'Aswan' },
-  LUXOR: { ar: 'الأقصر', en: 'Luxor' },
-  DAMIETTA: { ar: 'دمياط', en: 'Damietta' },
-  ISMAILIA: { ar: 'الإسماعيلية', en: 'Ismailia' },
-  PORT_SAID: { ar: 'بورسعيد', en: 'Port Said' },
-  SUEZ: { ar: 'السويس', en: 'Suez' },
-  NORTH_SINAI: { ar: 'شمال سيناء', en: 'North Sinai' },
-  SOUTH_SINAI: { ar: 'جنوب سيناء', en: 'South Sinai' },
-  MATROUH: { ar: 'مطروح', en: 'Matrouh' },
-  NEW_VALLEY: { ar: 'الوادي الجديد', en: 'New Valley' },
-  RED_SEA: { ar: 'البحر الأحمر', en: 'Red Sea' },
-};

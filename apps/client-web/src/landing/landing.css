@@ -112,10 +112,6 @@
   display: grid; gap: 12px; margin-top: 16px;
   background: #fff; border: 1px solid var(--lp-border); border-radius: 14px; padding: 18px;
 }
-.lp-two { display: grid; gap: 12px; grid-template-columns: minmax(0, 1fr); }
-.lp-check { flex-direction: row !important; align-items: flex-start; gap: 10px; }
-.lp-check input { width: auto; margin-top: 3px; flex: none; }
-.lp-check span { font-weight: 400; color: var(--lp-text); }
 /* Honeypot: hidden from people but still in the DOM and focusable by bots,
    which display:none would not be. Clipped rather than pushed off-screen — a
    negative offset widens the document and gives the page a horizontal scroll. */
@@ -142,7 +138,6 @@
 /* --- wider screens -------------------------------------------------------- */
 @media (min-width: 700px) {
   .lp-calc { grid-template-columns: 1fr 1fr auto; }
-  .lp-two { grid-template-columns: 1fr 1fr; }
   .lp-res-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
   .lp-how { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .lp-hero { padding: 64px 0 52px; }
@@ -151,25 +146,16 @@
 @media (min-width: 1280px) { .lp { --lp-measure: 1200px; } }
 
 /* --- sign in + demo ------------------------------------------------------- */
-/* Quiet, so it does not compete with the waitlist call-to-action beside it. */
+/* Quiet, so it does not compete with the demo-account call-to-action beside it. */
 .lp-nav-signin { border: 1px solid rgb(255 255 255 / 0.35); }
 .lp-nav-signin:hover { background: rgb(255 255 255 / 0.18); }
 
-.lp-demo {
-  display: grid; gap: 16px; align-items: center;
-  background: #fff; border: 1px solid var(--lp-border); border-radius: 14px; padding: 20px;
-}
-.lp-demo h2 { margin-bottom: 6px; }
-.lp-demo .lp-lead { margin-bottom: 14px; }
 /* The demo is simulated money; the warning travels with the button, never away from it. */
 .lp-demo-warn {
   margin: 0; font-size: 0.86rem; line-height: 1.55; color: #7a5a14;
   background: color-mix(in srgb, var(--lp-bronze) 14%, #fff);
   border: 1px solid color-mix(in srgb, var(--lp-bronze) 45%, #fff);
   border-radius: 10px; padding: 12px 14px;
-}
-@media (min-width: 820px) {
-  .lp-demo { grid-template-columns: 1.3fr 1fr; gap: 24px; }
 }
 
 /* Inline text button (switching between opening an account and signing in). */
@@ -179,18 +165,28 @@
 }
 .lp-form h3 { margin: 0; }
 
-/* --- deposit vs treasury bills ------------------------------------------- */
-.lp-diff { width: 100%; border-collapse: collapse; margin: 18px 0 0; background: #fff;
-  border: 1px solid var(--lp-border); border-radius: 14px; overflow: hidden; }
-.lp-diff th, .lp-diff td { padding: 12px 14px; text-align: start; vertical-align: top;
-  border-bottom: 1px solid var(--lp-border); font-size: 0.95rem; }
-.lp-diff thead th { background: var(--lp-ivory-alt); color: var(--lp-forest-deep); font-weight: 700; }
-.lp-diff tbody th { font-weight: 600; color: var(--lp-muted); width: 34%; }
-.lp-diff tbody tr:last-child th, .lp-diff tbody tr:last-child td { border-bottom: 0; }
-/* The column the page is arguing for; marked, not shouted. */
-.lp-diff .lp-diff-ours { background: color-mix(in srgb, var(--lp-forest) 7%, #fff); font-weight: 600; }
-.lp-diff thead th:last-child { background: color-mix(in srgb, var(--lp-forest) 12%, var(--lp-ivory-alt)); }
-@media (max-width: 560px) { .lp-diff th, .lp-diff td { padding: 10px 9px; font-size: 0.87rem; } }
+/* --- the comparison ------------------------------------------------------- */
+/* Four instruments, each answering the same three questions. Cards rather than
+   a four-column table: at 390px a table of this shape either scrolls sideways
+   or crushes its columns, and both lose the comparison. */
+.lp-cmp { display: grid; gap: 12px; grid-template-columns: minmax(0, 1fr); margin-top: 18px; }
+.lp-cmp article {
+  background: #fff; border: 1px solid var(--lp-border); border-radius: 14px; padding: 16px 18px;
+  border-top: 3px solid var(--lp-forest);
+}
+/* What the reader most likely holds today: the baseline, not the argument. */
+.lp-cmp .lp-cmp-base { background: var(--lp-ivory-alt); border-top-color: var(--lp-muted); }
+.lp-cmp h3 { margin: 0 0 10px; font-size: 1.05rem; color: var(--lp-forest-deep); }
+/* theme.css lays definition lists out as a two-column key/value table with the
+   value right-aligned; here the value is a sentence, so stack it under its
+   label and reset the alignment that rule brings with it. */
+.lp-cmp dl { margin: 0; display: block; }
+.lp-cmp dt {
+  font-size: 0.72rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase;
+  color: var(--lp-muted); margin-top: 8px;
+}
+.lp-cmp dt:first-of-type { margin-top: 0; }
+.lp-cmp dd { margin: 0; text-align: start; font-size: 0.93rem; line-height: 1.55; }
 
 /* --- brokers and banks ---------------------------------------------------- */
 .lp-pro { background: var(--lp-forest-deep); color: #e9efe9; padding: 22px 0; }
@@ -207,10 +203,6 @@
   text-transform: uppercase; background: var(--lp-bronze); color: #fff;
   border-radius: 999px; padding: 3px 9px; vertical-align: middle;
 }
-.lp-assets { display: grid; gap: 12px; grid-template-columns: minmax(0, 1fr); margin-top: 16px; }
-.lp-assets article { background: #fff; border: 1px solid var(--lp-border); border-radius: 12px; padding: 14px 16px; }
-.lp-assets h3 { margin: 0 0 4px; font-size: 1rem; }
-.lp-assets p { margin: 0; color: var(--lp-muted); font-size: 0.92rem; line-height: 1.55; }
 /* Roadmap, marked as such so it cannot read as something available today. */
 .lp-soon {
   margin: 12px 0 0; font-size: 0.86rem; color: #7a5a14;
@@ -223,4 +215,6 @@
   background: #fff; color: inherit; width: 100%; min-width: 0; resize: vertical;
 }
 .lp-form textarea:focus { outline: 2px solid var(--lp-forest); outline-offset: 1px; }
-@media (min-width: 700px) { .lp-assets { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+/* Two-up before four-up, so the cards never get too narrow to read. */
+@media (min-width: 700px) { .lp-cmp { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (min-width: 1100px) { .lp-cmp { grid-template-columns: repeat(4, minmax(0, 1fr)); } }

@@ -11,13 +11,11 @@ import { InstrumentsScreen } from './screens/InstrumentsScreen';
 import { KycAmlScreen } from './screens/KycAmlScreen';
 import { LeadsScreen } from './screens/LeadsScreen';
 import { NewsScreen } from './screens/NewsScreen';
-import { ProspectsScreen } from './screens/ProspectsScreen';
 
 const SCREENS = {
-  prospects: { label: 'Prospect demos', el: ProspectsScreen },
+  brokers: { label: 'Brokers & demos', el: BrokersScreen },
   leads: { label: 'Leads', el: LeadsScreen },
   campaign: { label: 'Campaign', el: CampaignScreen },
-  brokers: { label: 'Brokers', el: BrokersScreen },
   economics: { label: 'Economics', el: EconomicsScreen },
   kyc: { label: 'KYC / AML', el: KycAmlScreen },
   data: { label: 'Data console', el: DataConsoleScreen },
@@ -31,7 +29,7 @@ type ScreenKey = keyof typeof SCREENS;
 
 export function App() {
   const [token, setTok] = useState(getToken());
-  const [screen, setScreen] = useState<ScreenKey>('prospects');
+  const [screen, setScreen] = useState<ScreenKey>('brokers');
   if (!token) {
     return <Login onSignedIn={(t) => { setToken(t); setTok(t); }} />;
   }

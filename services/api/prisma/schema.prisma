@@ -75,6 +75,9 @@ model User {
   mobileVerifiedAt DateTime?
   passwordHash     String
   roles            String[]
+  /// Set when Agyal takes a staff member's access away. The row stays, because
+  /// compliance decisions and withdrawal approvals point at it.
+  disabledAt       DateTime?
   createdAt        DateTime  @default(now())
 
   tenant        Tenant?        @relation(fields: [tenantId], references: [id])

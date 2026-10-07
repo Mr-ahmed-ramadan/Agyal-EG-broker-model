@@ -554,6 +554,93 @@ async function main() {
   }
   console.log('✓ tenant isolation enforced by API and PostgreSQL RLS');
 
+  // 11b. Managing a broker: the console has to be able to change one, not only make it
+  const patched = await call('PATCH', `/admin/tenants/${slug}`, {
+    token: admin,
+    body: { legalNameEn: 'Other Broker Renamed', fraLicenseNo: 'FRA-999', branding: { colors: { primary: '#101010' } } },
+  });
+  assert.equal(patched.legalNameEn, 'Other Broker Renamed');
+  assert.equal(patched.fraLicenseNo, 'FRA-999');
+  assert.equal(patched.branding.colors.primary, '#101010');
+  assert.equal(patched.branding.colors.primaryContrast, '#ffffff', 'the contrasting text colour follows the brand colour');
+  assert.equal(patched.branding.displayName.en, 'Other', 'a partial branding change keeps the rest of the block');
+  assert.equal((await call('PATCH', `/admin/tenants/${slug}`, { token: admin, body: { status: 'SUSPENDED' } })).status, 'SUSPENDED');
+  await call('PATCH', `/admin/tenants/${slug}`, { token: admin, body: { status: 'ACTIVE' } });
+  await call('PATCH', `/admin/tenants/${slug}`, { token: admin, body: {}, expect: 400 });
+
+  // A broker that has traded is never deleted: its ledger has to outlive the console.
+  // The counts are read as system; through the ordinary client, row-level
+  // security would hide every client and order and report an empty broker.
+  const listed = (await call('GET', '/admin/tenants', { token: admin })).find((t: Json) => t.slug === T);
+  assert.ok(listed.counts.clients > 0, 'the list reports the clients a broker actually has');
+  assert.ok(listed.counts.orders > 0, 'and its orders');
+  assert.ok(listed.counts.users > 0, 'and its staff');
+  await call('DELETE', `/admin/tenants/${T}`, { token: admin, expect: 409 });
+
+  // One create for both kinds, with the conveniences the prospect path had.
+  const madeDemo = await call('POST', '/admin/tenants', {
+    token: admin,
+    body: {
+      kind: 'PROSPECT_DEMO',
+      legalNameEn: `Derived Slug Co ${run}`,
+      legalNameAr: 'شركة',
+      branding: {
+        displayName: { en: 'Derived', ar: 'مشتق' }, logoUrl: '',
+        colors: { primary: '#2f5a45', primaryContrast: '#000000', accent: '#a8823a' },
+        supportEmail: 'support@derived.example',
+        legalDocuments: { termsUrl: '#', riskDisclosureUrl: '#', privacyUrl: '#' },
+      },
+      copyBanksFrom: T,
+      login: { email: `owner.${run}@example.com`, mobile: '01099887766' },
+    },
+  });
+  assert.match(madeDemo.slug, /^derived-slug-co-/, 'the slug is derived from the name when not given');
+  assert.equal(madeDemo.kind, 'PROSPECT_DEMO');
+  assert.equal(madeDemo.branding.colors.primaryContrast, '#ffffff', 'the contrast colour is computed, not trusted');
+  assert.ok(madeDemo.credentials?.temporaryPassword, 'a first login comes back with a temporary password');
+  assert.ok((await call('GET', `/admin/tenants/${madeDemo.slug}/banks`, { token: admin })).length > 0, 'partner banks were copied');
+  assert.ok((await call('GET', '/admin/tenants?kind=PROSPECT_DEMO', { token: admin })).every((t: Json) => t.kind === 'PROSPECT_DEMO'), 'the list filters by kind');
+
+  // Staff: roles, a reset password that actually signs in, and disabling.
+  const newStaff = await call('POST', `/admin/tenants/${madeDemo.slug}/staff`, {
+    token: admin,
+    body: { email: `ops.${run}@example.com`, mobile: '01122334455', roles: ['BROKER_OPS'] },
+  });
+  assert.ok(newStaff.temporaryPassword, 'a password is generated when none is given');
+  const rerolled = await call('PATCH', `/admin/tenants/${madeDemo.slug}/staff/${newStaff.id}`, {
+    token: admin,
+    body: { roles: ['BROKER_OPS', 'BROKER_FINANCE'] },
+  });
+  assert.deepEqual(rerolled.roles, ['BROKER_OPS', 'BROKER_FINANCE']);
+  const reset = await call('PATCH', `/admin/tenants/${madeDemo.slug}/staff/${newStaff.id}`, { token: admin, body: { resetPassword: true } });
+  assert.ok(reset.temporaryPassword && reset.temporaryPassword !== newStaff.temporaryPassword, 'the reset issues a different password');
+
+  // One sign-in does two jobs: it proves the reset password works, and it
+  // leaves a live code to spend after the disable. A second login here would
+  // hit the 30s resend cooldown, which is the OTP rule doing its job.
+  const beforeDisable = await call('POST', '/auth/login', { tenant: madeDemo.slug, body: { email: newStaff.email, password: reset.temporaryPassword } });
+  assert.ok(beforeDisable.challengeId, 'the reset password signs in');
+
+  const staffRow = async () =>
+    (await call('GET', `/admin/tenants/${madeDemo.slug}/staff`, { token: admin })).find((u: Json) => u.id === newStaff.id);
+  await call('POST', `/admin/tenants/${madeDemo.slug}/staff/${newStaff.id}/disable`, { token: admin, expect: 201 });
+  await call('POST', '/auth/login', { tenant: madeDemo.slug, body: { email: newStaff.email, password: reset.temporaryPassword }, expect: 401 });
+  await call('POST', '/auth/verify-otp', {
+    tenant: madeDemo.slug,
+    body: { challengeId: beforeDisable.challengeId, code: beforeDisable.devCode },
+    expect: 401,
+  });
+  assert.equal((await staffRow()).disabled, true);
+  await call('POST', `/admin/tenants/${madeDemo.slug}/staff/${newStaff.id}/enable`, { token: admin, expect: 201 });
+  assert.equal((await staffRow()).disabled, false, 'enabling gives the access back');
+
+  // An empty demo can go; the whole surface stays Agyal-only.
+  await call('DELETE', `/admin/tenants/${madeDemo.slug}`, { expect: 401 });
+  await call('DELETE', `/admin/tenants/${madeDemo.slug}`, { token: compliance, expect: 403 });
+  assert.equal((await call('DELETE', `/admin/tenants/${madeDemo.slug}`, { token: admin })).deleted, true);
+  await call('GET', `/admin/tenants/${madeDemo.slug}/staff`, { token: admin, expect: 404 });
+  console.log('✓ brokers and demos: created with a derived slug and copied banks, edited, suspended; staff re-roled, password reset, disabled and enabled; only an empty demo deletes');
+
   // 12. Showcase: branded prospect demo and landing-page contact form
   const tinyPng = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==';
   const bigLogo = `data:image/png;base64,${Buffer.alloc(210 * 1024, 7).toString('base64')}`;

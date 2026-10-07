@@ -82,12 +82,17 @@ export class IdentityService {
     });
     const ok = verifyPassword(password, user?.passwordHash ?? DUMMY_HASH);
     if (!user || !ok) throw new UnauthorizedException('Invalid email or password');
+    // Checked after the password, so a disabled account is indistinguishable
+    // from a wrong one on a public endpoint and the timing stays even.
+    if (user.disabledAt) throw new UnauthorizedException('Invalid email or password');
     return this.otp.issue(user, user.mobileVerifiedAt ? 'LOGIN' : 'VERIFY_MOBILE', this.senderName(tenant));
   }
 
   /** Step 2: the one-time code. Returns the access token. */
   async verifyOtp(tenant: Tenant | undefined, challengeId: string, code: string) {
     const { user, purpose } = await this.otp.verify(challengeId, code, ['LOGIN', 'VERIFY_MOBILE']);
+    // A code issued before the access was taken away must not still spend.
+    if (user.disabledAt) throw new UnauthorizedException('Invalid email or password');
     if ((user.tenantId ?? null) !== (tenant?.id ?? null)) {
       throw new ForbiddenException('This code belongs to a different broker');
     }

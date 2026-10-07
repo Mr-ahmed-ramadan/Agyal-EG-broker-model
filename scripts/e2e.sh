@@ -30,6 +30,15 @@ wait_for_log() { # file pattern count timeout
   echo "Timed out waiting for '$2' in $1"; tail -20 "$1"; return 1
 }
 
+# A stray API already on PORT means this run's own API cannot bind, the tests
+# silently hit the old process, and the failures look like product bugs. It has
+# cost three debugging rounds; fail loudly instead.
+if curl -fsS -o /dev/null --max-time 2 "${API_URL}/health" 2>/dev/null; then
+  echo "Something is already serving ${API_URL} (its /health answered)."
+  echo "Stop it first, or run with PORT=<free port>; otherwise this suite would test that process, not this build."
+  exit 1
+fi
+
 echo "== Building"
 npm run build --workspace packages/shared-types >/dev/null
 npm run build --workspace services/api >/dev/null

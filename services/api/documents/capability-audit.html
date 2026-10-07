@@ -8,7 +8,14 @@
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
 <style>{{STYLE}}
-td:nth-child(2) { white-space: nowrap; }
+/* Capability tables: a one-word state column that should not wrap. */
+.cap td:nth-child(2) { white-space: nowrap; width: 1%; }
+/* Real vs simulated: two sentences side by side, with a short component name. */
+.wide td:nth-child(1), .wide th:nth-child(1) { width: 16%; }
+.wide td:nth-child(2), .wide th:nth-child(2) { width: 36%; }
+/* Hardening: the state is one pill, and the reason needs the rest of the row. */
+.hard td:nth-child(1), .hard th:nth-child(1) { width: 24%; }
+.hard td:nth-child(2), .hard th:nth-child(2) { width: 1%; white-space: nowrap; }
 .legend { display: flex; gap: 10px; flex-wrap: wrap; font-size: 0.85rem; margin: 6px 0 12px; }
 </style>
 </head>
@@ -19,18 +26,19 @@ td:nth-child(2) { white-space: nowrap; }
     <div class="brand"><span class="mark">A</span> Agyal <em>Egypt</em></div>
     <div class="meta"><span class="tag internal">Internal — do not share</span><br />Build state as of {{TODAY}}</div>
   </div>
-  <h1>Capability audit &amp; phase map</h1>
-  <p class="muted">An honest view of what the platform does today, what is simulated in the demo, and what must be done before a broker handles real client money.</p>
+  <h1>Capability audit &amp; gap to production</h1>
+  <p class="muted">An honest view of what the platform does today, what is simulated in the demo, and what must be done before a broker handles real client money. Written against the code rather than from memory: every claim here was checked in the repository on the date above. Where the demo and a document disagree, the code wins and the document is wrong.</p>
   <div class="legend"><span class="pill real">Real</span> built and tested end to end <span class="pill sim">Simulated</span> works in the demo against a stand-in <span class="pill gap">Gap</span> not built yet</div>
 
   <h2>1. Capabilities by surface</h2>
   <h3>Client app</h3>
-  <table>
+  <table class="cap">
     <thead><tr><th>Capability</th><th>State</th><th>Notes</th></tr></thead>
     <tbody>
       <tr><td>Broker branding, Arabic/English, phone-first</td><td><span class="pill real">Real</span></td><td>Per-broker name, logo, colours.</td></tr>
       <tr><td>Sign-up and sign-in with one-time codes</td><td><span class="pill real">Real</span></td><td>Codes hashed, expiring, rate-limited. Delivered by email in the demo (SMS stand-in).</td></tr>
-      <tr><td>Onboarding: ID, selfie, suitability, consents</td><td><span class="pill real">Real</span></td><td>eKYC and AML results come from a mock provider.</td></tr>
+      <tr><td>Onboarding: suitability questions and consents</td><td><span class="pill real">Real</span></td><td>Answers, scoring and consent records with version, timestamp and IP.</td></tr>
+      <tr><td>Onboarding: ID capture, selfie, liveness</td><td><span class="pill gap">Gap</span></td><td>Not built. There is no document or image upload, storage or retention anywhere in the system. The app says so on the screen. eKYC today parses the national ID string and returns a fixed score from a mock provider.</td></tr>
       <tr><td>Rates, paper explainer, payment schedule, after-tax return, deposit comparison</td><td><span class="pill real">Real</span></td><td>Indicative yields set by Agyal; economics from admin settings.</td></tr>
       <tr><td>Live quotes, buy and sell</td><td><span class="pill real">Real</span></td><td>Over FIX 4.4 to simulated banks.</td></tr>
       <tr><td>Holdings, income, statements, deposits, withdrawals</td><td><span class="pill real">Real</span></td><td>Deposits confirmed manually by operations.</td></tr>
@@ -38,7 +46,7 @@ td:nth-child(2) { white-space: nowrap; }
   </table>
 
   <h3>Broker console</h3>
-  <table>
+  <table class="cap">
     <thead><tr><th>Capability</th><th>State</th><th>Notes</th></tr></thead>
     <tbody>
       <tr><td>Compliance queue, auto-approval rules, Agyal flags</td><td><span class="pill real">Real</span></td><td>Decisions recorded against named users.</td></tr>
@@ -49,7 +57,7 @@ td:nth-child(2) { white-space: nowrap; }
   </table>
 
   <h3>Admin console (Agyal)</h3>
-  <table>
+  <table class="cap">
     <thead><tr><th>Capability</th><th>State</th><th>Notes</th></tr></thead>
     <tbody>
       <tr><td>Brokers, staff, instruments, indicative rates, news</td><td><span class="pill real">Real</span></td><td></td></tr>
@@ -59,51 +67,86 @@ td:nth-child(2) { white-space: nowrap; }
       <tr><td>Audit log, data changes, data console 360°</td><td><span class="pill real">Real</span></td><td>Request-level log plus database triggers with before/after values.</td></tr>
       <tr><td>FIX monitor</td><td><span class="pill real">Real</span></td><td>Sessions and message log.</td></tr>
       <tr><td>Tracked documents</td><td><span class="pill real">Real</span></td><td>Per-recipient links with open log.</td></tr>
+      <tr><td>Campaign: demo funnel, contacts, feedback, demand</td><td><span class="pill real">Real</span></td><td>Who opened a demo account and whether they traded, with a CSV export for follow-up.</td></tr>
+      <tr><td>Cross-broker operations view</td><td><span class="pill gap">Gap</span></td><td>Orders, settlement ageing, withdrawals and how a broker resolved an Agyal flag are visible only as raw rows in the data console. No platform-level endpoint exists for them.</td></tr>
     </tbody>
   </table>
 
   <h2>2. Real vs simulated</h2>
-  <table>
+  <table class="wide">
     <thead><tr><th>Component</th><th>Demo today</th><th>Production path</th></tr></thead>
     <tbody>
-      <tr><td>Partner banks</td><td><span class="pill sim">Simulated</span> FIX bank simulator in the gateway</td><td>FIX certification with each bank; per-bank rules of engagement.</td></tr>
+      <tr><td>Partner banks</td><td><span class="pill sim">Simulated</span> FIX bank simulator in the gateway</td><td>FIX certification with each bank; per-bank rules of engagement. The protocol layer is real (QuickFIX/J engine, sessions, sequence numbers, persisted message log); only the counterparty is a stand-in, and it quotes from fixed yields.</td></tr>
+      <tr><td>Market data</td><td><span class="pill sim">Simulated</span> seeded yields, admin entry, or back-filled from simulated quotes</td><td>No price feed exists. Whether banks publish indicative prices for browsing, or only firm quotes on request, is an open question with the banks.</td></tr>
       <tr><td>eKYC</td><td><span class="pill sim">Simulated</span> mock face match and ID check</td><td>Licensed Egyptian eKYC provider chosen with the broker.</td></tr>
       <tr><td>AML screening</td><td><span class="pill sim">Simulated</span> mock PEP/sanctions/adverse media</td><td>Screening provider with ongoing monitoring.</td></tr>
       <tr><td>MCDR / CBE custody</td><td><span class="pill sim">Simulated</span> manual codes and confirmations</td><td>Custodian files or APIs for registration and reconciliation.</td></tr>
       <tr><td>SMS codes</td><td><span class="pill sim">Simulated</span> sent by email</td><td>SMS gateway with the broker's sender name.</td></tr>
-      <tr><td>Deposits</td><td><span class="pill sim">Simulated</span> confirmed by hand</td><td>Bank-statement import (MT940/CSV) with auto-matching.</td></tr>
+      <tr><td>Deposits and withdrawals</td><td><span class="pill sim">Simulated</span> ledger entries confirmed by hand</td><td>No money moves in this system and no payment rail is connected. A person moves it in their bank and records the reference. Bank-statement import (MT940/CSV) with auto-matching is the production path. The controls around it are real: IBAN validation, step-up code, maker-checker.</td></tr>
+      <tr><td>Non-FIX bank connections</td><td><span class="pill gap">Gap</span></td><td>A bank set to portal or file mode logs a warning and the message is dropped. Unreachable today because every bank is FIX, but it must not stay that way with real orders.</td></tr>
       <tr><td>Email</td><td><span class="pill real">Real</span> transactional email via Resend</td><td>Per-broker sender domain.</td></tr>
-      <tr><td>Hosting</td><td><span class="pill real">Real</span> managed cloud, single region</td><td>Region and data residency agreed per broker; backups tested.</td></tr>
+      <tr><td>Hosting</td><td><span class="pill real">Real</span> managed cloud, single region</td><td>Region and data residency agreed per broker, then backups and a rehearsed restore. Neither exists today.</td></tr>
     </tbody>
   </table>
 
   <h2>3. Hardening before real money</h2>
-  <table>
+  <table class="hard">
     <thead><tr><th>Item</th><th>State</th><th>Why it matters</th></tr></thead>
     <tbody>
-      <tr><td>Egyptian public-holiday calendar</td><td><span class="pill gap">Gap</span></td><td>Settlement and maturity dates skip weekends only.</td></tr>
-      <tr><td>Tax treatment per instrument</td><td><span class="pill gap">Gap</span></td><td>A flat 20% on yield is applied; needs tax adviser sign-off (T-bills vs bonds, corporate vs sovereign).</td></tr>
-      <tr><td>Independent security review and penetration test</td><td><span class="pill gap">Gap</span></td><td>Required by brokers and good practice before go-live.</td></tr>
-      <tr><td>Multi-region / disaster recovery</td><td><span class="pill gap">Gap</span></td><td>Single region today; restore drills not yet run.</td></tr>
-      <tr><td>Secrets and key management</td><td><span class="pill gap">Gap</span></td><td>Move field-encryption keys to a managed KMS with rotation.</td></tr>
-      <tr><td>Monitoring and alerting</td><td><span class="pill gap">Gap</span></td><td>Health checks exist; add alerting on FIX session loss, stuck outbox, reconciliation breaks.</td></tr>
+      <tr><td>KYC evidence capture and retention</td><td><span class="pill gap">Gap</span></td><td>The largest build item. No upload, no storage, no retention, no schema fields for an ID image, a selfie or a liveness recording. Which evidence must be kept is one of the questions put to the Authority.</td></tr>
+      <tr><td>Egyptian public-holiday calendar</td><td><span class="pill gap">Gap</span></td><td>Settlement and maturity dates skip weekends only, so every date around a public holiday is wrong.</td></tr>
+      <tr><td>Tax treatment per instrument</td><td><span class="pill gap">Gap</span></td><td>A flat 20% on yield is applied; needs tax adviser sign-off (T-bills vs bonds, corporate vs sovereign, who withholds).</td></tr>
+      <tr><td>Monitoring and alerting</td><td><span class="pill gap">Gap</span></td><td>There is no observability. The health endpoint returns a fixed "ok" without checking the database, the FIX session or the outbox, and a stuck outbox is noticed by a person looking at a screen. Needs real health checks, alerting on FIX session loss, stuck outbox and reconciliation breaks, plus metrics and log aggregation.</td></tr>
+      <tr><td>Backups, restore drills, disaster recovery</td><td><span class="pill gap">Gap</span></td><td>Nothing is in place. Single region; no backup policy and no restore has been rehearsed.</td></tr>
+      <tr><td>Secrets and key management</td><td><span class="pill gap">Gap</span></td><td>Field-encryption keys are an environment variable, not a managed key. No rotation path.</td></tr>
+      <tr><td>Rate limiting beyond the public pages</td><td><span class="pill gap">Gap</span></td><td>In memory and per instance, applied only to public endpoints. It does not survive horizontal scaling, and authenticated endpoints have none. One-time codes are the exception: those limits are in the database and are real.</td></tr>
+      <tr><td>Demo switches off</td><td><span class="pill gap">Gap</span></td><td>The hosted environment runs with demo mode on (coupons can be confirmed before their date) and demo logins on (codes shown on screen for the published demo accounts). Both are deliberate and scoped, and both must be off before any real money.</td></tr>
+      <tr><td>Staff authentication</td><td><span class="pill gap">Gap</span></td><td>Email codes today. Rotating refresh tokens, device binding and an authenticator app or hardware key for staff are outstanding.</td></tr>
+      <tr><td>Independent security review and penetration test</td><td><span class="pill gap">Gap</span></td><td>Required by brokers and good practice before go-live. No dependency, secret or static analysis scanning in CI either.</td></tr>
+      <tr><td>Data residency and hosting</td><td><span class="pill gap">Gap</span></td><td>Hosted in Europe today. Whether Egyptian residency is mandatory is an open question with the Authority, and the answer decides the production region. Infrastructure as code once the provider is chosen.</td></tr>
       <tr><td>Regulatory reporting packs</td><td><span class="pill gap">Gap</span></td><td>FRA and AML reporting formats agreed with the pilot broker.</td></tr>
-      <tr><td>Client-facing legal documents</td><td><span class="pill gap">Gap</span></td><td>Terms, risk disclosure, privacy notice — the broker's, reviewed by counsel.</td></tr>
-      <tr><td>Row-level security, audit trail, maker-checker, step-up codes</td><td><span class="pill real">Real</span></td><td>In place and covered by tests.</td></tr>
+      <tr><td>Client-facing legal documents</td><td><span class="pill gap">Gap</span></td><td>Terms, risk disclosure and privacy notice are configured as links to documents that do not exist yet. The broker's, reviewed by counsel.</td></tr>
+      <tr><td>Data protection pack (Law 151/2020)</td><td><span class="pill gap">Gap</span></td><td>Processor terms, retention schedule, residency position and breach procedure. Drafted, not settled.</td></tr>
+      <tr><td>Row-level security, audit trail, maker-checker, step-up codes</td><td><span class="pill real">Real</span></td><td>In place and covered by tests. Tenant isolation is enforced by the database itself, not only by the API.</td></tr>
     </tbody>
   </table>
 
-  <h2>4. Test coverage</h2>
+  <h2>4. The gap to a production version</h2>
+  <p class="muted">Three different kinds of work, and they are worth keeping apart: one is a contract, one is engineering, and one is someone else's answer.</p>
+
+  <h3>Swap a stand-in for a counterparty</h3>
+  <p>Each of these already sits behind a named interface with a working implementation on the other side, exercised end to end on every build. Connecting the real one is an integration and a contract, not a redesign: <strong>partner banks over FIX</strong>, <strong>eKYC</strong>, <strong>AML screening</strong>, <strong>MCDR and custody</strong>, <strong>SMS</strong>, <strong>deposit confirmation</strong>, <strong>indicative rates</strong>. This is the honest strength of the build and the thing worth saying first.</p>
+
+  <h3>Build, because nothing stands in for it</h3>
+  <ol class="steps">
+    <li><strong>KYC evidence capture and storage</strong> — upload, encryption, retention, and the audit of who looked at it. Nothing exists today.</li>
+    <li><strong>Egyptian public-holiday calendar</strong> — settlement and maturity arithmetic.</li>
+    <li><strong>Bank-statement import with auto-matching</strong> — the designed deposit path, not yet written.</li>
+    <li><strong>Observability</strong> — real health checks, alerting, metrics, log aggregation.</li>
+    <li><strong>Backups and a rehearsed restore</strong>, then a disaster-recovery position.</li>
+    <li><strong>Managed key store with rotation</strong>, and rate limiting that survives more than one instance.</li>
+    <li><strong>Non-FIX bank adapters</strong>, so no connection mode can silently drop an order.</li>
+    <li><strong>Regulatory reporting</strong> and the <strong>client-facing legal pack</strong>.</li>
+  </ol>
+
+  <h3>Blocked on an answer, not on engineering</h3>
+  <p>Open questions carry these: whether treasury paper sits at MCDR or at the Central Bank through a bank custodian (which decides whether a bank custody account is needed at all), one FIX session per broker or one platform session identifying the broker in the message, whether indicative price feeds exist, Egyptian data residency, and the tax treatment. The commercial ones are a signed broker agreement with a licence number, bank letters of intent to certify, and named eKYC and AML providers.</p>
+
+  <h3>One caution on how this is described</h3>
+  <p>The application pack states fully digital onboarding, with ID capture and liveness, automated screening and unified-code registration, among the innovations. On the evidence above those three are <em>interfaces</em>, not capability. Describe them that way in the submission rather than relying on a later paragraph to qualify it: a regulator who finds the difference later will weigh it against everything else in the pack, and there is no advantage in the stronger wording. The criteria accept a solution still under development.</p>
+
+  <h2>5. Test coverage</h2>
   <ul class="check">
-    <li>About 96 API unit tests (ledger rules, pricing, economics, order state, income, cash, onboarding rules, OTP, compliance flags, audit, documents) and 7 FIX gateway tests.</li>
-    <li>One end-to-end test that runs the whole flow against a fresh database: onboarding, compliance, deposit, quote, order, fill, settlement, coupon, withdrawal, flags, audit log and tracked documents.</li>
-    <li>Browser checks of the four apps on phone and desktop widths.</li>
+    <li>About 100 API unit tests across 17 files (ledger rules, pricing, projection, economics, order state, income, cash, onboarding rules, OTP and its delivery, compliance flags, audit, documents, campaign) and 3 FIX gateway test classes including a real logon over the protocol.</li>
+    <li>One end-to-end test asserting 25 checks against a fresh database with the real FIX gateway and bank simulator running: onboarding and one-time codes, compliance, deposit, quote, buy and sell over FIX, a trial balance that nets to zero, settlement, withdrawal with step-up and maker-checker, coupons and maturity with tax withheld, economics overrides, statement reconciliation, flags, audit trail, database-enforced tenant isolation, documents and the campaign. It runs in CI on every change.</li>
+    <li>Browser checks of the apps at phone and desktop widths.</li>
+    <li><strong>Not covered, and worth stating:</strong> every external boundary, because the other side is the stand-in. Also partial fills, cancels and busts; recovery after a real network loss; dates around public holidays, since there is no calendar to test against; and load, failure-injection and security testing. The end-to-end run also uses the demo switches, so the production behaviour of those two flags is not the behaviour under test.</li>
   </ul>
 
-  <h2>5. Phase map</h2>
+  <h2>6. Phase map</h2>
   <ol class="steps">
-    <li><strong>Phase 1 — Demo &amp; sell (done).</strong> Hosted demo, branded prospect demos, economics, client experience, monitoring and audit, partnership documents.</li>
-    <li><strong>Phase 2 — Pilot readiness.</strong> Holiday calendar, tax sign-off, real SMS, deposit statement import, KMS, alerting, security review, broker legal documents.</li>
+    <li><strong>Phase 1 — Demo &amp; sell (done).</strong> Hosted demo, branded prospect demos, economics, client experience, monitoring and audit, partnership documents, the retail campaign and its console.</li>
+    <li><strong>Phase 2 — Pilot readiness.</strong> KYC evidence capture, holiday calendar, tax sign-off, real SMS, deposit statement import, managed keys, observability and backups, security review, broker legal documents, demo switches off.</li>
     <li><strong>Phase 3 — First live broker.</strong> FIX certification with 1–2 banks, production eKYC/AML, custodian reconciliation, invited clients, daily operations per the SOP.</li>
     <li><strong>Phase 4 — Scale.</strong> More banks and brokers, regulatory reporting packs, recurring plans, mobile apps, disaster recovery.</li>
   </ol>

@@ -58,9 +58,10 @@ export const DOCUMENTS: DocumentDef[] = [
   },
   {
     key: 'capability-audit',
-    title: 'Capability audit & phase map (internal)',
+    title: 'Capability audit & gap to production (internal)',
     file: 'capability-audit.html',
-    blurb: 'Internal build-state audit: capabilities by surface, an honest real-vs-simulated table, hardening required before real money, and the phase map for the next releases. Do not share externally.',
+    blurb:
+      'Internal build-state audit, checked against the code: capabilities by surface, an honest real-vs-simulated table, the hardening required before real money, and the gap to a production version split three ways — what is a stand-in behind a working interface and only needs a contract, what must actually be built (KYC evidence capture first), and what is blocked on an answer from the Authority or a counterparty rather than on engineering. Includes what the tests do not cover, and one caution on how the onboarding claim is worded in the FRA pack. Do not share externally.',
     internal: true,
   },
   {

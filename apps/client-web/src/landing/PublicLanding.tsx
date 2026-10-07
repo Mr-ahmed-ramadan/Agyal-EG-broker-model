@@ -225,8 +225,10 @@ export function PublicLanding() {
               </article>
             ))}
           </div>
-          {/* Government and company paper are not the same risk; say so rather
-              than let the broader range imply they are. */}
+          {/* A company can fail to pay in a way the government is far less
+              likely to, and that is why its paper offers more. Said in those
+              terms rather than as a bare word, and never left out: the broader
+              instrument range must not inherit the safety of government paper. */}
           <p className="lp-fine">{t.cmpRisk}</p>
           <p className="lp-soon">{t.cmpFx}</p>
           <p className="lp-fine">{t.cmpToCalc}</p>

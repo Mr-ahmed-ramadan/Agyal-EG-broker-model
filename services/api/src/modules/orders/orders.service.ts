@@ -367,7 +367,7 @@ export class OrdersService {
         throw new ForbiddenException('KYC review is overdue; please update your details');
       }
       if (!client.riskProfile || !isInstrumentSuitable(client.riskProfile, instrument.type)) {
-        throw new ForbiddenException('This instrument is not suitable for your risk profile');
+        throw new ForbiddenException('This instrument is not suitable for your investment profile');
       }
     }
   }

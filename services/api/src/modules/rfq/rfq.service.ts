@@ -85,7 +85,7 @@ export class RfqService {
       }
       if (input.side === 'BUY') {
         if (!client.riskProfile || !isInstrumentSuitable(client.riskProfile, instrument.type)) {
-          throw new ForbiddenException('This instrument is not suitable for your risk profile');
+          throw new ForbiddenException('This instrument is not suitable for your investment profile');
         }
       } else {
         const free = await this.ledger.balance(tx, tenant.id, {

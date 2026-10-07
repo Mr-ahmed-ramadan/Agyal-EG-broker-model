@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState, type FormEvent } from 'react';
+import { useCallback, useEffect, useMemo, useState, type FormEvent } from 'react';
 import { api, openHtml } from '../api';
 import { useLoad, when } from '../useLoad';
 
@@ -7,6 +7,9 @@ interface DocumentItem {
   title: string;
   blurb: string;
   internal: boolean;
+  group: string;
+  /** Set when an internal document has one permitted audience outside Agyal. */
+  shareWith?: string;
   opens: number;
   lastOpenedAt: string | null;
   links: number;
@@ -42,6 +45,18 @@ export function DocumentsScreen() {
 
   const selected = docs?.find((d) => d.key === key) ?? docs?.[0] ?? null;
 
+  // Grouped in the order the groups first appear in the registry, so adding a
+  // group there is enough: nothing here needs to know their names.
+  const groups = useMemo(() => {
+    const byGroup = new Map<string, DocumentItem[]>();
+    for (const d of docs ?? []) {
+      const list = byGroup.get(d.group);
+      if (list) list.push(d);
+      else byGroup.set(d.group, [d]);
+    }
+    return [...byGroup.entries()];
+  }, [docs]);
+
   const load = useCallback(() => {
     if (!selected) return;
     api<Summary>('GET', `/admin/documents/${selected.key}`)
@@ -63,7 +78,8 @@ export function DocumentsScreen() {
   async function create(e: FormEvent) {
     e.preventDefault();
     if (!selected) return;
-    if (selected.internal && !window.confirm(`“${selected.title}” is an internal document. Create a link anyway? Only send it to Agyal team members.`)) return;
+    const sendTo = selected.shareWith ? `Send it only to ${selected.shareWith}.` : 'Only send it to Agyal team members.';
+    if (selected.internal && !window.confirm(`“${selected.title}” is an internal document. Create a link anyway? ${sendTo}`)) return;
     setError(null);
     try {
       const link = await api<{ recipient: string; url: string }>('POST', `/admin/documents/${selected.key}/links`, { recipient });
@@ -114,17 +130,22 @@ export function DocumentsScreen() {
       </p>
       {listError && <p className="error">{listError}</p>}
 
-      <div className="doc-picker">
-        {docs?.map((d) => (
-          <button key={d.key} className={d.key === selected?.key ? 'doc on' : 'doc'} onClick={() => pick(d.key)}>
-            <strong>{d.title}</strong>
-            {d.internal && <span className="badge REJECTED">Internal</span>}
-            <span className="muted">
-              {d.opens} open{d.opens === 1 ? '' : 's'} · {d.links} recipient{d.links === 1 ? '' : 's'}
-            </span>
-          </button>
-        ))}
-      </div>
+      {groups.map(([group, items]) => (
+        <div key={group}>
+          <h3 className="doc-group">{group}</h3>
+          <div className="doc-picker">
+            {items.map((d) => (
+              <button key={d.key} className={d.key === selected?.key ? 'doc on' : 'doc'} onClick={() => pick(d.key)}>
+                <strong>{d.title}</strong>
+                {d.internal && <span className="badge REJECTED">Internal</span>}
+                <span className="muted">
+                  {d.opens} open{d.opens === 1 ? '' : 's'} · {d.links} recipient{d.links === 1 ? '' : 's'}
+                </span>
+              </button>
+            ))}
+          </div>
+        </div>
+      ))}
 
       {selected && (
         <>
@@ -137,7 +158,13 @@ export function DocumentsScreen() {
               </div>
             </div>
             <p className="muted">{selected.blurb}</p>
-            {selected.internal && <p className="warn">Internal document — do not send to brokers, prospects or investors.</p>}
+            {selected.internal && (
+              <p className="warn">
+                {selected.shareWith
+                  ? `Internal document, with one exception: it may go to ${selected.shareWith}. Not to brokers, prospects or investors.`
+                  : 'Internal document — do not send to brokers, prospects or investors.'}
+              </p>
+            )}
 
             <form onSubmit={create}>
               <h3>Create a tracked link</h3>

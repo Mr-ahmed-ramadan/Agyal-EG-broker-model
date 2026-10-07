@@ -208,3 +208,7 @@ li.tl-ACTION, li.tl-SIGN_IN { border-color: var(--forest-tint); } li.tl-DATA { b
 /* Campaign: counted breakdowns. The heading is a label, not a figure, so it
    must not inherit the large `.tiles strong` size used for KPI numbers. */
 .count-title { margin: 0 0 6px; font-weight: 600; font-size: 0.95rem; color: var(--forest-deep); }
+
+/* Documents: each pack gets a heading above its own picker grid. */
+.doc-group { margin: 18px 0 6px; font-family: var(--font-display); font-size: 1.05rem; color: var(--forest-deep, var(--brand)); }
+.docs > div:first-of-type .doc-group { margin-top: 10px; }

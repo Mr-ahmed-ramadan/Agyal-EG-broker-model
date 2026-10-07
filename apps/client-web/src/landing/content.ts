@@ -141,6 +141,10 @@ export const LANDING = {
     fName: 'اسمك',
     fEmail: 'الإيميل',
     fErrorContact: 'سيب إيميل أو رقم موبايل.',
+    errName: 'اكتب اسمك، حرفين على الأقل.',
+    errEmail: 'الإيميل ده شكله مش مظبوط. راجعه وجرّب تاني.',
+    errPhone: 'الرقم ده مش رقم موبايل مصري. اكتبه كده: 01012345678.',
+    errGeneric: 'في حاجة مظبطتش. جرّب تاني بعد شوية.',
 
     footerLegal:
       'أجيال شركة تكنولوجيا. الاستثمار الحقيقي بيتم من خلال جهة مرخّصة من الهيئة العامة للرقابة المالية، وهي اللي بتحتفظ بفلوس العملاء. أجيال عمرها ما بتحتفظ بفلوسك ولا بأوراقك.',
@@ -278,6 +282,10 @@ export const LANDING = {
     fName: 'Your name',
     fEmail: 'Email',
     fErrorContact: 'Leave an email or a mobile number.',
+    errName: 'Please enter your name, at least two letters.',
+    errEmail: 'That email address does not look right. Please check it.',
+    errPhone: 'That is not an Egyptian mobile number. Write it like 01012345678.',
+    errGeneric: 'Something went wrong. Please try again in a moment.',
 
     footerLegal:
       'Agyal is a technology company. Real investing happens through an entity licensed by the Financial Regulatory Authority, which holds all client money. Agyal never holds your money or your securities.',

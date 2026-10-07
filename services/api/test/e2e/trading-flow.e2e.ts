@@ -800,10 +800,24 @@ async function main() {
   // authentication factor: the sign-in code must still go to the email, and
   // nothing may claim a mobile was verified when no SMS was sent.
   const phoneEmail = `phoned.${run}@example.com`;
-  const withPhone = await call('POST', '/public/campaign/demo-signup', { body: { name: 'Phoned Visitor', email: phoneEmail, phone: '01012345678', locale: 'ar' } });
+  const withPhone = await call('POST', '/public/campaign/demo-signup', {
+    // "+20 101 234 5678" is how a number arrives from a contact card, and the
+    // 200-character campaign is how it arrives from an ad link. Neither may be
+    // a reason to refuse the signup; both are normalised or trimmed.
+    body: { name: 'Phoned Visitor', email: phoneEmail, phone: '+20 101 234 5678', locale: 'ar', source: 'facebook', campaign: 'c'.repeat(200) },
+  });
   assert.equal(withPhone.created, true);
   assert.ok(String(withPhone.sentTo).includes('@'), 'the code goes to the email even when a number is given');
   await call('POST', '/public/campaign/demo-signup', { body: { name: 'Bad Number', email: `badnum.${run}@example.com`, phone: '12345', locale: 'ar' }, expect: 400 });
+
+  // A refusal has to say which field, or the page can only shrug at the visitor.
+  const refused = await fetch(`${API}/public/campaign/demo-signup`, {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ name: 'Landline', email: `landline.${run}@example.com`, phone: '0221234567', locale: 'ar' }),
+  });
+  assert.equal(refused.status, 400, 'a landline is still not a mobile');
+  const problem = await refused.json();
+  assert.ok(problem.issues?.some((i: Json) => i.path === 'phone'), 'the refusal names the field that was wrong');
 
   // Feedback on the beta: a message is enough, an email only if they want a reply.
   const note = `the calculator confused me ${run}`;
@@ -818,7 +832,7 @@ async function main() {
   assert.ok(!demand2.feedback.recent.some((f: Json) => f.message === `bot ${run}`), 'honeypot feedback is not stored');
   assert.ok(demand2.demo.accounts >= 1, 'demo accounts are reported');
   const phoned = demand2.demo.recent.find((c: Json) => c.email === phoneEmail);
-  assert.equal(phoned?.phone, '01012345678', 'the number is there to call them on');
+  assert.equal(phoned?.phone, '01012345678', 'the number is stored canonically however it was written, and is there to call them on');
   const plain = demand2.demo.recent.find((c: Json) => c.email === demoEmail);
   assert.equal(plain?.phone, null, 'signing up without a number still works');
   assert.ok(!demand2.signups.recent.some((s: Json) => s.email === `bot.${run}@example.com`), 'honeypot signups are not stored');

@@ -11,7 +11,7 @@ import { parseBody } from '../../common/validation';
 import { isValidIsin } from '../../domain/isin';
 import { contrastText, logoProblem, slugify } from '../../domain/showcase';
 import { prospectLinks } from '../showcase/showcase.service';
-import { EGYPT_MOBILE } from '../identity/identity.controller';
+import { egyptMobile } from '../identity/identity.controller';
 
 const hex = z.string().regex(/^#[0-9a-fA-F]{6}$/, 'Colour like #0b4f6c');
 
@@ -51,7 +51,7 @@ const TenantSchema = z.object({
   login: z
     .object({
       email: z.string().email(),
-      mobile: z.string().regex(EGYPT_MOBILE, 'Egyptian mobile number'),
+      mobile: egyptMobile('Egyptian mobile number'),
       roles: z.array(z.enum(BROKER_STAFF as [Role, ...Role[]])).min(1).optional(),
     })
     .optional(),
@@ -92,7 +92,7 @@ const TenantQuerySchema = z.object({
 const StaffSchema = z.object({
   email: z.string().email(),
   /** Receives the sign-in codes */
-  mobile: z.string().regex(EGYPT_MOBILE, 'Egyptian mobile number'),
+  mobile: egyptMobile('Egyptian mobile number'),
   /** Omit to have one generated and returned once. */
   password: z.string().min(10).optional(),
   roles: z.array(z.enum(BROKER_STAFF as [Role, ...Role[]])).min(1),
@@ -100,7 +100,7 @@ const StaffSchema = z.object({
 
 const StaffPatchSchema = z
   .object({
-    mobile: z.string().regex(EGYPT_MOBILE, 'Egyptian mobile number'),
+    mobile: egyptMobile('Egyptian mobile number'),
     roles: z.array(z.enum(BROKER_STAFF as [Role, ...Role[]])).min(1),
     /** Issues a new temporary password and returns it once. */
     resetPassword: z.literal(true),

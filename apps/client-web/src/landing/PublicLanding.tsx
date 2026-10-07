@@ -18,6 +18,13 @@ interface CalcResult {
 /** The tenant demo accounts belong to; must match PUBLIC_DEMO_SLUG on the API. */
 const DEMO_TENANT = 'agyal-demo';
 
+/** Which field the API objected to, so the page can say so in the reader's language. */
+class FieldError extends Error {
+  constructor(readonly field: string, message: string) {
+    super(message);
+  }
+}
+
 async function post<T>(path: string, body: unknown, tenant?: string): Promise<T> {
   const res = await fetch(`${API_URL}/${path}`, {
     method: 'POST',
@@ -25,17 +32,44 @@ async function post<T>(path: string, body: unknown, tenant?: string): Promise<T>
     body: JSON.stringify(body),
   });
   const json = await res.json().catch(() => ({}));
-  if (!res.ok) throw new Error((json as { message?: string }).message ?? 'Something went wrong');
+  if (!res.ok) {
+    // The API names the field and the reason; showing only "Validation failed"
+    // left people with no idea which box to fix.
+    const { message, issues } = json as { message?: string; issues?: { path: string; message: string }[] };
+    const first = issues?.[0];
+    if (first) throw new FieldError(first.path, `${first.path}: ${first.message}`);
+    throw new Error(message ?? 'Something went wrong');
+  }
   return json as T;
 }
 
 /** UTM-style attribution, so we can tell which channel actually works. */
 function attribution() {
   const q = new URLSearchParams(window.location.search);
+  // Ad platforms append long campaign strings. The API stores 60 characters,
+  // so send 60: a tracking tag must never be the reason a signup is refused.
+  const tag = (v: string | null) => (v ? v.slice(0, 60) : undefined);
   return {
-    source: q.get('utm_source') ?? q.get('src') ?? undefined,
-    campaign: q.get('utm_campaign') ?? undefined,
+    source: tag(q.get('utm_source') ?? q.get('src')),
+    campaign: tag(q.get('utm_campaign')),
   };
+}
+
+/**
+ * The API answers in English and names the field. The page is read in Arabic by
+ * default, so turn the field into a sentence the reader can act on, and keep
+ * the API's own words only when it is something we have no phrase for.
+ */
+function explain(err: unknown, t: (typeof LANDING)[LandingLocale]): string {
+  if (err instanceof FieldError) {
+    const byField: Record<string, string | undefined> = {
+      name: t.errName,
+      email: t.errEmail,
+      phone: t.errPhone,
+    };
+    return byField[err.field] ?? err.message;
+  }
+  return err instanceof Error ? err.message : t.errGeneric;
 }
 
 const egp = (locale: LandingLocale, v: string) =>
@@ -125,7 +159,7 @@ export function PublicLanding() {
       setSentTo(r.sentTo ?? demo.email);
       setStep('code');
     } catch (err) {
-      setDemoErr(err instanceof Error ? err.message : 'Error');
+      setDemoErr(explain(err, t));
     } finally {
       setDemoBusy(false);
     }
@@ -149,7 +183,7 @@ export function PublicLanding() {
       } catch { /* fall through: the app will ask them to sign in */ }
       window.location.href = `/app?broker=${DEMO_TENANT}`;
     } catch (err) {
-      setDemoErr(err instanceof Error ? err.message : 'Error');
+      setDemoErr(explain(err, t));
       setDemoBusy(false);
     }
   }

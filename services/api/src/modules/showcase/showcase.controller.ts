@@ -3,7 +3,7 @@ import { z } from 'zod';
 import { Auth, CurrentUser, type AppRequest, type AuthUser } from '../../common/auth';
 import { parseBody } from '../../common/validation';
 import { RateLimiter } from '../../domain/showcase';
-import { EGYPT_MOBILE } from '../identity/identity.controller';
+import { egyptMobile } from '../identity/identity.controller';
 import { ShowcaseService } from './showcase.service';
 
 const ContactSchema = z.object({
@@ -24,7 +24,7 @@ const ProspectSchema = z.object({
   logoDataUrl: z.string().max(300_000).optional(),
   primary: hex,
   accent: hex,
-  login: z.object({ email: z.string().email(), mobile: z.string().regex(EGYPT_MOBILE, 'Egyptian mobile number') }).optional(),
+  login: z.object({ email: z.string().email(), mobile: egyptMobile('Egyptian mobile number') }).optional(),
 });
 
 /** 5 contact submissions per IP per hour. */

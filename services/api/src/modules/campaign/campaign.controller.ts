@@ -6,7 +6,7 @@ import { csvTable } from '../../common/csv.util';
 import { parseBody } from '../../common/validation';
 import { AMOUNT_BANDS, CALCULATOR_TENORS, GOVERNORATES, SAVES_IN } from '../../domain/campaign';
 import { RateLimiter } from '../../domain/showcase';
-import { EGYPT_MOBILE } from '../identity/identity.controller';
+import { egyptMobile } from '../identity/identity.controller';
 import { CampaignService } from './campaign.service';
 
 const CalculateSchema = z.object({
@@ -25,8 +25,8 @@ const WaitlistSchema = z.object({
   locale: z.enum(['ar', 'en']).default('ar'),
   /** Must be ticked: we contact people only on explicit consent (Law 151/2020) */
   consent: z.literal(true),
-  source: z.string().trim().max(60).optional(),
-  campaign: z.string().trim().max(60).optional(),
+  source: z.string().trim().transform((v) => v.slice(0, 60)).optional(),
+  campaign: z.string().trim().transform((v) => v.slice(0, 60)).optional(),
   /** Honeypot: hidden in the form; bots fill it */
   website: z.string().optional(),
 });
@@ -34,10 +34,10 @@ const WaitlistSchema = z.object({
 const DemoSignupSchema = z.object({
   name: z.string().trim().min(2).max(100),
   email: z.string().trim().email(),
-  phone: z.string().trim().regex(EGYPT_MOBILE, 'Egyptian mobile number, e.g. 01012345678').optional().or(z.literal('')),
+  phone: egyptMobile().optional().or(z.literal('')),
   locale: z.enum(['ar', 'en']).default('ar'),
-  source: z.string().trim().max(60).optional(),
-  campaign: z.string().trim().max(60).optional(),
+  source: z.string().trim().transform((v) => v.slice(0, 60)).optional(),
+  campaign: z.string().trim().transform((v) => v.slice(0, 60)).optional(),
   /** Honeypot: hidden in the form; bots fill it */
   website: z.string().optional(),
 });
@@ -49,7 +49,7 @@ const FeedbackSchema = z.object({
   /** Only if they want a reply. */
   email: z.string().trim().email().optional().or(z.literal('')),
   locale: z.enum(['ar', 'en']).default('ar'),
-  source: z.string().trim().max(60).optional(),
+  source: z.string().trim().transform((v) => v.slice(0, 60)).optional(),
   /** Honeypot: hidden in the form; bots fill it */
   website: z.string().optional(),
 });

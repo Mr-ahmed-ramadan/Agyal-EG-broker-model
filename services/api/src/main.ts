@@ -28,6 +28,10 @@ async function bootstrap() {
       new Logger('CORS').warn(`Refused origin ${origin} (allowed: ${allowedOrigins.join(', ')}); check CORS_ORIGINS`);
     }),
     allowedHeaders: ['Authorization', 'Content-Type', 'X-Tenant', 'X-Tenant-Host'],
+    // The consoles are served from a different origin to the API, so without
+    // this the browser hides Content-Disposition and every CSV export saves as
+    // "export.csv" instead of the name the endpoint chose.
+    exposedHeaders: ['Content-Disposition'],
   });
   app.enableShutdownHooks();
   await app.listen(Number(process.env.PORT ?? 3000));

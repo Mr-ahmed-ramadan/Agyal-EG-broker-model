@@ -735,7 +735,27 @@ async function main() {
   const plain = demand2.demo.recent.find((c: Json) => c.email === demoEmail);
   assert.equal(plain?.phone, null, 'signing up without a number still works');
   assert.ok(!demand2.signups.recent.some((s: Json) => s.email === `bot.${run}@example.com`), 'honeypot signups are not stored');
+
+  // The contact export: following these people up happens in a spreadsheet, and
+  // it carries personal data, so it stays behind the platform admin guard.
+  const csvRes = async (token?: string) =>
+    fetch(`${API}/admin/campaign/export`, { headers: token ? { Authorization: `Bearer ${token}` } : {} });
+  assert.equal((await csvRes()).status, 401, 'the contact export needs a sign-in');
+  assert.equal((await csvRes(compliance)).status, 403, 'a broker cannot export Agyal’s campaign contacts');
+  const csvOk = await csvRes(admin);
+  assert.equal(csvOk.status, 200);
+  assert.match(csvOk.headers.get('content-type') ?? '', /text\/csv/);
+  assert.match(csvOk.headers.get('content-disposition') ?? '', /attachment; filename="agyal-campaign-contacts-/);
+  const csv = await csvOk.text();
+  const [header, ...lines] = csv.split('\n');
+  assert.equal(header, 'kind,name,email,phone,tradedSimulated,governorate,amountBand,savesIn,source,locale,createdAt');
+  assert.ok(lines.some((l) => l.startsWith('DEMO_ACCOUNT,') && l.includes(phoneEmail) && l.includes('01012345678')),
+    'the demo signup is exportable with the number to call');
+  assert.ok(lines.some((l) => l.startsWith('WAITLIST,') && l.includes(String(joiner.email))), 'waitlist rows export too');
+  assert.ok(!csv.includes(`bot.${run}@example.com`), 'honeypot rows were never stored, so they cannot be exported');
+
   console.log('✓ campaign: public calculator indicative and bounded, waitlist deduped, bot ignored, consent required, demand visible to Agyal only, no identity fields');
+  console.log('✓ campaign console: funnel, contacts and feedback readable by Agyal; CSV export platform-admin only');
   console.log('✓ demo accounts: opened funded with no KYC and no identity, deduped, code signs in, passwordless sign-in scoped to the demo tenant and non-enumerable');
 
   console.log('\nAll end-to-end checks passed.');

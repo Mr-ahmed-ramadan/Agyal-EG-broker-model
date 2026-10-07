@@ -2,6 +2,7 @@ import { Controller, Get, Header, Param, Query, Res } from '@nestjs/common';
 import type { Response } from 'express';
 import { z } from 'zod';
 import { Auth } from '../../common/auth';
+import { csvTable } from '../../common/csv.util';
 import { parseBody } from '../../common/validation';
 import { PlatformDataService } from './platform-data.service';
 
@@ -18,11 +19,6 @@ const AuditSchema = z.object({
   to: z.string().date().optional(),
   text: z.string().max(120).optional(),
 });
-
-const csvCell = (v: unknown) => {
-  const s = v == null ? '' : typeof v === 'object' ? JSON.stringify(v) : String(v);
-  return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
-};
 
 /** Agyal admin: read-only data console, 360° views and the audit trail. */
 @Controller('admin')
@@ -72,6 +68,6 @@ export class PlatformDataController {
         ? ['at', 'tenant', 'actor', 'op', 'tableName', 'rowId', 'requestId', 'changes']
         : ['createdAt', 'tenant', 'actor', 'action', 'entity', 'entityId', 'outcome', 'ip', 'userAgent', 'requestId', 'data'];
     res.setHeader('Content-Disposition', `attachment; filename="agyal-audit-${q.type}-${new Date().toISOString().slice(0, 10)}.csv"`);
-    res.send([cols.join(','), ...rows.map((r) => cols.map((c) => csvCell(r[c])).join(','))].join('\n'));
+    res.send(csvTable(cols, rows));
   }
 }

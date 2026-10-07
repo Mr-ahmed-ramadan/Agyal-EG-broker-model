@@ -28,6 +28,21 @@ export interface DemoSignupInput {
   campaign?: string;
 }
 
+/** One contactable person from the campaign, whichever door they came through. */
+export interface ContactRow {
+  kind: 'DEMO_ACCOUNT' | 'WAITLIST';
+  name: string | null;
+  email: string | null;
+  phone: string | null;
+  tradedSimulated: boolean;
+  governorate: string | null;
+  amountBand: string | null;
+  savesIn: string | null;
+  source: string | null;
+  locale: string | null;
+  createdAt: Date;
+}
+
 export interface WaitlistInput {
   name: string;
   email?: string;
@@ -304,6 +319,71 @@ export class CampaignService {
    * people, where they are, how much they intend to invest and what they hold
    * today. Aggregates only — no figure here identifies anyone.
    */
+  /**
+   * Everyone the campaign has a contact detail for, flat, for follow-up in a
+   * spreadsheet or a phone. Demo accounts first because they are the stronger
+   * signal: they did something rather than said something.
+   *
+   * This is personal data leaving the system, so it stays behind the platform
+   * admin guard and adds nothing that was not already collected.
+   */
+  async contacts(): Promise<ContactRow[]> {
+    const demoTenant = await this.db.asSystem((tx) => tx.tenant.findUnique({ where: { slug: PUBLIC_DEMO_SLUG } }));
+
+    const demo: ContactRow[] = demoTenant
+      ? await this.db.asSystem(async (tx) => {
+          const [clients, orders] = await Promise.all([
+            tx.client.findMany({
+              where: { tenantId: demoTenant.id },
+              orderBy: { createdAt: 'desc' },
+              select: { id: true, userId: true, fullNameEn: true, phone: true, createdAt: true },
+            }),
+            tx.order.findMany({ where: { tenantId: demoTenant.id }, select: { clientId: true } }),
+          ]);
+          // Client has no `user` relation, so the emails come separately.
+          const emails = new Map(
+            (await tx.user.findMany({
+              where: { id: { in: clients.map((c) => c.userId) } },
+              select: { id: true, email: true },
+            })).map((u) => [u.id, u.email]),
+          );
+          const traders = new Set(orders.map((o) => o.clientId));
+          return clients.map((c) => ({
+            kind: 'DEMO_ACCOUNT' as const,
+            name: c.fullNameEn,
+            email: emails.get(c.userId) ?? null,
+            phone: c.phone,
+            tradedSimulated: traders.has(c.id),
+            governorate: null,
+            amountBand: null,
+            savesIn: null,
+            source: null,
+            locale: null,
+            createdAt: c.createdAt,
+          }));
+        })
+      : [];
+
+    const waitlist = await this.db.asSystem((tx) => tx.waitlistSignup.findMany({ orderBy: { createdAt: 'desc' } }));
+
+    return [
+      ...demo,
+      ...waitlist.map((s) => ({
+        kind: 'WAITLIST' as const,
+        name: s.name,
+        email: s.email,
+        phone: s.mobile,
+        tradedSimulated: false,
+        governorate: s.governorate,
+        amountBand: s.amountBand,
+        savesIn: s.savesIn,
+        source: s.source,
+        locale: s.locale,
+        createdAt: s.createdAt,
+      })),
+    ];
+  }
+
   async demand() {
     const [signups, calcUses] = await this.db.asSystem((tx) =>
       Promise.all([

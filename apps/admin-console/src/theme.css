@@ -204,3 +204,7 @@ li.tl-ACTION, li.tl-SIGN_IN { border-color: var(--forest-tint); } li.tl-DATA { b
 .doc-picker .doc.on { border-color: var(--forest, var(--brand)); box-shadow: inset 3px 0 0 var(--forest, var(--brand)); }
 .doc-picker .doc strong { font-weight: 600; }
 .docs .scroll { overflow-x: auto; }
+
+/* Campaign: counted breakdowns. The heading is a label, not a figure, so it
+   must not inherit the large `.tiles strong` size used for KPI numbers. */
+.count-title { margin: 0 0 6px; font-weight: 600; font-size: 0.95rem; color: var(--forest-deep); }

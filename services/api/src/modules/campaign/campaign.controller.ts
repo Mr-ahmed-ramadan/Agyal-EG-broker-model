@@ -1,6 +1,8 @@
-import { Body, Controller, Get, HttpCode, HttpException, HttpStatus, Post, Req } from '@nestjs/common';
+import { Body, Controller, Get, Header, HttpCode, HttpException, HttpStatus, Post, Req, Res } from '@nestjs/common';
+import type { Response } from 'express';
 import { z } from 'zod';
 import { Auth, type AppRequest } from '../../common/auth';
+import { csvTable } from '../../common/csv.util';
 import { parseBody } from '../../common/validation';
 import { AMOUNT_BANDS, CALCULATOR_TENORS, GOVERNORATES, SAVES_IN } from '../../domain/campaign';
 import { RateLimiter } from '../../domain/showcase';
@@ -159,5 +161,25 @@ export class CampaignController {
   @Auth('PLATFORM_ADMIN')
   demand() {
     return this.campaign.demand();
+  }
+
+  /**
+   * Agyal: everyone the campaign can contact, as CSV. Following these people up
+   * is why the phone number is collected, and that work happens in a spreadsheet
+   * or on a phone, not in a console.
+   */
+  @Get('admin/campaign/export')
+  @Auth('PLATFORM_ADMIN')
+  @Header('Content-Type', 'text/csv; charset=utf-8')
+  async export(@Res() res: Response) {
+    const rows = await this.campaign.contacts();
+    res.setHeader(
+      'Content-Disposition',
+      `attachment; filename="agyal-campaign-contacts-${new Date().toISOString().slice(0, 10)}.csv"`,
+    );
+    res.send(csvTable(
+      ['kind', 'name', 'email', 'phone', 'tradedSimulated', 'governorate', 'amountBand', 'savesIn', 'source', 'locale', 'createdAt'],
+      rows,
+    ));
   }
 }

@@ -2,6 +2,7 @@ import { useState, type FormEvent } from 'react';
 import { api, getToken, setToken } from './api';
 import { AuditLogScreen } from './screens/AuditLogScreen';
 import { BrokersScreen } from './screens/BrokersScreen';
+import { CampaignScreen } from './screens/CampaignScreen';
 import { DataConsoleScreen } from './screens/DataConsoleScreen';
 import { DocumentsScreen } from './screens/DocumentsScreen';
 import { EconomicsScreen } from './screens/EconomicsScreen';
@@ -15,6 +16,7 @@ import { ProspectsScreen } from './screens/ProspectsScreen';
 const SCREENS = {
   prospects: { label: 'Prospect demos', el: ProspectsScreen },
   leads: { label: 'Leads', el: LeadsScreen },
+  campaign: { label: 'Campaign', el: CampaignScreen },
   brokers: { label: 'Brokers', el: BrokersScreen },
   economics: { label: 'Economics', el: EconomicsScreen },
   kyc: { label: 'KYC / AML', el: KycAmlScreen },

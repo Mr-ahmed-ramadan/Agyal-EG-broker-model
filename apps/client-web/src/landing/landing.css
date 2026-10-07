@@ -166,27 +166,6 @@
 .lp-form h3 { margin: 0; }
 
 /* --- the comparison ------------------------------------------------------- */
-/* Four instruments, each answering the same three questions. Cards rather than
-   a four-column table: at 390px a table of this shape either scrolls sideways
-   or crushes its columns, and both lose the comparison. */
-.lp-cmp { display: grid; gap: 12px; grid-template-columns: minmax(0, 1fr); margin-top: 18px; }
-.lp-cmp article {
-  background: #fff; border: 1px solid var(--lp-border); border-radius: 14px; padding: 16px 18px;
-  border-top: 3px solid var(--lp-forest);
-}
-/* What the reader most likely holds today: the baseline, not the argument. */
-.lp-cmp .lp-cmp-base { background: var(--lp-ivory-alt); border-top-color: var(--lp-muted); }
-.lp-cmp h3 { margin: 0 0 10px; font-size: 1.05rem; color: var(--lp-forest-deep); }
-/* theme.css lays definition lists out as a two-column key/value table with the
-   value right-aligned; here the value is a sentence, so stack it under its
-   label and reset the alignment that rule brings with it. */
-.lp-cmp dl { margin: 0; display: block; }
-.lp-cmp dt {
-  font-size: 0.72rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase;
-  color: var(--lp-muted); margin-top: 8px;
-}
-.lp-cmp dt:first-of-type { margin-top: 0; }
-.lp-cmp dd { margin: 0; text-align: start; font-size: 0.93rem; line-height: 1.55; }
 
 /* --- brokers and banks ---------------------------------------------------- */
 .lp-pro { background: var(--lp-forest-deep); color: #e9efe9; padding: 22px 0; }
@@ -215,22 +194,14 @@
   background: #fff; color: inherit; width: 100%; min-width: 0; resize: vertical;
 }
 .lp-form textarea:focus { outline: 2px solid var(--lp-forest); outline-offset: 1px; }
-/* Two-up before four-up, so the cards never get too narrow to read. */
-@media (min-width: 700px) { .lp-cmp { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-@media (min-width: 1100px) { .lp-cmp { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
 
 /* The comparison's own heading: the word that labels what the cards hold. */
 .lp-cmp-head { margin: 18px 0 0; font-size: 1rem; letter-spacing: 0.04em; text-transform: uppercase; color: var(--lp-muted); }
 
-/* --- hero: two calls to action, and the two derived figures --------------- */
+/* --- hero: two calls to action ------------------------------------------- */
 .lp-cta-row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
 .lp-cta-quiet { background: transparent; color: var(--lp-forest-deep); border: 1px solid var(--lp-border); }
 .lp-cta-quiet:hover { background: var(--lp-ivory-alt); }
-.lp-stats { display: grid; gap: 12px; grid-template-columns: minmax(0, 1fr); margin-top: 22px; }
-.lp-stats > div { background: #fff; border: 1px solid var(--lp-border); border-radius: 14px; padding: 14px 16px; }
-.lp-stats strong { display: block; font-family: var(--lp-display, inherit); font-size: 1.7rem; line-height: 1.1; color: var(--lp-forest-deep); }
-.lp-stats span { color: var(--lp-muted); font-size: 0.86rem; line-height: 1.45; }
-@media (min-width: 560px) { .lp-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 
 /* --- the rate list -------------------------------------------------------- */
 /* "Indicative", never "Live": these are quotes from a simulator today. */
@@ -271,3 +242,13 @@
 .lp-steps h3 { margin: 2px 0 4px; font-size: 1rem; }
 .lp-steps p { margin: 0; color: var(--lp-muted); line-height: 1.6; }
 @media (min-width: 900px) { .lp-steps { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+
+/* --- the comparison, as a few lines -------------------------------------- */
+.lp-points { list-style: none; padding: 0; margin: 16px 0 0; display: grid; gap: 10px; }
+.lp-points li {
+  position: relative; padding-inline-start: 22px; line-height: 1.6; color: var(--lp-text);
+}
+.lp-points li::before {
+  content: ''; position: absolute; inset-inline-start: 0; top: 0.6em;
+  width: 8px; height: 8px; border-radius: 999px; background: var(--lp-forest);
+}

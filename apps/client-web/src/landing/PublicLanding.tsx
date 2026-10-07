@@ -99,6 +99,18 @@ const egp = (locale: LandingLocale, v: string) =>
 const num = (locale: LandingLocale, v: number) =>
   new Intl.NumberFormat(locale === 'ar' ? 'ar-EG' : 'en-EG').format(v);
 
+/**
+ * How long the money is tied up. Months below a year, years above it: a
+ * three-year bond reading "35 months" is arithmetic, not language.
+ */
+function termLabel(locale: LandingLocale, t: (typeof LANDING)[LandingLocale], days: number): string {
+  const months = Math.round(days / 30.4);
+  if (months < 1) return `${num(locale, days)} ${locale === 'ar' ? 'يوم' : days === 1 ? 'day' : 'days'}`;
+  if (months < 12) return t.months(months, num(locale, months));
+  const years = Math.round(months / 12);
+  return t.years(years, num(locale, years));
+}
+
 /** A gap between two rates is percentage points, not a percentage. */
 const pts = (locale: LandingLocale, v: string) =>
   `${new Intl.NumberFormat(locale === 'ar' ? 'ar-EG' : 'en-EG', { maximumFractionDigits: 1 }).format(Math.abs(Number(v)) * 100)}${locale === 'ar' ? ' نقطة' : ' pts'}`;
@@ -139,9 +151,6 @@ export function PublicLanding() {
 
   const gov = (rates ?? []).filter((r) => r.backing === 'GOVERNMENT');
   const corp = (rates ?? []).filter((r) => r.backing === 'COMPANY');
-  /** The headline tile: the widest gap over a deposit on offer today. */
-  const bestGap = (rates ?? []).filter((r) => !r.belowDeposit)
-    .reduce<RateRow | null>((a, b) => (a && Number(a.vsDeposit) >= Number(b.vsDeposit) ? a : b), null);
 
   // --- calculator -----------------------------------------------------------
   const [amount, setAmount] = useState('50000');
@@ -278,14 +287,6 @@ export function PublicLanding() {
             <a className="lp-cta" href="#rates">{t.ctaRates}</a>
             <a className="lp-cta lp-cta-quiet" href="#how">{t.ctaHow}</a>
           </div>
-          {/* Both figures are read off the rate list, never typed into the copy:
-              a number in a hero is the first thing to go stale. */}
-          <div className="lp-stats">
-            {bestGap ? (
-              <div><strong>+{pts(locale, bestGap.vsDeposit)}</strong><span>{t.statGapLabel}</span></div>
-            ) : null}
-            <div><strong>{t.statBackedValue}</strong><span>{t.statBackedLabel}</span></div>
-          </div>
         </div>
       </section>
 
@@ -312,7 +313,7 @@ export function PublicLanding() {
                         return (
                           <li key={`${r.nameEn}-${r.termDays}`}>
                             <div className="lp-rate-term">
-                              <strong>{m >= 1 ? t.months(m, num(locale, m)) : `${num(locale, r.termDays)} ${locale === 'ar' ? 'يوم' : 'days'}`}</strong>
+                              <strong>{termLabel(locale, t, r.termDays)}</strong>
                               <small>{locale === 'ar' ? r.nameAr : r.nameEn}</small>
                             </div>
                             <div className="lp-rate-yield">
@@ -339,28 +340,16 @@ export function PublicLanding() {
           the rest against what they already have. Tax is one of the three
           because deposit interest is exempt for individuals and treasury
           interest is not, which the headline rates alone would hide. */}
+      {/* Four lines, not four cards. The last one is the one that protects a
+          first-time saver, and it is never dropped: a company can fail to pay
+          in a way the government is far less likely to, which is exactly why
+          its paper offers more. */}
       <section className="lp-sec lp-alt" id="compare">
-        <div className="lp-in">
+        <div className="lp-in lp-narrow">
           <h2>{t.cmpTitle}</h2>
-          <p className="lp-lead">{t.cmpLead}</p>
-          <h3 className="lp-cmp-head">{t.cmpChars}</h3>
-          <div className="lp-cmp">
-            {t.cmp.map((c, i) => (
-              <article key={c.h} className={i === 0 ? 'lp-cmp-base' : undefined}>
-                <h3>{c.h}</h3>
-                <dl>
-                  <dt>{t.cmpWho}</dt><dd>{c.who}</dd>
-                  <dt>{t.cmpTerm}</dt><dd>{c.term}</dd>
-                  <dt>{t.cmpYield}</dt><dd>{c.yield}</dd>
-                </dl>
-              </article>
-            ))}
-          </div>
-          {/* A company can fail to pay in a way the government is far less
-              likely to, and that is why its paper offers more. Said in those
-              terms rather than as a bare word, and never left out: the broader
-              instrument range must not inherit the safety of government paper. */}
-          <p className="lp-fine">{t.cmpNote}</p>
+          <ul className="lp-points">
+            {t.cmpPoints.map((line) => <li key={line}>{line}</li>)}
+          </ul>
           <p className="lp-soon">{t.cmpFx}</p>
           <p className="lp-fine">{t.cmpToCalc}</p>
         </div>

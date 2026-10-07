@@ -34,10 +34,6 @@ export const LANDING = {
       'أذون وسندات خزانة وصكوك من البنوك الشريكة، من موبايلك. وكل سعر هنا مكتوب جنبه الوديعة البنكية لنفس المدة، عشان تقارن بنفسك.',
     ctaRates: 'شوف أحسن الأسعار',
     ctaHow: 'بتشتغل إزاي؟',
-    statGapLabel: 'أعلى من الوديعة، على أحسن مدة النهاردة',
-    statBackedValue: 'أذون وسندات',
-    statBackedLabel: 'مضمونة من الحكومة المصرية',
-
     ratesTitle: 'أحسن الأسعار دلوقتي',
     ratesBadge: 'استرشادي',
     ratesLead:
@@ -50,6 +46,7 @@ export const LANDING = {
     ratesAsOf: (at: string) => `أسعار استرشادية بتاريخ ${at}. مش عرض ولا وعد بعائد.`,
     ratesEmpty: 'الأسعار هتظهر هنا أول ما البنوك تسعّر.',
     months: (m: number, formatted: string) => `${formatted} ${m <= 10 ? 'شهور' : 'شهر'}`,
+    years: (y: number, formatted: string) => (y === 1 ? 'سنة' : y === 2 ? 'سنتين' : `${formatted} ${y <= 10 ? 'سنين' : 'سنة'}`),
 
     stepsTitle: 'من فتح الحساب لحد الاستحقاق',
     steps: [
@@ -69,38 +66,12 @@ export const LANDING = {
     ],
 
     cmpTitle: 'إيه الفرق بين ده وبين الوديعة؟',
-    cmpLead: 'كلهم بيحطّوا فلوسك لمدة بعائد. اللي بيختلف هو الخصائص: بتسلّف مين، وإمتى تقدر تخرج، والضريبة.',
-    cmpChars: 'الخصائص',
-    cmpWho: 'بتسلّف مين',
-    cmpTerm: 'المدة والخروج',
-    cmpYield: 'العائد والضريبة',
-    cmp: [
-      {
-        h: 'وديعة أو شهادة',
-        who: 'البنك',
-        term: 'مدة محدّدة. لو خرجت بدري بتكسر الوديعة وبتخسر عائد.',
-        yield: 'البنك بيحدّد العائد، ومعفي من الضريبة للأفراد.',
-      },
-      {
-        h: 'أذون خزانة',
-        who: 'الحكومة المصرية',
-        term: 'من ٣ لـ ١٢ شهر. تقدر تبيع في السوق قبل الميعاد.',
-        yield: 'السوق بيحدّد العائد، وعليه ٢٠٪ ضريبة.',
-      },
-      {
-        h: 'سندات خزانة',
-        who: 'الحكومة المصرية',
-        term: 'سنتين أو أكتر. بتبيع في السوق لو احتجت.',
-        yield: 'كوبون بييجي كل فترة، وعليه ٢٠٪ ضريبة.',
-      },
-      {
-        h: 'صكوك وسندات شركات',
-        who: 'شركة، مش الحكومة',
-        term: 'على حسب الإصدار.',
-        yield: 'بيدي عائد أعلى من ورق الحكومة، لأن الشركة ممكن تتعثر في السداد. الصكوك بديل متوافق مع الشريعة.',
-      },
+    cmpPoints: [
+      'الوديعة بتسلّف البنك. هنا بتسلّف الحكومة المصرية أو شركة.',
+      'عائد الوديعة معفي من الضريبة للأفراد، وعائد أدوات الخزانة عليه ٢٠٪ ضريبة.',
+      'لو خرجت من الوديعة بدري بتخسر عائد. هنا تقدر تبيع في السوق.',
+      'ورق الشركات (الصكوك وسندات الشركات) بيدي أعلى، لأن الشركة ممكن تتعثر في السداد.',
     ],
-    cmpNote: 'ورق الحكومة وورق الشركات مالهمش نفس الخصائص. الحكومة هي الجهة الأأمن في السداد، والشركة ممكن تتعثر، وعشان كده ورقها بيدي أعلى. إحنا بنوضّح خصائص كل ورقة قبل ما تشتري.',
     cmpFx: 'كله بالجنيه المصري دلوقتي. شغالين على إتاحة أذون وسندات بعملات تانية، ولسه مش متاحة.',
     cmpToCalc: 'عشان المقارنة تبقى عادلة، الحاسبة تحت بتوريك العائد بعد الضريبة والمصاريف.',
 
@@ -198,10 +169,6 @@ export const LANDING = {
       'Treasury bills, bonds and sukuk from Egypt\u2019s partner banks, in a few taps. Every rate here is shown next to what a bank deposit pays for the same term, so you can judge it yourself.',
     ctaRates: 'Explore the best rates',
     ctaHow: 'How it works',
-    statGapLabel: 'more than a bank deposit, on the best term today',
-    statBackedValue: 'Bills & bonds',
-    statBackedLabel: 'backed by the Egyptian government',
-
     ratesTitle: 'Best rates right now',
     ratesBadge: 'Indicative',
     ratesLead:
@@ -232,38 +199,12 @@ export const LANDING = {
     ],
 
     cmpTitle: 'How is this different from a deposit?',
-    cmpLead: 'All of them hold your cash for a term at a return. What differs is their characteristics: who you lend to, when you can get out, and tax.',
-    cmpChars: 'Characteristics',
-    cmpWho: 'Who you lend to',
-    cmpTerm: 'Term and getting out',
-    cmpYield: 'Return and tax',
-    cmp: [
-      {
-        h: 'Deposit or certificate',
-        who: 'The bank',
-        term: 'A set term. Breaking it early costs you return.',
-        yield: 'The bank sets the rate, and it is tax-exempt for individuals.',
-      },
-      {
-        h: 'Treasury bills',
-        who: 'The Egyptian government',
-        term: 'Three to twelve months. You can sell in the market before maturity.',
-        yield: 'The market sets the rate, and 20% tax applies.',
-      },
-      {
-        h: 'Treasury bonds',
-        who: 'The Egyptian government',
-        term: 'Two years or more. You can sell in the market if you need to.',
-        yield: 'A coupon at regular intervals, with 20% tax.',
-      },
-      {
-        h: 'Sukuk and corporate bonds',
-        who: 'A company, not the government',
-        term: 'Depends on the issue.',
-        yield: 'Pays more than government paper, because a company can fail to pay. Sukuk are the sharia-compliant option.',
-      },
+    cmpPoints: [
+      'A deposit lends to your bank. These lend to the Egyptian government, or to a company.',
+      'Deposit interest is tax-exempt for individuals. Treasury returns are taxed at 20%.',
+      'Breaking a deposit early costs you return. Here you can sell in the market.',
+      'Company paper (sukuk and corporate bonds) pays more, because a company can fail to pay.',
     ],
-    cmpNote: 'Government paper and company paper do not have the same characteristics. The government is the safer borrower; a company can fail to pay, which is why its paper offers more. We set them out on each paper before you buy.',
     cmpFx: 'Everything is in Egyptian pounds today. We are working on bills and bonds in other currencies, which are not available yet.',
     cmpToCalc: 'To compare them fairly, the calculator below shows the return after tax and fees.',
 
@@ -274,6 +215,7 @@ export const LANDING = {
     calcGo: 'Calculate',
     calcWorking: 'Working…',
     months: (m: number, formatted: string) => `${formatted} month${m === 1 ? '' : 's'}`,
+    years: (y: number, formatted: string) => `${formatted} year${y === 1 ? '' : 's'}`,
     resInvested: 'You pay',
     resReceive: 'You receive',
     resProfit: 'Profit',

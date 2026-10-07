@@ -6,6 +6,19 @@ const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:3000';
 
 const TENORS = [91, 182, 273, 364] as const;
 
+interface RateRow {
+  type: string;
+  backing: 'GOVERNMENT' | 'COMPANY';
+  nameEn: string;
+  nameAr: string;
+  termDays: number;
+  netYield: string;
+  depositRate: string;
+  vsDeposit: string;
+  belowDeposit: boolean;
+  asOf: string;
+}
+
 interface CalcResult {
   totalCost: string;
   totalReceivedNet: string;
@@ -41,6 +54,12 @@ async function post<T>(path: string, body: unknown, tenant?: string): Promise<T>
     throw new Error(message ?? 'Something went wrong');
   }
   return json as T;
+}
+
+async function get<T>(path: string): Promise<T> {
+  const res = await fetch(`${API_URL}/${path}`);
+  if (!res.ok) throw new Error('Could not load');
+  return (await res.json()) as T;
 }
 
 /** UTM-style attribution, so we can tell which channel actually works. */
@@ -80,6 +99,10 @@ const egp = (locale: LandingLocale, v: string) =>
 const num = (locale: LandingLocale, v: number) =>
   new Intl.NumberFormat(locale === 'ar' ? 'ar-EG' : 'en-EG').format(v);
 
+/** A gap between two rates is percentage points, not a percentage. */
+const pts = (locale: LandingLocale, v: string) =>
+  `${new Intl.NumberFormat(locale === 'ar' ? 'ar-EG' : 'en-EG', { maximumFractionDigits: 1 }).format(Math.abs(Number(v)) * 100)}${locale === 'ar' ? ' نقطة' : ' pts'}`;
+
 const pct = (locale: LandingLocale, v?: string) =>
   v == null ? '—' : new Intl.NumberFormat(locale === 'ar' ? 'ar-EG' : 'en-EG', {
     style: 'percent', maximumFractionDigits: 2,
@@ -103,6 +126,22 @@ export function PublicLanding() {
     document.documentElement.dir = t.dir;
     document.title = locale === 'ar' ? 'أجيال · الدخل الثابت في مصر' : 'Agyal · Fixed income in Egypt';
   }, [locale, t.dir]);
+
+  // --- rates ----------------------------------------------------------------
+  // The page leads with real numbers, so they come from the pricing engine
+  // rather than the copy. No bank is named: the connected ones are simulators.
+  const [rates, setRates] = useState<RateRow[] | null>(null);
+  useEffect(() => {
+    get<{ rows: RateRow[] }>('public/campaign/rates')
+      .then((r) => setRates(r.rows))
+      .catch(() => setRates([]));
+  }, []);
+
+  const gov = (rates ?? []).filter((r) => r.backing === 'GOVERNMENT');
+  const corp = (rates ?? []).filter((r) => r.backing === 'COMPANY');
+  /** The headline tile: the widest gap over a deposit on offer today. */
+  const bestGap = (rates ?? []).filter((r) => !r.belowDeposit)
+    .reduce<RateRow | null>((a, b) => (a && Number(a.vsDeposit) >= Number(b.vsDeposit) ? a : b), null);
 
   // --- calculator -----------------------------------------------------------
   const [amount, setAmount] = useState('50000');
@@ -218,6 +257,7 @@ export function PublicLanding() {
           <span className="lp-brand">{t.brand}</span>
           <span className="lp-beta">{t.beta}</span>
           <nav>
+            <a href="#rates">{t.ctaRates}</a>
             <a href="#compare">{t.navDiff}</a>
             <a href="#calc">{t.navCalc}</a>
             {/* Existing clients and the demo reach the product from here. */}
@@ -234,7 +274,63 @@ export function PublicLanding() {
           <p className="lp-eyebrow">{t.heroEyebrow}</p>
           <h1>{t.heroTitle}</h1>
           <p className="lp-lead">{t.heroLead}</p>
-          <a className="lp-cta" href="#join">{t.signupCta}</a>
+          <div className="lp-cta-row">
+            <a className="lp-cta" href="#rates">{t.ctaRates}</a>
+            <a className="lp-cta lp-cta-quiet" href="#how">{t.ctaHow}</a>
+          </div>
+          {/* Both figures are read off the rate list, never typed into the copy:
+              a number in a hero is the first thing to go stale. */}
+          <div className="lp-stats">
+            {bestGap ? (
+              <div><strong>+{pts(locale, bestGap.vsDeposit)}</strong><span>{t.statGapLabel}</span></div>
+            ) : null}
+            <div><strong>{t.statBackedValue}</strong><span>{t.statBackedLabel}</span></div>
+          </div>
+        </div>
+      </section>
+
+      {/* The rates themselves, which is what a saver came for. Grouped by who
+          borrows the money, so the government backing above can never be read
+          as covering the company paper below. */}
+      <section className="lp-sec lp-alt" id="rates">
+        <div className="lp-in">
+          <h2>{t.ratesTitle} <span className="lp-badge">{t.ratesBadge}</span></h2>
+          <p className="lp-lead">{t.ratesLead}</p>
+
+          {rates === null ? null : rates.length === 0 ? (
+            <p className="lp-fine">{t.ratesEmpty}</p>
+          ) : (
+            <>
+              {([[t.ratesGov, gov], [t.ratesCorp, corp]] as [string, RateRow[]][])
+                .filter(([, rows]) => rows.length > 0)
+                .map(([heading, rows]) => (
+                  <div key={heading} className="lp-rate-group">
+                    <h3 className="lp-cmp-head">{heading}</h3>
+                    <ul className="lp-rates">
+                      {rows.map((r) => {
+                        const m = Math.round(r.termDays / 30.4);
+                        return (
+                          <li key={`${r.nameEn}-${r.termDays}`}>
+                            <div className="lp-rate-term">
+                              <strong>{m >= 1 ? t.months(m, num(locale, m)) : `${num(locale, r.termDays)} ${locale === 'ar' ? 'يوم' : 'days'}`}</strong>
+                              <small>{locale === 'ar' ? r.nameAr : r.nameEn}</small>
+                            </div>
+                            <div className="lp-rate-yield">
+                              <strong>{pct(locale, r.netYield)}</strong>
+                              <small>{t.ratesVs(pct(locale, r.depositRate))}</small>
+                            </div>
+                            <span className={r.belowDeposit ? 'lp-worse' : 'lp-better'}>
+                              {r.belowDeposit ? t.ratesLess(pts(locale, r.vsDeposit)) : t.ratesMore(pts(locale, r.vsDeposit))}
+                            </span>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  </div>
+                ))}
+              <p className="lp-fine">{t.ratesAsOf(new Intl.DateTimeFormat(locale === 'ar' ? 'ar-EG' : 'en-GB', { dateStyle: 'medium' }).format(new Date(rates[0].asOf)))}</p>
+            </>
+          )}
         </div>
       </section>
 
@@ -391,11 +487,31 @@ export function PublicLanding() {
         </div>
       </section>
 
+      {/* The four steps replace the old two-card "worth knowing": the same two
+          facts survive inside them, where somebody reading the flow will meet
+          them — best price across banks in step two, and whose name the paper
+          is in underneath. */}
       <section className="lp-sec lp-alt" id="how">
         <div className="lp-in">
-          <h2>{t.howTitle}</h2>
+          <h2>{t.stepsTitle}</h2>
+          <ol className="lp-steps">
+            {t.steps.map((st, i) => (
+              <li key={st.h}>
+                <span className="lp-step-n">{num(locale, i + 1)}</span>
+                <div><h3>{st.h}</h3><p>{st.p}</p></div>
+              </li>
+            ))}
+          </ol>
+          <p className="lp-fine">{t.stepsNote}</p>
+        </div>
+      </section>
+
+      <section className="lp-sec" id="learn">
+        <div className="lp-in">
+          <h2>{t.learnTitle}</h2>
+          <p className="lp-lead">{t.learnLead}</p>
           <div className="lp-how">
-            {t.how.map((c) => (
+            {t.learn.map((c) => (
               <article key={c.h}><h3>{c.h}</h3><p>{c.p}</p></article>
             ))}
           </div>

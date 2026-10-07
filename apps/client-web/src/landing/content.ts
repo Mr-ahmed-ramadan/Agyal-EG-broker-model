@@ -27,11 +27,46 @@ export const LANDING = {
     navJoin: 'حساب تجريبي',
     navSignIn: 'تسجيل الدخول',
 
-    heroEyebrow: 'أدوات الدخل الثابت في مصر',
+    heroEyebrow: 'دخل ثابت من الحكومة والبنوك',
     beta: 'نسخة تجريبية',
-    heroTitle: 'طريقة تانية تحطّ فيها فلوسك',
+    heroTitle: 'خلّي مدخراتك تكسب أكتر، وإنت مطمّن',
     heroLead:
-      'بدل ما فلوسك قاعدة في وديعة، تسلّفها للحكومة المصرية أو لشركة لمدة محدّدة بعائد معروف من أول يوم. من موبايلك.',
+      'أذون وسندات خزانة وصكوك من البنوك الشريكة، من موبايلك. وكل سعر هنا مكتوب جنبه الوديعة البنكية لنفس المدة، عشان تقارن بنفسك.',
+    ctaRates: 'شوف أحسن الأسعار',
+    ctaHow: 'بتشتغل إزاي؟',
+    statGapLabel: 'أعلى من الوديعة، على أحسن مدة النهاردة',
+    statBackedValue: 'أذون وسندات',
+    statBackedLabel: 'مضمونة من الحكومة المصرية',
+
+    ratesTitle: 'أحسن الأسعار دلوقتي',
+    ratesBadge: 'استرشادي',
+    ratesLead:
+      'بنسعّر كل ورقة معروضة من البنوك الشريكة، وبنوريك اللي هيوصلك بعد الضريبة والمصاريف، جنب الوديعة لنفس المدة.',
+    ratesGov: 'مضمونة من الحكومة المصرية',
+    ratesCorp: 'صادرة من شركات',
+    ratesVs: (dep: string) => `الوديعة ${dep}`,
+    ratesMore: (pts: string) => `↑ أعلى من الوديعة بـ ${pts}`,
+    ratesLess: (pts: string) => `↓ أقل من الوديعة بـ ${pts}`,
+    ratesAsOf: (at: string) => `أسعار استرشادية بتاريخ ${at}. مش عرض ولا وعد بعائد.`,
+    ratesEmpty: 'الأسعار هتظهر هنا أول ما البنوك تسعّر.',
+    months: (m: number, formatted: string) => `${formatted} ${m <= 10 ? 'شهور' : 'شهر'}`,
+
+    stepsTitle: 'من فتح الحساب لحد الاستحقاق',
+    steps: [
+      { h: 'افتح حسابك', p: 'تحقّق من هويتك مرة واحدة من موبايلك. من غير ما تروح فرع.' },
+      { h: 'اختار المدة', p: 'قارن بين الأذون والسندات والصكوك بالمدة والسعر. بنطلب سعر من كل بنك شريك في نفس اللحظة وبنوريك أحسن سعر.' },
+      { h: 'نفّذ الأمر', p: 'أمرك بيروح للجهة المرخّصة اللي بتتعامل مع البنوك وبتحتفظ بفلوسك في حساب عملاء منفصل. أجيال عمرها ما بتمسك فلوسك.' },
+      { h: 'استنى الاستحقاق', p: 'تابع الكوبونات وتاريخ الاستحقاق، والفلوس بتوصلك أوتوماتيك.' },
+    ],
+    stepsNote: 'الورق بيتسجّل باسمك إنت، بكودك الموحد في مصر للمقاصة أو البنك المركزي. مش باسم المنصّة.',
+
+    learnTitle: 'أول مرة تسمع عن الدخل الثابت؟ ابدأ من هنا.',
+    learnLead: 'تلات حاجات يهمّك تعرفهم قبل ما تشتري أي حاجة.',
+    learn: [
+      { h: 'يعني إيه أذون خزانة؟', p: 'قرض قصير للحكومة المصرية، من ٣ شهور لسنة. بتدفع أقل من ١٠٠ وبتاخد ١٠٠ في الآخر، والفرق ده مكسبك.' },
+      { h: 'يعني إيه صكوك؟', p: 'بديل متوافق مع الشريعة، بس صادر من شركة مش من الحكومة. بيدي أعلى، لأن الشركة ممكن تتعثر في السداد.' },
+      { h: 'العائد ده معناه إيه؟', p: 'المكسب في السنة. وكل رقم في الصفحة دي هو اللي هيفضلك بعد الضريبة والمصاريف، وده الرقم الوحيد اللي يستاهل تقارنه بالوديعة.' },
+    ],
 
     cmpTitle: 'إيه الفرق بين ده وبين الوديعة؟',
     cmpLead: 'كلهم بيحطّوا فلوسك لمدة بعائد. اللي بيختلف هو الخصائص: بتسلّف مين، وإمتى تقدر تخرج، والضريبة.',
@@ -75,8 +110,6 @@ export const LANDING = {
     calcTenor: 'المدة',
     calcGo: 'احسب',
     calcWorking: 'بنحسب…',
-    /** Arabic takes the plural for 3–10 and the singular from 11 up. */
-    months: (m: number, formatted: string) => `${formatted} ${m <= 10 ? 'شهور' : 'شهر'}`,
     resInvested: 'اللي هتدفعه',
     resReceive: 'اللي هتستلمه',
     resProfit: 'الربح',
@@ -104,17 +137,6 @@ export const LANDING = {
       },
     ],
 
-    howTitle: 'حاجتين يهمّك تعرفهم',
-    how: [
-      {
-        h: 'السعر بييجي منين؟',
-        p: 'بنطلب سعر من أكتر من بنك شريك في نفس اللحظة، وبنوريك أحسن سعر رجعلنا.',
-      },
-      {
-        h: 'الورق بيتسجّل باسم مين؟',
-        p: 'باسمك إنت، بكودك الموحد في مصر للمقاصة أو البنك المركزي. مش باسم المنصّة.',
-      },
-    ],
 
     signupTitle: 'حساب تجريبي لحد ما نخلّص المنصّة',
     signupLead:
@@ -169,11 +191,45 @@ export const LANDING = {
     navJoin: 'Demo account',
     navSignIn: 'Sign in',
 
-    heroEyebrow: 'Fixed income in Egypt',
+    heroEyebrow: 'Government and bank fixed income',
     beta: 'Beta',
-    heroTitle: 'Another place to put your cash',
+    heroTitle: 'Earn more on your savings, with confidence',
     heroLead:
-      'Instead of leaving it in a deposit, you lend it to the Egyptian government, or to a company, for a set term at a return you know from day one. From your phone.',
+      'Treasury bills, bonds and sukuk from Egypt\u2019s partner banks, in a few taps. Every rate here is shown next to what a bank deposit pays for the same term, so you can judge it yourself.',
+    ctaRates: 'Explore the best rates',
+    ctaHow: 'How it works',
+    statGapLabel: 'more than a bank deposit, on the best term today',
+    statBackedValue: 'Bills & bonds',
+    statBackedLabel: 'backed by the Egyptian government',
+
+    ratesTitle: 'Best rates right now',
+    ratesBadge: 'Indicative',
+    ratesLead:
+      'We price every paper the partner banks offer and show what you would keep, after tax and fees, next to a deposit for the same term.',
+    ratesGov: 'Backed by the Egyptian government',
+    ratesCorp: 'Issued by companies',
+    ratesVs: (dep: string) => `deposit ${dep}`,
+    ratesMore: (pts: string) => `\u2191 ${pts} more than a bank deposit`,
+    ratesLess: (pts: string) => `\u2193 ${pts} less than a bank deposit`,
+    ratesAsOf: (at: string) => `Indicative, as of ${at}. Not an offer.`,
+    ratesEmpty: 'Rates appear here as soon as the banks quote.',
+
+    stepsTitle: 'From sign-up to maturity',
+    steps: [
+      { h: 'Open an account', p: 'Verify your identity once, from your phone. No branch visit.' },
+      { h: 'Choose your term', p: 'Compare bills, bonds and sukuk by term and rate. We ask every partner bank at the same moment and show you the best quote.' },
+      { h: 'Place the order', p: 'Your order goes to the licensed firm, which deals with the banks and holds your money in a segregated client account. Agyal never holds it.' },
+      { h: 'Hold to maturity', p: 'Track your coupons and your maturity date. You are paid automatically.' },
+    ],
+    stepsNote: 'The paper is registered in your own name, under your unified code at MCDR or the Central Bank. Never in the platform\u2019s name.',
+
+    learnTitle: 'New to fixed income? Start here.',
+    learnLead: 'Three things worth knowing before you buy anything.',
+    learn: [
+      { h: 'What is a treasury bill?', p: 'A short loan to the Egyptian government, from three months to a year. You pay less than 100 and are paid 100 at the end. The difference is your return.' },
+      { h: 'What is a sukuk?', p: 'A sharia-compliant alternative, issued by a company rather than the government. It pays more, because a company can fail to pay.' },
+      { h: 'What does the yield mean?', p: 'The return over a year. Every number on this page is what you would keep after tax and fees, which is the only figure worth comparing with a deposit.' },
+    ],
 
     cmpTitle: 'How is this different from a deposit?',
     cmpLead: 'All of them hold your cash for a term at a return. What differs is their characteristics: who you lend to, when you can get out, and tax.',
@@ -245,17 +301,6 @@ export const LANDING = {
       },
     ],
 
-    howTitle: 'Two things worth knowing',
-    how: [
-      {
-        h: 'Where does the price come from?',
-        p: 'We ask several partner banks at the same moment and show you the best quote that comes back.',
-      },
-      {
-        h: 'Whose name is the paper in?',
-        p: 'Yours, under your own unified code at MCDR or the Central Bank. Never in the platform’s name.',
-      },
-    ],
 
     signupTitle: 'A demo account while we finish the platform',
     signupLead:

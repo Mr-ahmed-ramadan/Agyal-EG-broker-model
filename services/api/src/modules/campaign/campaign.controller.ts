@@ -64,6 +64,8 @@ const signinLimiter = new RateLimiter(5, 3_600_000);
 
 /** 30 calculations per IP per hour: generous for a visitor, dull for a scraper. */
 const calcLimiter = new RateLimiter(30, 3_600_000);
+/** 60 rate lists per IP per hour: the page loads it once, a scraper would not. */
+const ratesLimiter = new RateLimiter(60, 3_600_000);
 /** 3 waitlist submissions per IP per hour. */
 const waitlistLimiter = new RateLimiter(3, 3_600_000);
 
@@ -86,6 +88,18 @@ export class CampaignController {
       governorates: GOVERNORATES,
       tenors: CALCULATOR_TENORS,
     };
+  }
+
+  /**
+   * Public: the indicative rate for every live paper, by term.
+   * Records nothing: a price list is not a demand signal.
+   */
+  @Get('public/campaign/rates')
+  async rates(@Req() req: AppRequest) {
+    if (!ratesLimiter.allow(req.ip ?? 'unknown')) {
+      throw new HttpException('Too many requests; please try again later', HttpStatus.TOO_MANY_REQUESTS);
+    }
+    return this.campaign.rates();
   }
 
   /** Public: "what would I earn?" — indicative, and never an offer. */

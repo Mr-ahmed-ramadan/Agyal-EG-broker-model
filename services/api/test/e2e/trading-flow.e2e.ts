@@ -713,6 +713,26 @@ async function main() {
   console.log('✓ documents: tracked link opened twice (2 opens, lang and device logged), revoked and unknown links refused, no direct access');
 
   // 14. Awareness campaign: a public calculator and a waitlist that holds intent, never identity
+  // The landing page leads with rates, so they come from the engine and are
+  // marked for what they are. No bank is named: the connected ones are
+  // simulators, and naming a counterparty that is not real is the one claim on
+  // a public page that could not be walked back.
+  const priceList = await call('GET', '/public/campaign/rates');
+  assert.equal(priceList.indicative, true, 'the price list says it is indicative');
+  assert.ok(priceList.rows.length > 0, 'it prices the live paper');
+  for (const r of priceList.rows) {
+    assert.ok(Number(r.netYield) > 0 && Number(r.netYield) < 1, 'each row nets a sane yield');
+    assert.ok(Number(r.depositRate) > 0, 'and carries the deposit it is compared with');
+    assert.ok(['GOVERNMENT', 'COMPANY'].includes(r.backing), 'and says who borrows the money');
+    for (const k of Object.keys(r)) assert.ok(!/bank/i.test(k), `no bank field on a public rate row ("${k}")`);
+  }
+  assert.ok(priceList.rows.some((r: Json) => r.backing === 'GOVERNMENT'), 'government paper is listed');
+  assert.ok(
+    priceList.rows.filter((r: Json) => r.backing === 'COMPANY').every((r: Json) => r.type !== 'TREASURY_BILL'),
+    'nothing issued by a company is grouped under government backing',
+  );
+  assert.ok(!JSON.stringify(priceList).includes('Simulated Bank'), 'no simulated bank name is published');
+
   const opts = await call('GET', '/public/campaign/options');
   assert.ok(opts.amountBands.length > 0 && opts.governorates.includes('CAIRO'));
 
@@ -855,7 +875,7 @@ async function main() {
   assert.ok(lines.some((l) => l.startsWith('WAITLIST,') && l.includes(String(joiner.email))), 'waitlist rows export too');
   assert.ok(!csv.includes(`bot.${run}@example.com`), 'honeypot rows were never stored, so they cannot be exported');
 
-  console.log('✓ campaign: public calculator indicative and bounded, waitlist deduped, bot ignored, consent required, demand visible to Agyal only, no identity fields');
+  console.log('✓ campaign: public rate list indicative and bank-free, calculator indicative and bounded, waitlist deduped, bot ignored, consent required, demand visible to Agyal only, no identity fields');
   console.log('✓ campaign console: funnel, contacts and feedback readable by Agyal; CSV export platform-admin only');
   console.log('✓ demo accounts: opened funded with no KYC and no identity, deduped, code signs in, passwordless sign-in scoped to the demo tenant and non-enumerable');
 

@@ -86,6 +86,54 @@ export class CampaignService {
    * the real product uses, so the campaign can never quote numbers the platform
    * would not honour.
    */
+  /**
+   * Every live paper with an indicative rate, as a price list.
+   *
+   * The same pieces calculate() uses, without an amount: clientWaterfall
+   * already answers the two questions the page asks of each term, what the
+   * client nets and how that compares with a deposit.
+   *
+   * No bank is named. The only connected banks are simulators, and naming a
+   * counterparty that is not real on a public page is the one thing on it that
+   * could not be walked back.
+   */
+  async rates() {
+    const economics = await this.economics.platformDefaults();
+    const settlDate = addBusinessDays(new Date(), SETTLEMENT_DAYS);
+
+    const [instruments, indicative] = await this.db.asSystem((tx) =>
+      Promise.all([
+        tx.instrument.findMany({ where: { maturityDate: { gt: settlDate } } }),
+        tx.indicativeRate.findMany(),
+      ]),
+    );
+    const byIsin = new Map(indicative.map((r) => [r.isin, r]));
+
+    const rows = instruments
+      .map((i) => ({ i, rate: byIsin.get(i.isin) }))
+      .filter((r) => r.rate?.offerYield != null)
+      .map(({ i, rate }) => {
+        const termDays = daysBetween(settlDate, i.maturityDate);
+        const w = clientWaterfall(economics, i.type, Number(rate!.offerYield), termDays);
+        return {
+          type: i.type,
+          /** GOVERNMENT or COMPANY: the backing claim must never spread from one to the other. */
+          backing: i.type === 'TREASURY_BILL' || i.type === 'TREASURY_BOND' ? 'GOVERNMENT' : 'COMPANY',
+          nameEn: i.nameEn,
+          nameAr: i.nameAr,
+          termDays,
+          netYield: w.netYield,
+          depositRate: w.depositRate,
+          vsDeposit: w.vsDeposit,
+          belowDeposit: w.belowDeposit,
+          asOf: rate!.asOf,
+        };
+      })
+      .sort((a, b) => a.termDays - b.termDays);
+
+    return { indicative: true, rows };
+  }
+
   async calculate(amount: number, tenorDays: number, locale: string) {
     if (!(amount > 0)) throw new BadRequestException('Amount must be positive');
     const economics = await this.economics.platformDefaults();

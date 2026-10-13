@@ -143,6 +143,7 @@ export const LANDING = {
       'أجيال شركة تكنولوجيا. الاستثمار الحقيقي بيتم من خلال جهة مرخّصة من الهيئة العامة للرقابة المالية، وهي اللي بتحتفظ بفلوس العملاء. أجيال عمرها ما بتحتفظ بفلوسك ولا بأوراقك.',
     footerPrivacy:
       'بياناتك بنستخدمها علشان نتواصل معاك بس، وبنمسحها أول ما تطلب. مش بنطلب رقم قومي ولا مستندات ولا بيانات بنكية.',
+    footerBrand: 'الشعار والهوية',
 
     fbTitle: 'إحنا لسه بنبني. قوللنا رأيك.',
     fbLead: 'أي حاجة مش واضحة أو ناقصة أو مضايقاك، اكتبها هنا. بنقرا كل حاجة.',
@@ -278,6 +279,7 @@ export const LANDING = {
       'Agyal is a technology company. Real investing happens through an entity licensed by the Financial Regulatory Authority, which holds all client money. Agyal never holds your money or your securities.',
     footerPrivacy:
       'We use your details only to contact you, and delete them as soon as you ask. We do not ask for a national ID, documents or bank details.',
+    footerBrand: 'Logo and brand',
 
     fbTitle: 'We are still building. Tell us what you think.',
     fbLead: 'Anything unclear, missing or annoying, write it here. We read all of it.',

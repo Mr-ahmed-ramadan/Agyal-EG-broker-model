@@ -549,7 +549,9 @@ export function PublicLanding() {
         <div className="lp-in">
           <p>{t.footerLegal}</p>
           <p className="lp-fine">{t.footerPrivacy}</p>
-          <p className="lp-fine">© {new Date().getFullYear()} {t.brand}</p>
+          <p className="lp-fine">
+            © {new Date().getFullYear()} {t.brand} · <a href="/brand/" className="lp-foot-link">{t.footerBrand}</a>
+          </p>
         </div>
       </footer>
     </div>

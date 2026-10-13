@@ -134,6 +134,7 @@
 .lp-foot { background: var(--lp-forest-deep); color: #e9efe9; padding: 28px 0; }
 .lp-foot p { margin: 0 0 8px; font-size: 0.86rem; line-height: 1.6; max-width: 80ch; }
 .lp-foot .lp-fine { color: #b7c6bc; }
+.lp-foot-link { color: #e9efe9; text-underline-offset: 3px; }
 
 /* --- wider screens -------------------------------------------------------- */
 @media (min-width: 700px) {

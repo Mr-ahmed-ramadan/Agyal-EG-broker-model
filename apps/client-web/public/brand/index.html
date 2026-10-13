@@ -1,0 +1,267 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Agyal brand</title>
+<meta name="description" content="The Agyal logo, wordmarks, app icon and colours, free to download.">
+<link rel="icon" href="/brand/svg/agyal-arch-color.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Amiri:wght@700&family=Cormorant+Garamond:wght@600;700&family=Inter:wght@400;500;600&display=swap">
+<style>
+  /* Static on purpose: this page must load for anyone, with no API and no app
+     bundle. Paths are absolute so /brand and /brand/ both resolve. */
+  :root {
+    --paper: #f7f4ec; --card: #fffdf7; --ink: #16211b; --muted: #5f6d64;
+    --line: #e0d9c8; --forest: #2f5a45; --forest-deep: #1e3c2e; --bronze: #a8823a;
+    --display: "Cormorant Garamond", "Iowan Old Style", Georgia, serif;
+    --body: Inter, system-ui, -apple-system, "Segoe UI", sans-serif;
+    --arabic: Amiri, "Noto Naskh Arabic", serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper: #111613; --card: #19211c; --ink: #e8efe9; --muted: #94a39a;
+      --line: #273029; --forest: #6aa98a; --bronze: #c9a14e; color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper: #111613; --card: #19211c; --ink: #e8efe9; --muted: #94a39a;
+    --line: #273029; --forest: #6aa98a; --bronze: #c9a14e; color-scheme: dark;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 0 20px; background: var(--paper); color: var(--ink);
+    font-family: var(--body); font-size: 15px; line-height: 1.6;
+  }
+  .wrap { max-width: 980px; margin: 0 auto; padding-block: 28px 80px; }
+  a { color: inherit; }
+  h1, h2, h3 { font-family: var(--display); font-weight: 600; margin: 0; text-wrap: balance; }
+  h1 { font-size: clamp(2.3rem, 6vw, 3.4rem); line-height: 1.05; }
+  h2 { font-size: 1.75rem; }
+  h3 { font-size: 1.15rem; }
+  p { margin: 0; }
+  .muted { color: var(--muted); }
+  .note { font-size: 0.85rem; color: var(--muted); }
+  .eyebrow { font-size: 0.72rem; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: var(--bronze); }
+
+  .top { display: flex; justify-content: space-between; align-items: center; gap: 16px; }
+  .top a.home { display: flex; align-items: center; gap: 10px; text-decoration: none; font-family: var(--display); font-weight: 700; font-size: 1.35rem; }
+  .top a.home img { width: 30px; height: 30px; }
+
+  .hero { display: grid; gap: 14px; margin-top: 56px; }
+  .hero .lede { font-size: 1.05rem; color: var(--muted); max-width: 60ch; }
+  .hero .ar { justify-self: start; font-family: var(--arabic); font-size: 1.15rem; color: var(--muted); }
+  .actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 8px; }
+
+  .btn {
+    display: inline-flex; align-items: center; gap: 6px; text-decoration: none;
+    font-size: 0.85rem; font-weight: 500; border: 1px solid var(--line);
+    border-radius: 999px; padding: 6px 14px; background: var(--card); color: var(--ink);
+    font-variant-numeric: tabular-nums;
+  }
+  .btn:hover { border-color: var(--forest); }
+  .btn:focus-visible { outline: 2px solid var(--forest); outline-offset: 2px; }
+  .btn.primary { background: var(--forest); border-color: var(--forest); color: var(--paper); font-weight: 600; padding: 10px 20px; font-size: 0.95rem; }
+  .btn small { color: var(--muted); font-size: 0.75rem; }
+  .btn.primary small { color: inherit; opacity: 0.75; }
+
+  section { margin-top: 72px; display: grid; gap: 20px; }
+  .head { display: grid; gap: 6px; }
+
+  .grid { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(270px, 1fr)); }
+  .grid.one { grid-template-columns: minmax(0, 320px); }
+  .tile {
+    border: 1px solid var(--line); border-radius: 14px; overflow: hidden;
+    background: var(--card); display: flex; flex-direction: column; min-width: 0;
+  }
+  .stage { display: grid; place-items: center; padding: 32px 24px; min-height: 180px; }
+  .stage img { max-width: 100%; height: auto; }
+  .stage.light { background: #f7f4ec; }
+  .stage.dark { background: #1e3c2e; }
+  .stage.white { background: #ffffff; }
+  .meta { padding: 14px 16px 16px; display: grid; gap: 10px; border-top: 1px solid var(--line); }
+  .meta .row { display: flex; flex-wrap: wrap; gap: 8px; }
+
+  .swatches { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); }
+  .sw { border: 1px solid var(--line); border-radius: 12px; overflow: hidden; background: var(--card); }
+  .sw i { display: block; height: 64px; }
+  .sw div { padding: 10px 12px; display: grid; gap: 2px; }
+  .sw b { font-size: 0.88rem; font-weight: 600; }
+  .sw code { font-size: 0.78rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+  code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+
+  .type { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(270px, 1fr)); }
+  .type .tile { padding: 22px; gap: 8px; }
+  .type .sample { font-size: 2.6rem; line-height: 1.1; }
+
+  ul.rules { margin: 0; padding-inline-start: 20px; display: grid; gap: 6px; max-width: 70ch; }
+  footer { margin-top: 80px; padding-top: 20px; border-top: 1px solid var(--line); }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="top">
+    <a class="home" href="/"><img src="/brand/svg/agyal-arch-color.svg" alt="">Agyal</a>
+    <a class="btn" href="/brand/agyal-brand-kit.zip" download>Download kit <small>ZIP</small></a>
+  </header>
+
+  <div class="hero">
+    <p class="eyebrow">Brand</p>
+    <h1>The Agyal logo and how to use it</h1>
+    <p class="ar" lang="ar" dir="rtl">شعار أجيال وطريقة استخدامه</p>
+    <p class="lede">
+      أجيال means generations. The mark is three arches standing one inside the
+      next, the innermost lit in bronze: something built by one generation and
+      walked through by the ones after it. Everything here is free to download
+      for press, partners and anyone writing about Agyal.
+    </p>
+    <div class="actions">
+      <a class="btn primary" href="/brand/agyal-brand-kit.zip" download>Download everything <small>ZIP · SVG + PNG</small></a>
+    </div>
+  </div>
+
+  <section id="logo">
+    <div class="head">
+      <h2>The logo</h2>
+      <p class="note">Use the colour version on light grounds, ivory on dark or forest grounds, and one colour where only one ink is available. SVG scales to any size; PNGs are 1024&nbsp;px with a transparent background.</p>
+    </div>
+    <div class="grid">
+      <div class="tile">
+        <div class="stage light"><img src="/brand/svg/agyal-arch-color.svg" width="120" height="120" alt="Agyal logo, colour"></div>
+        <div class="meta"><h3>Colour</h3><div class="row">
+          <a class="btn" href="/brand/svg/agyal-arch-color.svg" download>SVG</a>
+          <a class="btn" href="/brand/png/agyal-arch-color-1024.png" download>PNG <small>1024</small></a>
+        </div></div>
+      </div>
+      <div class="tile">
+        <div class="stage dark"><img src="/brand/svg/agyal-arch-ivory.svg" width="120" height="120" alt="Agyal logo, ivory on forest"></div>
+        <div class="meta"><h3>Ivory</h3><div class="row">
+          <a class="btn" href="/brand/svg/agyal-arch-ivory.svg" download>SVG</a>
+          <a class="btn" href="/brand/png/agyal-arch-ivory-1024.png" download>PNG <small>1024</small></a>
+        </div></div>
+      </div>
+      <div class="tile">
+        <div class="stage white"><img src="/brand/svg/agyal-arch-mono.svg" width="120" height="120" alt="Agyal logo, one colour"></div>
+        <div class="meta"><h3>One colour</h3><div class="row">
+          <a class="btn" href="/brand/svg/agyal-arch-mono.svg" download>SVG</a>
+          <a class="btn" href="/brand/png/agyal-arch-mono-1024.png" download>PNG <small>1024</small></a>
+        </div></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="wordmark">
+    <div class="head">
+      <h2>Logo with name</h2>
+      <p class="note">The name sits on the arch's floor. Cormorant Garamond for Agyal, Amiri for أجيال — a revival of the Bulaq Press type cut in Cairo. The letters are outlined, so the files look right without either font installed.</p>
+    </div>
+    <div class="grid">
+      <div class="tile">
+        <div class="stage light"><img src="/brand/svg/agyal-lockup-en-color.svg" width="260" alt="Agyal logo with English name"></div>
+        <div class="meta"><h3>English</h3><div class="row">
+          <a class="btn" href="/brand/svg/agyal-lockup-en-color.svg" download>SVG</a>
+          <a class="btn" href="/brand/png/agyal-lockup-en-color.png" download>PNG</a>
+          <a class="btn" href="/brand/svg/agyal-lockup-en-ivory.svg" download>Ivory <small>SVG</small></a>
+          <a class="btn" href="/brand/png/agyal-lockup-en-ivory.png" download>Ivory <small>PNG</small></a>
+          <a class="btn" href="/brand/svg/agyal-lockup-en-mono.svg" download>One colour <small>SVG</small></a>
+          <a class="btn" href="/brand/png/agyal-lockup-en-mono.png" download>One colour <small>PNG</small></a>
+        </div></div>
+      </div>
+      <div class="tile">
+        <div class="stage light"><img src="/brand/svg/agyal-lockup-ar-color.svg" width="260" alt="شعار أجيال مع الاسم بالعربية"></div>
+        <div class="meta"><h3>Arabic · عربي</h3><div class="row">
+          <a class="btn" href="/brand/svg/agyal-lockup-ar-color.svg" download>SVG</a>
+          <a class="btn" href="/brand/png/agyal-lockup-ar-color.png" download>PNG</a>
+          <a class="btn" href="/brand/svg/agyal-lockup-ar-ivory.svg" download>Ivory <small>SVG</small></a>
+          <a class="btn" href="/brand/png/agyal-lockup-ar-ivory.png" download>Ivory <small>PNG</small></a>
+          <a class="btn" href="/brand/svg/agyal-lockup-ar-mono.svg" download>One colour <small>SVG</small></a>
+          <a class="btn" href="/brand/png/agyal-lockup-ar-mono.png" download>One colour <small>PNG</small></a>
+        </div></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="icon">
+    <div class="head">
+      <h2>App icon</h2>
+      <p class="note">For app stores, social avatars and home-screen shortcuts. The 180&nbsp;px PNG is the size iOS asks for.</p>
+    </div>
+    <div class="grid one">
+      <div class="tile">
+        <div class="stage light"><img src="/brand/svg/agyal-app-icon.svg" width="120" height="120" alt="Agyal app icon"></div>
+        <div class="meta"><h3>Icon</h3><div class="row">
+          <a class="btn" href="/brand/svg/agyal-app-icon.svg" download>SVG</a>
+          <a class="btn" href="/brand/png/agyal-app-icon-1024.png" download>PNG <small>1024</small></a>
+          <a class="btn" href="/brand/png/agyal-app-icon-180.png" download>PNG <small>180</small></a>
+        </div></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="alternates">
+    <div class="head">
+      <h2>Alternate marks</h2>
+      <p class="note">The seal is the same doorway inside a ring, for stamps and statements. The ladder draws a maturity ladder. Both use the same colours; the arch above is the logo.</p>
+    </div>
+    <div class="grid">
+      <div class="tile">
+        <div class="stage light"><img src="/brand/svg/agyal-seal-color.svg" width="110" height="110" alt="Agyal seal"></div>
+        <div class="meta"><h3>Seal</h3><div class="row">
+          <a class="btn" href="/brand/svg/agyal-seal-color.svg" download>SVG</a>
+          <a class="btn" href="/brand/png/agyal-seal-color-1024.png" download>PNG</a>
+          <a class="btn" href="/brand/svg/agyal-seal-ivory.svg" download>Ivory <small>SVG</small></a>
+          <a class="btn" href="/brand/svg/agyal-seal-mono.svg" download>One colour <small>SVG</small></a>
+        </div></div>
+      </div>
+      <div class="tile">
+        <div class="stage light"><img src="/brand/svg/agyal-ladder-color.svg" width="110" height="110" alt="Agyal ladder"></div>
+        <div class="meta"><h3>Ladder</h3><div class="row">
+          <a class="btn" href="/brand/svg/agyal-ladder-color.svg" download>SVG</a>
+          <a class="btn" href="/brand/png/agyal-ladder-color-1024.png" download>PNG</a>
+          <a class="btn" href="/brand/svg/agyal-ladder-ivory.svg" download>Ivory <small>SVG</small></a>
+          <a class="btn" href="/brand/svg/agyal-ladder-mono.svg" download>One colour <small>SVG</small></a>
+        </div></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="colour">
+    <div class="head"><h2>Colour</h2></div>
+    <div class="swatches">
+      <div class="sw"><i style="background:#2f5a45"></i><div><b>Forest</b><code>#2F5A45</code><code>RGB 47 90 69</code></div></div>
+      <div class="sw"><i style="background:#1e3c2e"></i><div><b>Forest deep</b><code>#1E3C2E</code><code>RGB 30 60 46</code></div></div>
+      <div class="sw"><i style="background:#a8823a"></i><div><b>Bronze</b><code>#A8823A</code><code>RGB 168 130 58</code></div></div>
+      <div class="sw"><i style="background:#f7f4ec"></i><div><b>Ivory</b><code>#F7F4EC</code><code>RGB 247 244 236</code></div></div>
+    </div>
+  </section>
+
+  <section id="type">
+    <div class="head"><h2>Type</h2><p class="note">All three are free under the SIL Open Font License.</p></div>
+    <div class="type">
+      <div class="tile"><span class="sample" style="font-family:var(--display);font-weight:700">Agyal</span><b>Cormorant Garamond</b><a class="note" href="https://fonts.google.com/specimen/Cormorant+Garamond" target="_blank" rel="noopener">Headings and the English name</a></div>
+      <div class="tile"><span class="sample" style="font-family:var(--arabic);font-weight:700" lang="ar">أجيال</span><b>Amiri</b><a class="note" href="https://fonts.google.com/specimen/Amiri" target="_blank" rel="noopener">The Arabic name</a></div>
+      <div class="tile"><span class="sample" style="font-family:var(--body);font-weight:500;font-size:2rem">Aa 123</span><b>Inter</b><a class="note" href="https://fonts.google.com/specimen/Inter" target="_blank" rel="noopener">Body text and numbers</a></div>
+    </div>
+  </section>
+
+  <section id="rules">
+    <div class="head"><h2>Please don't</h2></div>
+    <ul class="rules muted">
+      <li>Recolour the mark, or swap the bronze doorway for any other colour.</li>
+      <li>Stretch, tilt, outline, or add shadows, gradients or effects.</li>
+      <li>Put the colour version on a dark ground — use ivory instead.</li>
+      <li>Crowd it: keep clear space on every side at least the height of the bronze doorway.</li>
+      <li>Retype the name in another font. Use the files as they are.</li>
+    </ul>
+  </section>
+
+  <footer class="note">
+    Agyal is a technology company. Real investing happens through an entity licensed by the Financial Regulatory Authority, which holds all client money. Agyal never holds your money or your securities.
+    · <a href="/">invest.egypt.agyal.net</a>
+  </footer>
+
+</div>
+</body>
+</html>
